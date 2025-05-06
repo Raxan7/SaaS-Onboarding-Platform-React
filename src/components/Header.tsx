@@ -1,9 +1,10 @@
-import { AppBar, Toolbar, Container, Button, Box, useScrollTrigger, Typography, styled, Menu, MenuItem, IconButton } from '@mui/material';
-import { Link, LinkProps } from 'react-router-dom';
+import { AppBar, Toolbar, Container, Button, Box, useScrollTrigger, Typography, styled, Menu, MenuItem, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useState } from 'react';
-import logo from './logo.jpg'; // Correctly import the logo
+import logo from './logo.jpg';
 
 // Define props for the styled buttons
 interface StyledButtonProps {
@@ -13,16 +14,18 @@ interface StyledButtonProps {
 
 // Styled button with animation
 const AnimatedButton = styled(Button)<StyledButtonProps>(({ theme }) => ({
-  transition: 'all 0.3s ease',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: theme.shadows[2],
+    boxShadow: theme.shadows[4],
+    backgroundColor: theme.palette.primary.dark,
   },
 }));
 
 const NavButton = styled(Button)<StyledButtonProps>(({ theme }) => ({
-  fontWeight: 500,
+  fontWeight: 600,
   position: 'relative',
+  letterSpacing: '0.5px',
   '&:after': {
     content: '""',
     position: 'absolute',
@@ -32,14 +35,17 @@ const NavButton = styled(Button)<StyledButtonProps>(({ theme }) => ({
     left: '50%',
     transform: 'translateX(-50%)',
     backgroundColor: theme.palette.primary.main,
-    transition: 'width 0.3s ease',
+    transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   '&:hover:after': {
-    width: '70%',
+    width: '80%',
   },
 }));
 
 export default function Header() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 50,
@@ -63,16 +69,18 @@ export default function Header() {
       sx={{
         backgroundColor: trigger ? 'background.paper' : 'transparent',
         color: trigger ? 'text.primary' : 'common.white',
-        transition: 'all 0.3s ease',
-        py: 1,
-        backdropFilter: trigger ? 'none' : 'blur(10px)',
-        background: trigger ? '' : 'rgba(0, 0, 0, 0.2)',
-        borderBottom: trigger ? `1px solid` : 'none',
-        borderColor: trigger ? 'divider' : 'transparent',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        backdropFilter: trigger ? 'none' : 'blur(12px)',
+        background: trigger ? '' : 'rgba(15, 23, 42, 0.8)',
+        borderBottom: trigger ? `1px solid ${theme.palette.divider}` : 'none',
       }}
     >
-      <Container maxWidth="lg">
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 2 } }}>
+      <Container maxWidth="xl">
+        <Toolbar sx={{ 
+          justifyContent: 'space-between', 
+          px: { xs: 2, sm: 3 },
+          minHeight: { xs: 64, sm: 72 }
+        }}>
           <Box 
             component={Link} 
             to="/" 
@@ -82,7 +90,7 @@ export default function Header() {
               alignItems: 'center',
               transition: 'all 0.3s ease',
               '&:hover': {
-                transform: 'scale(1.05)',
+                transform: 'scale(1.03)',
               }
             }}
           >
@@ -94,40 +102,62 @@ export default function Header() {
               <img 
                 src={logo} 
                 alt="Logo" 
-                height="40" 
+                height={isMobile ? 36 : 40}
                 style={{
-                  transition: 'filter 0.3s ease',
+                  transition: 'all 0.3s ease',
+                  filter: trigger ? 'none' : 'brightness(1)', // Ensure logo is always visible
                 }}
               />
-              {!trigger && (
-                <Typography 
-                  variant="h6" 
-                  component="span" 
-                  sx={{ 
-                    ml: 2, 
-                    fontWeight: 700,
-                    display: { xs: 'none', md: 'inline' }
-                  }}
-                >
-                  SaaS
-                </Typography>
-              )}
             </motion.div>
+            <Typography 
+              variant="h6" 
+              component="span" 
+              sx={{ 
+                ml: 2, 
+                fontWeight: 700,
+                display: { xs: 'none', sm: 'inline' },
+                color: trigger ? theme.palette.primary.main : 'common.white',
+                transition: 'color 0.3s ease'
+              }}
+            >
+              SaaS
+            </Typography>
           </Box>
 
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: { xs: 1, sm: 2 } }}>
+          {/* Desktop Navigation */}
+          <Box sx={{ 
+            display: { xs: 'none', md: 'flex' }, 
+            gap: 3,
+            alignItems: 'center'
+          }}>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <NavButton 
-                component={Link as React.ElementType}
+                component={Link}
+                to="/features" 
+                color="inherit"
+                sx={{
+                  color: trigger ? 'text.primary' : 'common.white',
+                }}
+              >
+                Features
+              </NavButton>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <NavButton 
+                component={Link}
                 to="/pricing" 
                 color="inherit"
                 sx={{
                   color: trigger ? 'text.primary' : 'common.white',
-                  display: { xs: 'none', sm: 'inline-flex' }
                 }}
               >
                 Pricing
@@ -140,26 +170,58 @@ export default function Header() {
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <AnimatedButton
-                component={Link as React.ElementType}
+                component={Link}
                 to="/onboarding"
                 variant={trigger ? "contained" : "outlined"}
                 color={trigger ? "primary" : "inherit"}
                 sx={{
-                  color: trigger ? '' : 'common.white',
-                  borderColor: trigger ? '' : 'rgba(255,255,255,0.5)',
-                  px: { xs: 2, sm: 3 },
+                  color: trigger ? 'common.white' : 'common.white',
+                  borderColor: trigger ? '' : 'rgba(255,255,255,0.3)',
+                  px: 3,
                   py: 1,
                   borderRadius: 2,
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    borderColor: trigger ? '' : 'common.white',
+                    borderColor: trigger ? '' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: trigger ? theme.palette.primary.dark : 'rgba(255,255,255,0.1)'
                   }
                 }}
               >
                 Start Free Trial
               </AnimatedButton>
             </motion.div>
+          </Box>
+
+          {/* Tablet Navigation (simplified) */}
+          <Box sx={{ display: { xs: 'none', sm: 'flex', md: 'none' }, gap: 2 }}>
+            <AnimatedButton
+              component={Link}
+              to="/pricing"
+              color="inherit"
+              sx={{
+                color: trigger ? 'text.primary' : 'common.white',
+                fontWeight: 600,
+              }}
+            >
+              Pricing
+            </AnimatedButton>
+            <AnimatedButton
+              component={Link}
+              to="/onboarding"
+              variant={trigger ? "contained" : "outlined"}
+              color={trigger ? "primary" : "inherit"}
+              sx={{
+                color: trigger ? 'common.white' : 'common.white',
+                borderColor: 'rgba(255,255,255,0.3)',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+              }}
+            >
+              Start Trial
+            </AnimatedButton>
           </Box>
 
           {/* Mobile Menu */}
@@ -170,18 +232,68 @@ export default function Header() {
               color="inherit"
               aria-label="menu"
               onClick={handleMenuOpen}
+              sx={{
+                p: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
             >
-              <MenuIcon />
+              {open ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
             <Menu
               anchorEl={anchorEl}
               open={open}
               onClose={handleMenuClose}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              sx={{
+                '& .MuiPaper-root': {
+                  minWidth: 200,
+                  borderRadius: 2,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                  mt: 1,
+                },
+                '& .MuiMenuItem-root': {
+                  py: 1.5,
+                  px: 3,
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 107, 194, 0.08)',
+                  }
+                }
+              }}
             >
-              <MenuItem onClick={handleMenuClose} component={Link} to="/pricing">Pricing</MenuItem>
-              <MenuItem onClick={handleMenuClose} component={Link} to="/onboarding">Start Free Trial</MenuItem>
+              <MenuItem 
+                onClick={handleMenuClose} 
+                component={Link} 
+                to="/features"
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
+                Features
+              </MenuItem>
+              <MenuItem 
+                onClick={handleMenuClose} 
+                component={Link} 
+                to="/pricing"
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
+                Pricing
+              </MenuItem>
+              <MenuItem 
+                onClick={handleMenuClose} 
+                component={Link} 
+                to="/onboarding"
+                sx={{
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                }}
+              >
+                Start Free Trial
+              </MenuItem>
             </Menu>
           </Box>
         </Toolbar>
