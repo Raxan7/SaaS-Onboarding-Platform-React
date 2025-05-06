@@ -3,6 +3,7 @@ import { Link, LinkProps } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
+import logo from './logo.jpg'; // Correctly import the logo
 
 // Define props for the styled buttons
 interface StyledButtonProps {
@@ -36,26 +37,6 @@ const NavButton = styled(Button)<StyledButtonProps>(({ theme }) => ({
   '&:hover:after': {
     width: '70%',
   },
-}));
-
-const StyledMenu = styled(Menu)(({ theme }) => ({
-  '& .MuiPaper-root': {
-    backgroundColor: theme.palette.background.default,
-    boxShadow: theme.shadows[5],
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
-    minWidth: '200px',
-  },
-}));
-
-const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-    color: theme.palette.primary.main,
-  },
-  transition: 'all 0.3s ease',
-  borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(1.5),
 }));
 
 export default function Header() {
@@ -111,11 +92,10 @@ export default function Header() {
               transition={{ duration: 0.5 }}
             >
               <img 
-                src="logo.jpg" 
+                src={logo} 
                 alt="Logo" 
                 height="40" 
                 style={{
-                  filter: trigger ? 'none' : 'brightness(0) invert(1)',
                   transition: 'filter 0.3s ease',
                 }}
               />
@@ -129,7 +109,7 @@ export default function Header() {
                     display: { xs: 'none', md: 'inline' }
                   }}
                 >
-                  SaaS Onboarding
+                  SaaS
                 </Typography>
               )}
             </motion.div>
@@ -193,16 +173,16 @@ export default function Header() {
             >
               <MenuIcon />
             </IconButton>
-            <StyledMenu
+            <Menu
               anchorEl={anchorEl}
               open={open}
               onClose={handleMenuClose}
               anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-              <StyledMenuItem onClick={handleMenuClose} component={Link} to="/pricing">Pricing</StyledMenuItem>
-              <StyledMenuItem onClick={handleMenuClose} component={Link} to="/onboarding">Start Free Trial</StyledMenuItem>
-            </StyledMenu>
+              <MenuItem onClick={handleMenuClose} component={Link} to="/pricing">Pricing</MenuItem>
+              <MenuItem onClick={handleMenuClose} component={Link} to="/onboarding">Start Free Trial</MenuItem>
+            </Menu>
           </Box>
         </Toolbar>
       </Container>
