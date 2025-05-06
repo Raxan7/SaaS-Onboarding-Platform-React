@@ -1,4 +1,4 @@
-import { Box, Typography, Grid, Card, CardContent, IconButton, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, IconButton } from '@mui/material';
 import { motion, useAnimation } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
@@ -45,8 +45,6 @@ const defaultUseCases: UseCase[] = [
 ];
 
 const VideoDemoWithUseCases = ({ useCases = defaultUseCases }: VideoDemoWithUseCasesProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isHovered, setIsHovered] = useState(false);
   const controls = useAnimation();
 

@@ -45,7 +45,6 @@ const NavButton = styled(Button)<StyledButtonProps>(({ theme }) => ({
 export default function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 50,
