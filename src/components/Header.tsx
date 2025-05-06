@@ -135,8 +135,8 @@ export default function Header() {
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <NavButton 
-                component={Link}
-                to="/features" 
+                component="a" 
+                href="#feature-showcase" 
                 color="inherit"
                 sx={{
                   color: trigger ? 'text.primary' : 'common.white',

@@ -300,7 +300,7 @@ export default function Home() {
         zIndex: 2
       }}>
         {/* Feature Showcase */}
-        <Container maxWidth="lg" sx={{
+        <Container id="feature-showcase" maxWidth="lg" sx={{
           py: { xs: 8, sm: 10, md: 12 },
           position: 'relative'
         }}>
