@@ -62,112 +62,133 @@ export default function Header() {
   };
 
   return (
-    <AppBar
-      position="fixed"
-      elevation={trigger ? 4 : 0}
-      sx={{
-        backgroundColor: trigger ? 'background.paper' : 'transparent',
-        color: trigger ? 'text.primary' : 'common.white',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        backdropFilter: trigger ? 'none' : 'blur(12px)',
-        background: trigger ? '' : 'rgba(15, 23, 42, 0.8)',
-        borderBottom: trigger ? `1px solid ${theme.palette.divider}` : 'none',
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar sx={{ 
-          justifyContent: 'space-between', 
-          px: { xs: 2, sm: 3 },
-          minHeight: { xs: 64, sm: 72 }
-        }}>
-          <Box 
-            component={Link} 
-            to="/" 
-            sx={{ 
-              textDecoration: 'none', 
-              display: 'flex', 
-              alignItems: 'center',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.03)',
-              }
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <img 
-                src={logo} 
-                alt="Logo" 
-                height={isMobile ? 36 : 40}
-                style={{
-                  transition: 'all 0.3s ease',
-                  filter: trigger ? 'none' : 'brightness(1)', // Ensure logo is always visible
-                }}
-              />
-            </motion.div>
-            <Typography 
-              variant="h6" 
-              component="span" 
+    <>
+      <AppBar
+        position="fixed"
+        elevation={trigger ? 4 : 0}
+        sx={{
+          backgroundColor: trigger ? 'background.paper' : 'transparent',
+          color: trigger ? 'text.primary' : 'common.white',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          backdropFilter: trigger ? 'none' : 'blur(12px)',
+          background: trigger ? '' : 'rgba(15, 23, 42, 0.8)',
+          borderBottom: trigger ? `1px solid ${theme.palette.divider}` : 'none',
+        }}
+      >
+        <Container maxWidth="xl">
+          <Toolbar sx={{ 
+            justifyContent: 'space-between', 
+            px: { xs: 2, sm: 3 },
+            minHeight: { xs: 64, sm: 72 }
+          }}>
+            <Box 
+              component={Link} 
+              to="/" 
               sx={{ 
-                ml: 2, 
-                fontWeight: 700,
-                display: { xs: 'none', sm: 'inline' },
-                color: trigger ? theme.palette.primary.main : 'common.white',
-                transition: 'color 0.3s ease'
+                textDecoration: 'none', 
+                display: 'flex', 
+                alignItems: 'center',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.03)',
+                }
               }}
             >
-              SaaS
-            </Typography>
-          </Box>
-
-          {/* Desktop Navigation */}
-          <Box sx={{ 
-            display: { xs: 'none', md: 'flex' }, 
-            gap: 3,
-            alignItems: 'center'
-          }}>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <NavButton 
-                component="a" 
-                href="#feature-showcase" 
-                color="inherit"
-                sx={{
-                  color: trigger ? 'text.primary' : 'common.white',
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <img 
+                  src={logo} 
+                  alt="Logo" 
+                  height={isMobile ? 36 : 40}
+                  style={{
+                    transition: 'all 0.3s ease',
+                    filter: trigger ? 'none' : 'brightness(1)', // Ensure logo is always visible
+                  }}
+                />
+              </motion.div>
+              <Typography 
+                variant="h6" 
+                component="span" 
+                sx={{ 
+                  ml: 2, 
+                  fontWeight: 700,
+                  display: { xs: 'none', sm: 'inline' },
+                  color: trigger ? theme.palette.primary.main : 'common.white',
+                  transition: 'color 0.3s ease'
                 }}
               >
-                Features
-              </NavButton>
-            </motion.div>
+                SaaS
+              </Typography>
+            </Box>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-            >
-              <NavButton 
+            {/* Desktop Navigation */}
+            <Box sx={{ 
+              display: { xs: 'none', md: 'flex' }, 
+              gap: 3,
+              alignItems: 'center'
+            }}>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+              >
+                <NavButton 
+                  component={Link}
+                  to="/pricing" 
+                  color="inherit"
+                  sx={{
+                    color: trigger ? 'text.primary' : 'common.white',
+                  }}
+                >
+                  Pricing
+                </NavButton>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <AnimatedButton
+                  component={Link}
+                  to="/onboarding"
+                  variant={trigger ? "contained" : "outlined"}
+                  color={trigger ? "primary" : "inherit"}
+                  sx={{
+                    color: trigger ? 'common.white' : 'common.white',
+                    borderColor: trigger ? '' : 'rgba(255,255,255,0.3)',
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      borderColor: trigger ? '' : 'rgba(255,255,255,0.6)',
+                      backgroundColor: trigger ? theme.palette.primary.dark : 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
+                  Start Free Trial
+                </AnimatedButton>
+              </motion.div>
+            </Box>
+
+            {/* Tablet Navigation (simplified) */}
+            <Box sx={{ display: { xs: 'none', sm: 'flex', md: 'none' }, gap: 2 }}>
+              <AnimatedButton
                 component={Link}
-                to="/pricing" 
+                to="/pricing"
                 color="inherit"
                 sx={{
                   color: trigger ? 'text.primary' : 'common.white',
+                  fontWeight: 600,
                 }}
               >
                 Pricing
-              </NavButton>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
+              </AnimatedButton>
               <AnimatedButton
                 component={Link}
                 to="/onboarding"
@@ -175,128 +196,83 @@ export default function Header() {
                 color={trigger ? "primary" : "inherit"}
                 sx={{
                   color: trigger ? 'common.white' : 'common.white',
-                  borderColor: trigger ? '' : 'rgba(255,255,255,0.3)',
-                  px: 3,
+                  borderColor: 'rgba(255,255,255,0.3)',
+                  px: 2,
                   py: 1,
                   borderRadius: 2,
                   fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  '&:hover': {
-                    borderColor: trigger ? '' : 'rgba(255,255,255,0.6)',
-                    backgroundColor: trigger ? theme.palette.primary.dark : 'rgba(255,255,255,0.1)'
-                  }
                 }}
               >
-                Start Free Trial
+                Start Trial
               </AnimatedButton>
-            </motion.div>
-          </Box>
+            </Box>
 
-          {/* Tablet Navigation (simplified) */}
-          <Box sx={{ display: { xs: 'none', sm: 'flex', md: 'none' }, gap: 2 }}>
-            <AnimatedButton
-              component={Link}
-              to="/pricing"
-              color="inherit"
-              sx={{
-                color: trigger ? 'text.primary' : 'common.white',
-                fontWeight: 600,
-              }}
-            >
-              Pricing
-            </AnimatedButton>
-            <AnimatedButton
-              component={Link}
-              to="/onboarding"
-              variant={trigger ? "contained" : "outlined"}
-              color={trigger ? "primary" : "inherit"}
-              sx={{
-                color: trigger ? 'common.white' : 'common.white',
-                borderColor: 'rgba(255,255,255,0.3)',
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-              }}
-            >
-              Start Trial
-            </AnimatedButton>
-          </Box>
-
-          {/* Mobile Menu */}
-          <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleMenuOpen}
-              sx={{
-                p: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)'
-                }
-              }}
-            >
-              {open ? <CloseIcon /> : <MenuIcon />}
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleMenuClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              sx={{
-                '& .MuiPaper-root': {
-                  minWidth: 200,
-                  borderRadius: 2,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                  mt: 1,
-                },
-                '& .MuiMenuItem-root': {
-                  py: 1.5,
-                  px: 3,
+            {/* Mobile Menu */}
+            <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleMenuOpen}
+                sx={{
+                  p: 1,
                   '&:hover': {
-                    backgroundColor: 'rgba(0, 107, 194, 0.08)',
+                    backgroundColor: 'rgba(255,255,255,0.1)'
                   }
-                }
-              }}
-            >
-              <MenuItem 
-                onClick={handleMenuClose} 
-                component={Link} 
-                to="/features"
-                sx={{
-                  fontWeight: 500,
                 }}
               >
-                Features
-              </MenuItem>
-              <MenuItem 
-                onClick={handleMenuClose} 
-                component={Link} 
-                to="/pricing"
+                {open ? <CloseIcon /> : <MenuIcon />}
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 sx={{
-                  fontWeight: 500,
+                  '& .MuiPaper-root': {
+                    minWidth: 200,
+                    borderRadius: 2,
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                    mt: 1,
+                  },
+                  '& .MuiMenuItem-root': {
+                    py: 1.5,
+                    px: 3,
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 107, 194, 0.08)',
+                    }
+                  }
                 }}
               >
-                Pricing
-              </MenuItem>
-              <MenuItem 
-                onClick={handleMenuClose} 
-                component={Link} 
-                to="/onboarding"
-                sx={{
-                  color: theme.palette.primary.main,
-                  fontWeight: 600,
-                }}
-              >
-                Start Free Trial
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+                <MenuItem 
+                  onClick={handleMenuClose} 
+                  component={Link} 
+                  to="/pricing"
+                  sx={{
+                    fontWeight: 500,
+                  }}
+                >
+                  Pricing
+                </MenuItem>
+                <MenuItem 
+                  onClick={handleMenuClose} 
+                  component={Link} 
+                  to="/onboarding"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    fontWeight: 600,
+                  }}
+                >
+                  Start Free Trial
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+      <Box sx={{ height: { xs: '64px', sm: '72px' } }} />
+    </>
   );
 }
