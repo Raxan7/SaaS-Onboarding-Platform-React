@@ -7,6 +7,7 @@ import FeatureShowcase from '../components/FeatureShowcase';
 import Testimonials from '../components/Testimonials';
 import MeetingGuarantee from '../components/MeetingGuarantee';
 import VideoDemoWithUseCases from '../components/VideoDemoWithUseCases';
+import LiveChat from '../components/LiveChat';
 
 // Floating background animation
 const floatAnimation = keyframes`
@@ -342,6 +343,7 @@ export default function Home() {
         backgroundColor: 'background.default',
         zIndex: 2
       }}>
+        <LiveChat />
         <Container maxWidth="lg" sx={{
           py: { xs: 8, sm: 10, md: 12 },
           position: 'relative'
