@@ -3,6 +3,7 @@ import { Container, Box, TextField, Button, Typography, Link } from '@mui/materi
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../utils/constants';
 
 const LoginPage = () => {
   const { login, isAuthenticated, userType } = useAuth();
@@ -48,7 +49,7 @@ const LoginPage = () => {
         return;
       }
 
-      const response = await fetch('/api/auth/token/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
