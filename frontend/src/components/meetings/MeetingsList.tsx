@@ -90,17 +90,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     }
   };
 
-  const handleStartMeeting = async (meetingId: number) => {
-    try {
-      const updatedMeeting = await apiClient.put(`/api/meetings/${meetingId}/start/`, {});
-      setMeetings(meetings.map(m => 
-        m.id === meetingId ? updatedMeeting : m
-      ));
-    } catch (error) {
-      console.error('Error starting meeting:', error);
-    }
-  };
-
   const statusOptions = [
     { value: 'confirmed', label: 'Confirm' },
     { value: 'rescheduled', label: 'Reschedule' },

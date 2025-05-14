@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AccountStep = () => {
   const { data, setData } = useOnboarding();
-  const { login, setPartialAuth } = useAuth();
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();

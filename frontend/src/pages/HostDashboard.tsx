@@ -13,7 +13,6 @@ const HostDashboard = () => {
     upcomingMeetings: 0,
     completedMeetings: 0,
   });
-  const [embeddedMeetingUrl, setEmbeddedMeetingUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {

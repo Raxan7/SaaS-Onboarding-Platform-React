@@ -19,7 +19,6 @@ const PaymentStep = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [paymentInitiated, setPaymentInitiated] = useState(false);
   const navigate = useNavigate();
   const apiClient = useMemo(() => createApiClient(getAuthHeader), [getAuthHeader]);
 
@@ -194,7 +193,7 @@ const PaymentStep = () => {
         <Button
           variant="contained"
           onClick={debouncedHandlePayment}
-          disabled={!data.payment.planId || loading || paymentInitiated}
+          disabled={!data.payment.planId || loading}
         >
           {loading ? <CircularProgress size={24} /> : 'Continue to Payment'}
         </Button>
