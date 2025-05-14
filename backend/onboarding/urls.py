@@ -1,0 +1,16 @@
+# onboarding/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CompleteOnboardingAPIView, OnboardingStepListAPIView, UserOnboardingViewSet, UserOnboardingStatusAPIView, CompanyInfoAPIView, UpdateOnboardingStepAPIView
+
+router = DefaultRouter()
+router.register(r'user-onboarding', UserOnboardingViewSet, basename='user-onboarding')
+
+urlpatterns = [
+    path('steps/', OnboardingStepListAPIView.as_view(), name='onboarding-step-list'),
+    path('user-onboarding-status/', UserOnboardingStatusAPIView.as_view(), name='user-onboarding-status'),
+    path('complete/', CompleteOnboardingAPIView.as_view(), name='complete-onboarding'),
+    path('company/', CompanyInfoAPIView.as_view(), name='company-info'),
+    path('update-step/', UpdateOnboardingStepAPIView.as_view(), name='update-onboarding-step'),
+    path('', include(router.urls)),  # This includes all ViewSet URLs
+]
