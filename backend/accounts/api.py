@@ -101,10 +101,11 @@ def get_csrf_token(request):
         response.set_cookie(
             'csrftoken',
             csrf_token,
-            samesite='Lax',
-            secure=False,  # True in production
+            samesite='None',  # Changed to 'None'
+            secure=True,      # Must be True in production
             httponly=False,
-            path='/'
+            path='/',
+            domain='.onrender.com'  # Allows subdomains to access the cookie
         )
         return response
     except Exception as e:
