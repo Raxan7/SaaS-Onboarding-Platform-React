@@ -3,14 +3,14 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, isOnboardingComplete } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   // If authenticated but onboarding isn't complete, redirect to onboarding
-  if (!isOnboardingComplete && window.location.pathname !== '/onboarding') {
+  if (window.location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 
