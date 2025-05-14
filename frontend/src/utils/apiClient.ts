@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export const createApiClient = () => {
+export const createApiClient = (getAuthHeader: () => { Authorization: string } | {}) => {
   const apiClient = async (endpoint: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('token');
     if (!token || token === 'null') {
@@ -51,5 +51,6 @@ export const createApiClient = () => {
 };
 
 export const useApiClient = () => {
-  return createApiClient();
+  const { getAuthHeader } = useAuth();
+  return createApiClient(getAuthHeader);
 };
