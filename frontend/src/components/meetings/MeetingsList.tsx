@@ -136,7 +136,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                     )}
                   </Box>
                   
-                  {console.log('Meeting object:', meeting)}
                   {meeting?.status ? (
                     <Chip 
                       label={meeting.status.toUpperCase()} 
@@ -170,7 +169,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {userType === 'host' && meeting?.id && (
                         <Box mt={2} display="flex" gap={1}>
-                          {console.log('Rendering meeting:', meeting)}
                           <Button 
                             variant="contained" 
                             size="small"
