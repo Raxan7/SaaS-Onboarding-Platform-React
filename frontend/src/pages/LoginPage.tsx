@@ -14,7 +14,7 @@ const LoginPage = () => {
 
   const fetchCsrfToken = async () => {
     try {
-      const response = await fetch('/api/auth/csrf/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
         method: 'GET',
         credentials: 'include',
       });
