@@ -13,7 +13,8 @@ import '@fontsource/inter/700.css';
 import axios from 'axios';
 
 // Set base URL for API requests
-axios.defaults.baseURL = 'http://localhost:8000/api/';
+// axios.defaults.baseURL = 'http://localhost:8000/api/';
+axios.defaults.baseURL = 'https://saas-onboarding-platform-react.onrender.com';
 
 // Set withCredentials to true for session-based auth
 axios.defaults.withCredentials = true;
