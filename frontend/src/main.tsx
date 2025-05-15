@@ -13,43 +13,37 @@ import '@fontsource/inter/700.css';
 import axios from 'axios';
 
 // Set base URL for API requests
-// axios.defaults.baseURL = 'http://localhost:8000/api/';
-axios.defaults.baseURL = 'https://saas-onboarding-platform-react.onrender.com';
+// axios.defaults.baseURL = 'https://saas-onboarding-platform-react.onrender.com/api/';
+axios.defaults.baseURL = 'http://localhost:8000/api/';
 
-// Set withCredentials to true for session-based auth
+// Ensure credentials are included
 axios.defaults.withCredentials = true;
 
-// Get CSRF token from cookies
+// Enhanced getCookie function
 function getCookie(name: string) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
 }
 
-// Set CSRF token for requests
-const csrftoken = getCookie('csrftoken');
-axios.defaults.headers.common['X-CSRFToken'] = csrftoken;
-
-// Add auth token to requests if available
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Token ${token}`;
+// Initialize CSRF token
+const initializeCSRF = async () => {
+  try {
+    await axios.get('/auth/csrf/');
+    const csrfToken = getCookie('csrftoken');
+    if (csrfToken) {
+      axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+    }
+  } catch (error) {
+    console.error('CSRF initialization failed:', error);
   }
-  return config;
-});
+};
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Call this before rendering your app
+initializeCSRF().then(() => {
+  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+});

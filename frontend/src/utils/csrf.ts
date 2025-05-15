@@ -25,3 +25,26 @@ export async function fetchCSRFToken(): Promise<string | null> {
         return null;
     }
 }
+
+export async function ensureCsrfToken() {
+    // First try to get existing cookie
+    let csrfToken = getCookie('csrftoken');
+
+    if (!csrfToken) {
+        // If no token, fetch one from the server
+        try {
+            const response = await fetch('/api/auth/csrf/', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                csrfToken = getCookie('csrftoken');
+            }
+        } catch (error) {
+            console.error('Error fetching CSRF token:', error);
+        }
+    }
+
+    return csrfToken;
+}

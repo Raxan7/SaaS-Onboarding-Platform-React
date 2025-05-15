@@ -3,7 +3,7 @@ import { Container, Box, TextField, Button, Typography, Link } from '@mui/materi
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../utils/constants';
+import { ensureCsrfToken } from '../utils/csrf';
 
 const LoginPage = () => {
   const { login, isAuthenticated, userType } = useAuth();
@@ -14,15 +14,13 @@ const LoginPage = () => {
 
   const fetchCsrfToken = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
+      const response = await fetch('/api/auth/csrf/', {
         method: 'GET',
         credentials: 'include',
       });
 
       if (!response.ok) {
         console.error('Failed to fetch CSRF token:', response.statusText);
-      } else {
-        console.log('CSRF token fetched successfully');
       }
     } catch (err) {
       console.error('Error fetching CSRF token:', err);
@@ -42,14 +40,14 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const csrfToken = getCookie('csrftoken');
+      // Ensure we have a CSRF token before proceeding
+      const csrfToken = await ensureCsrfToken();
       if (!csrfToken) {
-        console.error('CSRF token not found');
-        setError('CSRF token missing. Please refresh the page.');
+        setError('Unable to get security token. Please refresh the page.');
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/token/`, {
+      const response = await fetch('/api/auth/token/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,30 +57,36 @@ const LoginPage = () => {
         body: JSON.stringify({ email, password })
       });
 
-      const data = await response.json();
-      console.log('Response data:', data);
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
 
       if (response.ok) {
-        const { token, user_id, email, user_type, first_name, last_name } = data;
+        // Construct user object from response data
         const user = {
-          id: user_id,
-          email,
-          first_name,
-          last_name,
-          user_type
+          id: responseData.user_id,
+          email: responseData.email,
+          first_name: responseData.first_name,
+          last_name: responseData.last_name,
+          user_type: responseData.user_type || 'client'
         };
 
-        const { isComplete } = await login(token, user_type, user); // Pass constructed user object here
-        const dashboardPath = user_type === 'host' ? '/host-dashboard' : '/client-dashboard';
-        
-        if (isComplete) {
-          navigate(dashboardPath); // Redirect to appropriate dashboard
+        // Complete the login process
+        await login(
+          responseData.token,
+          responseData.user_type || 'client',
+          user
+        );
+
+        // Redirect directly to the appropriate dashboard based on user type
+        // Bypassing onboarding for all users
+        if (user.user_type === 'host') {
+          navigate('/host-dashboard');
         } else {
-          navigate('/onboarding');
+          navigate('/client-dashboard');
         }
       } else {
-        console.error('Login failed:', data);
-        setError(data.error || 'Login failed');
+        console.error('Login failed:', responseData);
+        setError(responseData.error || 'Login failed');
       }
     } catch (err) {
       console.error('Network error:', err);
@@ -139,20 +143,5 @@ const LoginPage = () => {
     </Container>
   );
 };
-
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift();
-    if (!cookieValue) {
-      console.error(`Cookie '${name}' found but has no value.`);
-    }
-    return cookieValue;
-  } else {
-    console.error(`Cookie '${name}' not found in document.cookie.`);
-    return null;
-  }
-}
 
 export default LoginPage;
