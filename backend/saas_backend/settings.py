@@ -152,26 +152,28 @@ REST_FRAMEWORK = {
 }
 
 # CSRF settings
-CSRF_COOKIE_SECURE = False  # True in production with HTTPS
+CSRF_COOKIE_SECURE = not DEBUG  # True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'  # or 'None' if using cross-domain
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' for cross-site in production
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',  # Your frontend URL
+    'http://localhost:3000',
     'http://127.0.0.1:3000',
-    # Add production domains when deployed
+    'http://localhost:5173',  # Vite default port
+    'http://127.0.0.1:5173',
+    'https://saas-onboarding.onrender.com',  # Production frontend URL
 ]
 
 # Session settings (if using session authentication)
-SESSION_COOKIE_SAMESITE = 'Lax'  # Updated to match CSRF settings
-SESSION_COOKIE_SECURE = False  # Set to False for local development
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' for cross-site in production
+SESSION_COOKIE_SECURE = not DEBUG  # True in production with HTTPS
 
 # CORS settings
-# CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development troubleshooting
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",  # Vite default port
     "http://127.0.0.1:5173",
+    "https://saas-onboarding.onrender.com",  # Production frontend URL
     # Stripe domains
     "https://checkout.stripe.com",
     "https://js.stripe.com",
@@ -180,7 +182,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://m.stripe.com",
     "https://pay.stripe.com",
     "https://hooks.stripe.com",
-    # Add production domains when deployed
 ]
 CORS_ALLOW_CREDENTIALS = True
 
