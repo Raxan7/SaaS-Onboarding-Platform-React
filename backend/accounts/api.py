@@ -97,14 +97,30 @@ from rest_framework.response import Response
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_csrf_token(request):
-    response = Response({'detail': 'CSRF cookie set'})
+    token = get_token(request)
+    response = Response({'detail': 'CSRF cookie set', 'token': token})
+    
+    # Get settings from Django settings
+    secure = not settings.DEBUG
+    samesite = 'None' if not settings.DEBUG else 'Lax'
+    
+    # Set the cookie with appropriate attributes
     response.set_cookie(
         'csrftoken',
-        get_token(request),
+        token,
         max_age=60 * 60 * 24 * 7,  # 1 week
-        secure=not settings.DEBUG,  # True in production
+        secure=secure,
         httponly=False,
-        samesite='Lax' if settings.DEBUG else 'None',
+        samesite=samesite,
+        partitioned=True,  # Add Partitioned attribute for Chrome
         domain=None  # Let browser handle the domain
     )
+    
+    # Add Partitioned attribute manually if Django version doesn't support it
+    response.headers.setdefault('Set-Cookie', '')
+    if 'csrftoken' in response.cookies and 'Partitioned' not in response.cookies['csrftoken'].output():
+        cookie_str = response.cookies['csrftoken'].output()
+        if 'Partitioned' not in cookie_str:
+            response.headers['Set-Cookie'] = cookie_str.split(': ', 1)[1].strip() + '; Partitioned'
+    
     return response

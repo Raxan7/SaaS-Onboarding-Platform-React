@@ -1,5 +1,5 @@
 // pages/LoginPage.tsx
-import { Container, Box, TextField, Button, Typography, Link } from '@mui/material';
+import { Container, Box, TextField, Button, Typography, Link, CircularProgress, Alert } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -12,23 +12,32 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [csrfStatus, setCsrfStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const fetchCsrfToken = async () => {
+    setCsrfStatus('loading');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        console.error('Failed to fetch CSRF token:', response.statusText);
+      const csrfToken = await ensureCsrfToken();
+      
+      if (csrfToken) {
+        console.log('CSRF token successfully retrieved');
+        setCsrfStatus('success');
+        return csrfToken;
+      } else {
+        console.error('Failed to fetch CSRF token');
+        setCsrfStatus('error');
+        return null;
       }
     } catch (err) {
       console.error('Error fetching CSRF token:', err);
+      setCsrfStatus('error');
+      return null;
     }
   };
 
   useEffect(() => {
+    // Fetch CSRF token when component mounts
     fetchCsrfToken();
 
     // Redirect if already authenticated
@@ -40,11 +49,15 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
       // Ensure we have a CSRF token before proceeding
-      const csrfToken = await ensureCsrfToken();
+      const csrfToken = await fetchCsrfToken();
       if (!csrfToken) {
-        setError('Unable to get security token. Please refresh the page.');
+        setError('Unable to get security token. Please try again or refresh the page.');
+        setLoading(false);
         return;
       }
 
@@ -59,8 +72,7 @@ const LoginPage = () => {
       });
 
       const responseData = await response.json();
-      console.log('Response data:', responseData);
-
+      
       if (response.ok) {
         // Construct user object from response data
         const user = {
@@ -78,8 +90,7 @@ const LoginPage = () => {
           user
         );
 
-        // Redirect directly to the appropriate dashboard based on user type
-        // Bypassing onboarding for all users
+        // Redirect to the appropriate dashboard based on user type
         if (user.user_type === 'host') {
           navigate('/host-dashboard');
         } else {
@@ -87,11 +98,22 @@ const LoginPage = () => {
         }
       } else {
         console.error('Login failed:', responseData);
-        setError(responseData.error || 'Login failed');
+        setError(responseData.error || responseData.non_field_errors?.[0] || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       console.error('Network error:', err);
       setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to try again getting CSRF token
+  const handleRetryCsrf = async () => {
+    setCsrfStatus('loading');
+    const result = await fetchCsrfToken();
+    if (result) {
+      setError('');
     }
   };
 
@@ -101,11 +123,22 @@ const LoginPage = () => {
         <Typography variant="h4" gutterBottom>
           Login
         </Typography>
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
+        
+        {csrfStatus === 'error' && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Security token could not be retrieved. 
+            <Button color="inherit" size="small" onClick={handleRetryCsrf} sx={{ ml: 1 }}>
+              Try Again
+            </Button>
+          </Alert>
         )}
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <TextField
             label="Email"
@@ -115,6 +148,7 @@ const LoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading || csrfStatus === 'loading'}
           />
           <TextField
             label="Password"
@@ -124,14 +158,16 @@ const LoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading || csrfStatus === 'loading'}
           />
           <Button
             type="submit"
             variant="contained"
             fullWidth
             sx={{ mt: 3, mb: 2 }}
+            disabled={loading || csrfStatus === 'loading' || csrfStatus === 'error'}
           >
-            Login
+            {loading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
         </form>
         <Typography>

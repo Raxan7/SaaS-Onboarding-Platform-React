@@ -155,6 +155,7 @@ REST_FRAMEWORK = {
 CSRF_COOKIE_SECURE = not DEBUG  # True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' for cross-site in production
+CSRF_COOKIE_PARTITIONED = True  # Add Partitioned attribute for modern browsers
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -166,6 +167,7 @@ CSRF_TRUSTED_ORIGINS = [
 # Session settings (if using session authentication)
 SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' for cross-site in production
 SESSION_COOKIE_SECURE = not DEBUG  # True in production with HTTPS
+SESSION_COOKIE_PARTITIONED = True  # Add Partitioned attribute for modern browsers
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

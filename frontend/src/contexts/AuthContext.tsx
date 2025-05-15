@@ -1,141 +1,125 @@
 // contexts/AuthContext.tsx
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_BASE_URL } from '../utils/constants';
+import axios from 'axios';
 
-interface User {
+// Define the User type
+type User = {
   id: number;
   email: string;
   first_name: string;
   last_name: string;
-  user_type: 'client' | 'host';
-}
+  user_type: string;
+};
 
+// Define the context type
 interface AuthContextType {
-  token: string | null;
   isAuthenticated: boolean;
+  userType: string | null;
   user: User | null;
-  userType: 'client' | 'host' | null;
-  partialToken: string | null; // For registration flow
-  login: (token: string, userType: 'client' | 'host', user: User) => Promise<{ isComplete: boolean }>;
-  setPartialAuth: (token: string) => void; // For registration flow
+  token: string | null;
+  login: (token: string, userType: string, user: User) => Promise<void>;
   logout: () => void;
-  getAuthHeader: () => { Authorization: string } | {};
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create the context with default values
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  userType: null,
+  user: null,
+  token: null,
+  login: async () => {},
+  logout: () => {},
+});
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [partialToken, setPartialToken] = useState<string | null>(null);
+// Create a provider component
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userType, setUserType] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userType, setUserType] = useState<'client' | 'host' | null>(null);
-  const [isAuthInitialized, setIsAuthInitialized] = useState(false); // Track initialization
-
+  const [token, setToken] = useState<string | null>(null);
+  
+  // Initialize auth state from localStorage
   useEffect(() => {
-    // Initialize token, userType, and user from localStorage if available
     const storedToken = localStorage.getItem('token');
-    const storedUserType = localStorage.getItem('userType') as 'client' | 'host' | null;
+    const storedUserType = localStorage.getItem('userType');
     const storedUser = localStorage.getItem('user');
-    console.log('Token during initialization:', storedToken); // Debugging log
-    console.log('UserType during initialization:', storedUserType); // Debugging log
-    console.log('User during initialization:', storedUser); // Debugging log
-    if (storedToken) {
+    
+    if (storedToken && storedUserType) {
       setToken(storedToken);
-    }
-    if (storedUserType) {
       setUserType(storedUserType);
-    }
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing user data from localStorage:', error);
-        localStorage.removeItem('user'); // Clear invalid data
+      setIsAuthenticated(true);
+      
+      // Log state during initialization for debugging
+      console.log('Token during initialization:', storedToken);
+      console.log('UserType during initialization:', storedUserType);
+      console.log('User during initialization:', storedUser ? JSON.parse(storedUser) : null);
+      
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Error parsing stored user', e);
+        }
       }
+      
+      // Also set the token in axios defaults
+      axios.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
     }
-    setIsAuthInitialized(true); // Mark initialization as complete
   }, []);
-
-  const setPartialAuth = (token: string) => {
-    setPartialToken(token);
-  };
-
-  const login = async (newToken: string, newUserType: 'client' | 'host', data: any): Promise<{ isComplete: boolean }> => {
-    if (!data) {
-      console.error('Login response did not include user data:', data);
-      throw new Error('User data is missing in the login response.');
-    }
-
-    const user = {
-      id: data.user_id, // Correctly map user_id to id
-      email: data.email,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      user_type: data.user_type
-    };
-
-    console.log('Constructed user object:', user); // Debugging log
-
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('userType', newUserType);
-    try {
-      localStorage.setItem('user', JSON.stringify(user));
-    } catch (error) {
-      console.error('Error storing user data in localStorage:', error);
-    }
+  
+  const login = async (newToken: string, newUserType: string, newUser: User): Promise<void> => {
+    // Store in state
     setToken(newToken);
     setUserType(newUserType);
-    setUser(user);
-    setPartialToken(null);
-
-    // Simulate checking if onboarding is complete
-    const isComplete = true; // Replace with actual logic if needed
-    return { isComplete };
+    setUser(newUser);
+    setIsAuthenticated(true);
+    
+    // Store in localStorage
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('userType', newUserType);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    
+    // Set for all axios requests
+    axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
+    
+    console.log('Login successful:', { newToken, newUserType, newUser });
   };
-
+  
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userType'); // Remove user type
-    localStorage.removeItem('user'); // Remove user data
-    setToken(null);
-    setUserType(null);
-    setUser(null); // Clear user data
-    setPartialToken(null);
+    // Attempt to logout on the server
+    fetch(`${API_BASE_URL}/api/auth/logout/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Token ${token}` : '',
+      },
+      credentials: 'include',
+    }).catch(err => {
+      console.error('Error during logout:', err);
+    }).finally(() => {
+      // Clear state regardless of server response
+      setToken(null);
+      setUserType(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('user');
+      
+      // Clear axios headers
+      delete axios.defaults.headers.common['Authorization'];
+    });
   };
-
-  const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      return { Authorization: `Bearer ${token}` }; // Ensure correct format
-    }
-    console.warn('No token found in localStorage');
-    return {}; // Return an empty object if no token is found
-  };
-
-  if (!isAuthInitialized) {
-    return null; // Prevent rendering until auth is initialized
-  }
-
+  
   return (
-    <AuthContext.Provider value={{
-      token,
-      isAuthenticated: !!token,
-      user,
-      userType,
-      partialToken, // Add this
-      login,
-      setPartialAuth, // Add this
-      logout,
-      getAuthHeader
-    }}>
+    <AuthContext.Provider value={{ isAuthenticated, userType, user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Create a custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);

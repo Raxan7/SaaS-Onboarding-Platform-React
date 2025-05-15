@@ -12,36 +12,57 @@ import '@fontsource/inter/700.css';
 
 import axios from 'axios';
 import { API_BASE_URL } from './utils/constants';
+import { fetchCSRFToken } from './utils/csrf';
 
 // Set base URL for API requests
 axios.defaults.baseURL = API_BASE_URL;
 
-// Ensure credentials are included
+// Ensure credentials are included in all requests
 axios.defaults.withCredentials = true;
-
-// Enhanced getCookie function
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-}
 
 // Initialize CSRF token
 const initializeCSRF = async () => {
   try {
-    await axios.get('/api/auth/csrf/');
-    const csrfToken = getCookie('csrftoken');
+    const csrfToken = await fetchCSRFToken();
+    
     if (csrfToken) {
+      // Set the token in axios defaults for all future requests
       axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+      console.log('Successfully initialized CSRF token');
     } else {
-      console.warn('Failed to get CSRF token from cookies after initialization.');
+      console.warn('Failed to get CSRF token during initialization');
+      
+      // Setup retry mechanism using an event listener
+      document.addEventListener('click', async () => {
+        if (!axios.defaults.headers.common['X-CSRFToken']) {
+          const retryToken = await fetchCSRFToken();
+          if (retryToken) {
+            axios.defaults.headers.common['X-CSRFToken'] = retryToken;
+            console.log('CSRF token initialized on user interaction');
+          }
+        }
+      }, { once: true });
     }
   } catch (error) {
     console.error('CSRF initialization failed:', error);
   }
 };
 
-// Call this before rendering your app
+// Register axios interceptor to always include CSRF token
+axios.interceptors.request.use(async (config) => {
+  // If we don't have a CSRF token yet, try to get one
+  if (!config.headers['X-CSRFToken']) {
+    const token = await fetchCSRFToken();
+    if (token) {
+      config.headers['X-CSRFToken'] = token;
+    }
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Call initialization before rendering app
 initializeCSRF().then(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
