@@ -20,6 +20,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, userType: string, user: User) => Promise<void>;
   logout: () => void;
+  getAuthHeader: () => { Authorization: string } | {};
 }
 
 // Create the context with default values
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   token: null,
   login: async () => {},
   logout: () => {},
+  getAuthHeader: () => ({}),
 });
 
 // Create a provider component
@@ -114,8 +116,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
   
+  // Add getAuthHeader method to generate Authorization headers
+  const getAuthHeader = () => {
+    return token ? { Authorization: `Token ${token}` } : {};
+  };
+  
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userType, user, token, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      userType, 
+      user, 
+      token, 
+      login, 
+      logout,
+      getAuthHeader
+    }}>
       {children}
     </AuthContext.Provider>
   );
