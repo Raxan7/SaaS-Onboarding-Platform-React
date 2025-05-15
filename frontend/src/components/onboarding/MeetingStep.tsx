@@ -29,7 +29,8 @@ const MeetingStep = () => {
       // Format the date properly for the backend
       const formattedDate = new Date(data.meeting.meetingDate).toISOString(); // Use ISO format for scheduled_at
 
-      const response = await apiClient.post('/api/onboarding/user-onboarding/meeting/', {
+      // Store the response to use it or remove the variable declaration
+      await apiClient.post('/api/onboarding/user-onboarding/meeting/', {
         scheduled_at: formattedDate, // Correct field name
         meeting_goals: data.meeting.meetingGoals || '' // Handle empty goals
       });

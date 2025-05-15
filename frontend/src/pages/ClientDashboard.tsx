@@ -18,7 +18,6 @@ import DashboardHeader from '../components/DashboardHeader';
 import MeetingsList from '../components/meetings/MeetingsList';
 import ActiveMeeting from '../components/meetings/ActiveMeeting';
 import { useAuth } from '../contexts/AuthContext';
-import { useApiClient } from '../utils/apiClient';
 import { useEffect, useState } from 'react';
 import { CheckCircle, RadioButtonUnchecked, Close } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
@@ -32,7 +31,6 @@ const onboardingSteps = [
 
 const ClientDashboard = () => {
   const { user } = useAuth();
-  const apiClient = useApiClient();
   const theme = useTheme();
   const location = useLocation();
   const [onboardingStatus, setOnboardingStatus] = useState({
