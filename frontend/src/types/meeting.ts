@@ -14,14 +14,15 @@ export interface Meeting {
         email: string;
     };
     title: string;
-    description: string;
+    description?: string;
     scheduled_at: string;
     duration: number;
-    meeting_url: string;
+    timezone: string; // Added timezone field
+    meeting_url?: string;
     status: 'pending' | 'confirmed' | 'rescheduled' | 'cancelled' | 'completed';
     is_qualified: boolean;
-    notes: string;
+    notes?: string;
     created_at: string;
     updated_at: string;
-    goals: string;
+    goals?: string;
 }

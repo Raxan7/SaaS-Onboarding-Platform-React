@@ -10,12 +10,16 @@ import './styles/globalStyles.css';
 import OnboardingPage from './pages/OnboardingPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
+import { MeetingProvider } from './contexts/MeetingContext';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ClientDashboard from './pages/ClientDashboard';
 import HostDashboard from './pages/HostDashboard';
 import ProtectedRouteWithUserType from './components/ProtectedRouteWithUserType';
 import ErrorBoundary from './components/ErrorBoundary';
+import ScheduleMeetingPage from './pages/ScheduleMeetingPage';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 
 function App() {
@@ -23,33 +27,38 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <OnboardingProvider>
-          <ThemeProvider theme={theme}>
-            <ErrorBoundary> {/* Wrap the app in an error boundary */}
-              <Header />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
+          <MeetingProvider>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <ThemeProvider theme={theme}>
+                <ErrorBoundary> {/* Wrap the app in an error boundary */}
+                  <Header />
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/onboarding" element={<OnboardingPage />} />
 
-                {/* Client routes */}
-                <Route element={<ProtectedRouteWithUserType requiredUserType="client" redirectPath="/host-dashboard" />}>
-                  <Route path="/client-dashboard" element={<ClientDashboard />} />
-                </Route>
+                    {/* Client routes */}
+                    <Route element={<ProtectedRouteWithUserType requiredUserType="client" redirectPath="/host-dashboard" />}>
+                      <Route path="/client-dashboard" element={<ClientDashboard />} />
+                      <Route path="/schedule-meeting" element={<ScheduleMeetingPage />} />
+                    </Route>
 
-                {/* Host routes */}
-                <Route element={<ProtectedRouteWithUserType requiredUserType="host" redirectPath="/client-dashboard" />}>
-                  <Route path="/host-dashboard" element={<HostDashboard />} />
-                </Route>
+                    {/* Host routes */}
+                    <Route element={<ProtectedRouteWithUserType requiredUserType="host" redirectPath="/client-dashboard" />}>
+                      <Route path="/host-dashboard" element={<HostDashboard />} />
+                    </Route>
 
-                {/* Protected routes (for both types) */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                </Route>
-              </Routes>
-              <Footer />
-            </ErrorBoundary>
-          </ThemeProvider>
+                    {/* Protected routes (for both types) */}
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                    </Route>
+                  </Routes>
+                  <Footer />
+                </ErrorBoundary>
+              </ThemeProvider>
+            </LocalizationProvider>
+          </MeetingProvider>
         </OnboardingProvider>
       </AuthProvider>
     </BrowserRouter>

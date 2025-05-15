@@ -16,13 +16,15 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem
+  MenuItem,
+  Alert
 } from '@mui/material';
 import { Meeting } from '../../types/meeting';
 import { useApiClient } from '../../utils/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
+import TimezonePicker from './TimezonePicker';
 
 interface MeetingsListProps {
   filter?: 'upcoming' | 'past' | 'all';
@@ -35,9 +37,12 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [newTime, setNewTime] = useState<string>('');
+  const [timezone, setTimezone] = useState<string>('');
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string>('');
   const [embeddedMeetingUrl, setEmbeddedMeetingUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [availabilityChecking, setAvailabilityChecking] = useState(false);
   const apiClient = useApiClient();
   const { userType } = useAuth();
   const theme = useTheme();
@@ -50,6 +55,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
         setMeetings(data);
       } catch (error) {
         console.error('Error fetching meetings:', error);
+        setError('Failed to load meetings');
       } finally {
         setLoading(false);
       }
@@ -67,15 +73,33 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     return true;
   });
 
-  const handleStatusUpdate = async (meetingId: number | undefined, status: string, newTime?: string) => {
+  const checkTimeSlotAvailability = async (scheduledAt: string, timezone: string, duration: number) => {
+    try {
+      setAvailabilityChecking(true);
+      const response = await apiClient.post('/api/meetings/check-availability/', {
+        scheduled_at: scheduledAt,
+        timezone,
+        duration
+      });
+      
+      return response.available;
+    } catch (err) {
+      console.error('Error checking time slot availability:', err);
+      return true; // Default to allowing, but show an error
+    } finally {
+      setAvailabilityChecking(false);
+    }
+  };
+
+  const handleStatusUpdate = async (meetingId: number | undefined, status: string) => {
     if (!meetingId) {
       console.error('Invalid meeting ID:', meetingId);
       return;
     }
 
     try {
-      const payload: any = { meetingId, status };
-      if (newTime) payload.scheduled_at = newTime;
+      setError(null);
+      const payload: any = { status };
       
       const updatedMeeting = await apiClient.put(`/api/meetings/${meetingId}/`, payload);
       
@@ -83,7 +107,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
         m.id === meetingId ? updatedMeeting : m
       ));
       
-      setRescheduleDialogOpen(false);
       setStatusDialogOpen(false);
       
       // Reload the page when a meeting is confirmed to reflect the layout changes
@@ -92,6 +115,49 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       }
     } catch (error) {
       console.error('Error updating meeting:', error);
+      setError('Failed to update meeting status');
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!selectedMeeting?.id || !newTime) {
+      setError('Please select a valid meeting time');
+      return;
+    }
+
+    // First check if the time slot is available
+    const isAvailable = await checkTimeSlotAvailability(
+      newTime,
+      timezone || selectedMeeting.timezone || 'UTC',
+      selectedMeeting.duration
+    );
+
+    if (!isAvailable) {
+      setError('You already have a meeting scheduled at this time. Please choose another time.');
+      return;
+    }
+
+    try {
+      setError(null);
+      const updatedMeeting = await apiClient.put(`/api/meetings/${selectedMeeting.id}/`, {
+        scheduled_at: newTime,
+        status: 'rescheduled',
+        timezone: timezone || selectedMeeting.timezone || 'UTC'
+      });
+      
+      // Update the meeting in the list
+      setMeetings(meetings.map(m => 
+        m.id === selectedMeeting.id ? updatedMeeting : m
+      ));
+      
+      // Close the dialog
+      setRescheduleDialogOpen(false);
+      
+      // Refresh the page to get latest data
+      window.location.reload();
+    } catch (err) {
+      console.error('Error rescheduling meeting:', err);
+      setError('Failed to reschedule meeting');
     }
   };
 
@@ -102,10 +168,26 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     { value: 'completed', label: 'Mark as Completed' }
   ];
 
+  // Format the date considering the timezone
+  const formatMeetingDateTime = (scheduledAt: string, timezone: string = 'UTC') => {
+    try {
+      const date = new Date(scheduledAt);
+      return format(date, 'PPP') + ' at ' + format(date, 'p');
+    } catch (err) {
+      return scheduledAt;
+    }
+  };
+
   if (loading) return <CircularProgress />;
 
   return (
     <Box>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
       {filteredMeetings.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           No meetings found
@@ -132,10 +214,20 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                       {meeting.title || 'Consultation Meeting'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {format(new Date(meeting.scheduled_at), 'PPPpp')}
+                      {formatMeetingDateTime(meeting.scheduled_at, meeting.timezone)}
                     </Typography>
+                    
+                    {/* Display timezone information */}
+                    <Chip 
+                      label={meeting.timezone || 'UTC'} 
+                      size="small" 
+                      color="primary" 
+                      variant="outlined"
+                      sx={{ mt: 0.5, mr: 1 }}
+                    />
+                    
                     {meeting.duration && (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                         Duration: {meeting.duration} minutes
                       </Typography>
                     )}
@@ -174,31 +266,38 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {userType === 'host' && meeting?.id && (
                         <Box mt={2} display="flex" gap={1}>
-                          <Button 
-                            variant="contained" 
-                            size="small"
-                            onClick={() => handleStatusUpdate(meeting.id, 'confirmed')}
-                          >
-                            Confirm
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small"
-                            onClick={() => {
-                              const newTime = prompt('Enter new meeting time (YYYY-MM-DD HH:MM)');
-                              if (newTime) handleStatusUpdate(meeting.id, 'rescheduled', newTime);
-                            }}
-                          >
-                            Reschedule
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            color="error"
-                            size="small"
-                            onClick={() => handleStatusUpdate(meeting.id, 'cancelled')}
-                          >
-                            Cancel
-                          </Button>
+                          {meeting.status === 'pending' && (
+                            <Button 
+                              variant="contained" 
+                              size="small"
+                              onClick={() => handleStatusUpdate(meeting.id, 'confirmed')}
+                            >
+                              Confirm
+                            </Button>
+                          )}
+                          {['pending', 'confirmed'].includes(meeting.status) && (
+                            <>
+                              <Button 
+                                variant="outlined" 
+                                size="small"
+                                onClick={() => {
+                                  setSelectedMeeting(meeting);
+                                  setTimezone(meeting.timezone || 'UTC');
+                                  setRescheduleDialogOpen(true);
+                                }}
+                              >
+                                Reschedule
+                              </Button>
+                              <Button 
+                                variant="outlined" 
+                                color="error"
+                                size="small"
+                                onClick={() => handleStatusUpdate(meeting.id, 'cancelled')}
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          )}
                           {meeting.status === 'confirmed' && meeting.meeting_url && (
                             <Button 
                               variant="contained" 
@@ -212,13 +311,14 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                         </Box>
                       )}
 
-                      {userType === 'client' && meeting.status === 'pending' && (
+                      {userType === 'client' && ['pending', 'confirmed'].includes(meeting.status) && (
                         <>
                           <Button
                             variant="outlined"
                             size="small"
                             onClick={() => {
                               setSelectedMeeting(meeting);
+                              setTimezone(meeting.timezone || 'UTC');
                               setRescheduleDialogOpen(true);
                             }}
                           >
@@ -235,7 +335,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                         </>
                       )}
 
-                      {meeting.meeting_url && (
+                      {meeting.meeting_url && meeting.status === 'confirmed' && (
                         <Button
                           variant="contained"
                           color="primary"
@@ -265,71 +365,37 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
         </Box>
       )}
 
-      {/* Status Change Dialog */}
-      <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>
-        <DialogTitle>Change Meeting Status</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            fullWidth
-            label="New Status"
-            value={newStatus}
-            onChange={(e) => setNewStatus(e.target.value)}
-            sx={{ mt: 1 }}
-          >
-            {statusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          
-          {newStatus === 'rescheduled' && selectedMeeting && (
-            <DateTimePicker
-              label="New Meeting Time"
-              value={newTime || selectedMeeting.scheduled_at}
-              onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
-              sx={{ mt: 2, width: '100%' }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
-          <Button 
-            onClick={() => {
-              if (newStatus === 'rescheduled') {
-                handleStatusUpdate(selectedMeeting?.id, newStatus, newTime);
-              } else {
-                handleStatusUpdate(selectedMeeting?.id, newStatus);
-              }
-            }}
-            variant="contained"
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Reschedule Dialog */}
+      {/* Reschedule Dialog with TimezonePicker */}
       <Dialog open={rescheduleDialogOpen} onClose={() => setRescheduleDialogOpen(false)}>
         <DialogTitle>Reschedule Meeting</DialogTitle>
         <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          
           {selectedMeeting && (
-            <DateTimePicker
-              label="New Meeting Time"
-              value={newTime || selectedMeeting.scheduled_at}
-              onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
-              sx={{ mt: 2, width: '100%' }}
-            />
+            <Box sx={{ mt: 2 }}>
+              <DateTimePicker
+                label="New Meeting Time"
+                value={newTime || selectedMeeting.scheduled_at}
+                onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
+                sx={{ width: '100%', mb: 2 }}
+              />
+              
+              <TimezonePicker
+                value={timezone || selectedMeeting.timezone || 'UTC'}
+                onChange={setTimezone}
+                label="Meeting Timezone"
+              />
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRescheduleDialogOpen(false)}>Cancel</Button>
           <Button 
-            onClick={() => handleStatusUpdate(selectedMeeting?.id, 'pending', newTime)}
+            onClick={handleReschedule}
             variant="contained"
+            disabled={availabilityChecking}
           >
-            Reschedule
+            {availabilityChecking ? 'Checking...' : 'Reschedule'}
           </Button>
         </DialogActions>
       </Dialog>

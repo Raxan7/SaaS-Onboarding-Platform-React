@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from .models import Meeting
 from .serializers import MeetingSerializer, CreateMeetingSerializer, UpdateMeetingSerializer
 from django.utils import timezone
@@ -12,6 +13,7 @@ class MeetingCreateAPIView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
+        # For clients, create meeting with no host - host will be assigned when they confirm
         serializer.save(user=self.request.user)
 
 class UserMeetingsAPIView(generics.ListAPIView):
@@ -32,10 +34,14 @@ class MeetingListCreateAPIView(generics.ListCreateAPIView):
         return Meeting.objects.filter(user=user).order_by('-scheduled_at')
 
     def perform_create(self, serializer):
-        if self.request.user.user_type == 'client':
-            serializer.save(user=self.request.user)
-        else:
-            serializer.save(host=self.request.user)
+        # Always create meeting with the user who requested it
+        # Host will be assigned later when a host confirms the meeting
+        serializer.save(user=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        # Add any additional context needed for validation
+        return context
 
 class MeetingRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Meeting.objects.all()
@@ -47,7 +53,6 @@ class MeetingRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
         return MeetingSerializer
 
     def get_queryset(self):
-        print("User Type:", self.request.user.user_type)
         user = self.request.user
         if user.user_type == 'host':
             return Meeting.objects.all()
@@ -57,14 +62,11 @@ class MeetingRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
         meeting = serializer.instance
         user = self.request.user
 
-        # If the host confirms the meeting, set the host and generate a unique meeting URL
-        if self.request.data.get('status') == 'confirmed' and user.user_type == 'host':
-            meeting.host = user
-            if not meeting.meeting_url:
-                import uuid
-                meeting.meeting_url = f"https://meet.jit.si/meeting-{uuid.uuid4()}"
-
-        serializer.save()
+        # If a host confirms the meeting, set the host field to the current user
+        if user.user_type == 'host' and self.request.data.get('status') == Meeting.CONFIRMED:
+            serializer.save(host=user)
+        else:
+            serializer.save()
 
 class ActiveMeetingsAPIView(generics.ListAPIView):
     serializer_class = MeetingSerializer
@@ -88,7 +90,9 @@ class StartMeetingAPIView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         meeting = serializer.instance
-        if self.request.user.user_type != 'host':
+        user = self.request.user
+        
+        if user.user_type != 'host':
             raise PermissionDenied("Only hosts can start meetings")
         
         if not meeting.meeting_url:
@@ -98,4 +102,37 @@ class StartMeetingAPIView(generics.UpdateAPIView):
         if meeting.status != Meeting.CONFIRMED:
             meeting.status = Meeting.CONFIRMED
         
-        serializer.save()
+        # Set the current user as the host when starting the meeting
+        serializer.save(host=user)
+
+class CheckAvailabilityAPIView(generics.GenericAPIView):
+    """
+    API endpoint to check if a time slot is available for scheduling a meeting
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        scheduled_at = request.data.get('scheduled_at')
+        duration = request.data.get('duration', 30)
+        timezone_str = request.data.get('timezone', 'UTC')
+        
+        if not scheduled_at:
+            return Response(
+                {"error": "scheduled_at is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Create a temporary meeting object to check conflicts
+        temp_meeting = Meeting(
+            scheduled_at=scheduled_at,
+            duration=duration,
+            timezone=timezone_str,
+            user=request.user
+        )
+        
+        has_conflict = temp_meeting.has_conflict(request.user.id)
+        
+        return Response({
+            "available": not has_conflict,
+            "message": "Time slot is available" if not has_conflict else "You already have a meeting at this time"
+        })
