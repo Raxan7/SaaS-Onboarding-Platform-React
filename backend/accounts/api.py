@@ -101,8 +101,8 @@ def get_csrf_token(request):
         response.set_cookie(
             'csrftoken',
             csrf_token,
-            samesite='Lax',  # Changed to 'None'
-            secure=True,      # Must be True in production
+            samesite='None',
+            secure=True,
             httponly=False,
             path='/'
         )
