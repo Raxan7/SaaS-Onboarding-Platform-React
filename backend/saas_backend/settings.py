@@ -152,10 +152,10 @@ REST_FRAMEWORK = {
 }
 
 # CSRF settings
-CSRF_COOKIE_SAMESITE = 'None'  # Changed from 'Lax' to 'None'
+CSRF_COOKIE_DOMAIN = None  # Explicitly set to None or remove entirely
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = True  # Must be True when SameSite=None
-CSRF_USE_SESSIONS = False
 
 # Session settings (if using session authentication)
 SESSION_COOKIE_SAMESITE = 'None'  # If you're using sessions
@@ -163,10 +163,9 @@ SESSION_COOKIE_SECURE = True
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
     "https://saas-onboarding.onrender.com",
-    "https://saas-onboarding-platform-react.onrender.com"  # Add your backend domain too
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
 ]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS

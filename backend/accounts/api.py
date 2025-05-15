@@ -104,8 +104,7 @@ def get_csrf_token(request):
             samesite='None',  # Changed to 'None'
             secure=True,      # Must be True in production
             httponly=False,
-            path='/',
-            domain='.onrender.com'  # Allows subdomains to access the cookie
+            path='/'
         )
         return response
     except Exception as e:
