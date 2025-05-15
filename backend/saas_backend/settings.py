@@ -152,13 +152,12 @@ REST_FRAMEWORK = {
 }
 
 # CSRF settings
-CSRF_COOKIE_DOMAIN = None  # Explicitly set to None or remove entirely
-CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = False
 
 # Session settings (if using session authentication)
-SESSION_COOKIE_SAMESITE = 'None'  # If you're using sessions
+SESSION_COOKIE_SAMESITE = 'Lax'  # Updated to match CSRF settings
 SESSION_COOKIE_SECURE = True
 
 # CORS settings
