@@ -101,11 +101,10 @@ def get_csrf_token(request):
         response.set_cookie(
             'csrftoken',
             csrf_token,
-            samesite='None',  # Changed to 'None'
+            samesite='Lax',  # Changed to 'None'
             secure=True,      # Must be True in production
             httponly=False,
-            path='/',
-            partitioned=True
+            path='/'
         )
         return response
     except Exception as e:

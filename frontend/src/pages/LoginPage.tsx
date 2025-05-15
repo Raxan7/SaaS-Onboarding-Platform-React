@@ -17,13 +17,6 @@ const LoginPage = () => {
       const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'cross-site',
-          'Sec-Fetch-User': '?1',
-          'Priority': 'u=1'
-        }
       });
 
       if (!response.ok) {
