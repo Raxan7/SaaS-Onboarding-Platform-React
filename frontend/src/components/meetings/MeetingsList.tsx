@@ -85,6 +85,11 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       
       setRescheduleDialogOpen(false);
       setStatusDialogOpen(false);
+      
+      // Reload the page when a meeting is confirmed to reflect the layout changes
+      if (status === 'confirmed') {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Error updating meeting:', error);
     }
