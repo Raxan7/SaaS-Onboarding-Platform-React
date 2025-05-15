@@ -7,7 +7,9 @@ export function getCookie(name: string): string | null {
 
 export async function fetchCSRFToken(): Promise<string | null> {
     try {
-        const response = await fetch('/api/get_csrf_token', {
+        // Use the API_BASE_URL constant
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
             method: 'GET',
             credentials: 'include',
         });
@@ -33,13 +35,17 @@ export async function ensureCsrfToken() {
     if (!csrfToken) {
         // If no token, fetch one from the server
         try {
-            const response = await fetch('/api/auth/csrf/', {
+            // Use the API_BASE_URL constant for consistency
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+            const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
                 method: 'GET',
                 credentials: 'include',
             });
 
             if (response.ok) {
                 csrfToken = getCookie('csrftoken');
+            } else {
+                console.error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
             console.error('Error fetching CSRF token:', error);

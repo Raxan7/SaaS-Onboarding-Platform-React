@@ -4,6 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { ensureCsrfToken } from '../utils/csrf';
+import { API_BASE_URL } from '../utils/constants';
 
 const LoginPage = () => {
   const { login, isAuthenticated, userType } = useAuth();
@@ -14,7 +15,7 @@ const LoginPage = () => {
 
   const fetchCsrfToken = async () => {
     try {
-      const response = await fetch('/api/auth/csrf/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -47,7 +48,7 @@ const LoginPage = () => {
         return;
       }
 
-      const response = await fetch('/api/auth/token/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

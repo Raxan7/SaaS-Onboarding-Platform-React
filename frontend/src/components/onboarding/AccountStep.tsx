@@ -4,6 +4,7 @@ import { useOnboarding } from '../../contexts/OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../utils/constants';
 
 const AccountStep = () => {
   const { data, setData } = useOnboarding();
@@ -40,7 +41,7 @@ const AccountStep = () => {
             user_type: 'client'
           };
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

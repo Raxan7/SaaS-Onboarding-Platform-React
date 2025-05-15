@@ -11,10 +11,10 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 
 import axios from 'axios';
+import { API_BASE_URL } from './utils/constants';
 
 // Set base URL for API requests
-// axios.defaults.baseURL = 'https://saas-onboarding-platform-react.onrender.com/api/';
-axios.defaults.baseURL = 'http://localhost:8000/api/';
+axios.defaults.baseURL = API_BASE_URL;
 
 // Ensure credentials are included
 axios.defaults.withCredentials = true;
@@ -29,10 +29,12 @@ function getCookie(name: string) {
 // Initialize CSRF token
 const initializeCSRF = async () => {
   try {
-    await axios.get('/auth/csrf/');
+    await axios.get('/api/auth/csrf/');
     const csrfToken = getCookie('csrftoken');
     if (csrfToken) {
       axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+    } else {
+      console.warn('Failed to get CSRF token from cookies after initialization.');
     }
   } catch (error) {
     console.error('CSRF initialization failed:', error);
