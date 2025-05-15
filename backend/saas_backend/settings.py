@@ -166,15 +166,51 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Updated to match CSRF settings
 SESSION_COOKIE_SECURE = False  # Set to False for local development
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development troubleshooting
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
+# CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development troubleshooting
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite default port
+    "http://127.0.0.1:5173",
+    # Stripe domains
+    "https://checkout.stripe.com",
+    "https://js.stripe.com",
+    "https://api.stripe.com",
+    "https://checkout-cookies.stripe.com",
+    "https://m.stripe.com",
+    "https://pay.stripe.com",
+    "https://hooks.stripe.com",
+    # Add production domains when deployed
+]
 CORS_ALLOW_CREDENTIALS = True
 
+# Additional CORS settings for Stripe
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "stripe-account",
+    "stripe-signature",
+    "stripe-version",
+]
+
 # In settings.py
-FRONTEND_URL = env('FRONTEND_URL', default='https://saas-onboarding.onrender.com')
+FRONTEND_URL = 'http://localhost:5173' if DEBUG else 'https://saas-onboarding.onrender.com'
 
 # Stripe settings
 STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY', default='your-stripe-key')

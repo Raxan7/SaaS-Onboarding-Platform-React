@@ -87,7 +87,7 @@ def create_checkout_session(request):
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=settings.FRONTEND_URL + '/onboarding/success?session_id={CHECKOUT_SESSION_ID}',
+            success_url=settings.FRONTEND_URL + '/client-dashboard?payment_success=true',
             cancel_url=settings.FRONTEND_URL + '/onboarding/cancel',
         )
 
