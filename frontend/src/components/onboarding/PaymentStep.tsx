@@ -90,6 +90,23 @@ const PaymentStep = () => {
 
   const handlePayment = async () => {
     try {
+      // Mark the payment step as completed in the context
+      setData(prev => ({
+        ...prev,
+        paymentStepCompleted: true
+      }));
+      
+      // Save the selected plan ID to the backend
+      try {
+        await apiClient.post('/api/onboarding/update-payment-info/', {
+          plan_id: data.payment.planId
+        });
+        console.log('Payment plan saved to backend:', data.payment.planId);
+      } catch (err) {
+        console.error('Failed to save plan ID to backend:', err);
+        // Continue with checkout even if this fails
+      }
+      
       const response = await apiClient.post('/api/subscriptions/create-checkout-session/', {
         price_id: data.payment.planId,
       });

@@ -29,12 +29,19 @@ const MeetingStep = () => {
       // Format the date properly for the backend
       const formattedDate = new Date(data.meeting.meetingDate).toISOString(); // Use ISO format for scheduled_at
 
-      await apiClient.post('/api/onboarding/user-onboarding/meeting/', {
+      const response = await apiClient.post('/api/onboarding/user-onboarding/meeting/', {
         scheduled_at: formattedDate, // Correct field name
         meeting_goals: data.meeting.meetingGoals || '' // Handle empty goals
       });
 
-      // Proceed to next step or show success
+      // Update the completion status based on the server response
+      setData(prev => ({
+        ...prev,
+        meetingStepCompleted: true
+      }));
+
+      // Display success notification
+      setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save meeting details');
     } finally {
@@ -57,6 +64,23 @@ const MeetingStep = () => {
       }));
     }
   }, [data.meeting.meetingDate, setData]);
+
+  // Check if this step is already completed
+  if (data.meetingStepCompleted) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <Typography variant="h6" color="success.main">
+          ✓ Meeting scheduled successfully
+        </Typography>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Your meeting has been scheduled for {new Date(data.meeting.meetingDate).toLocaleDateString()}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Please proceed to the next step
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ mt: 4 }}>

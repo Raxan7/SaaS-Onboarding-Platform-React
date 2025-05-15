@@ -46,6 +46,12 @@ const CompanyStep = ({ onComplete }: { onComplete: () => void }) => {
         throw new Error('Forbidden: Authentication token is missing or invalid.');
       }
 
+      // Update the context with the completion status from the server
+      setData(prev => ({
+        ...prev,
+        companyStepCompleted: true
+      }));
+
       // Mark the step as complete only when the user clicks next
       onComplete();
     } catch (err) {

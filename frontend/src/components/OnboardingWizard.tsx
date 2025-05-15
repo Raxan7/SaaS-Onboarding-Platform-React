@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 const steps = ['Account', 'Company', 'Meeting', 'Payment'];
 
 const OnboardingWizard = () => {
-  const { currentStep, setCurrentStep } = useOnboarding(); // Removed unused 'data'
+  const { currentStep, setCurrentStep, data, setData } = useOnboarding();
   const { isAuthenticated, userType } = useAuth();
   const navigate = useNavigate();
 
@@ -46,6 +46,13 @@ const OnboardingWizard = () => {
             return;
           }
           
+          // Update step completion status in context
+          setData(prev => ({
+            ...prev,
+            companyStepCompleted: statusData.company_step_completed || false,
+            meetingStepCompleted: statusData.meeting_step_completed || false
+          }));
+          
           // For authenticated users, check if they're trying to skip steps
           const backendStep = statusData.current_step || 1; // Default to step 1 if not set
           if (currentStep > backendStep) {
@@ -59,10 +66,23 @@ const OnboardingWizard = () => {
     };
 
     checkOnboardingStatus();
-  }, [currentStep, isAuthenticated, userType, navigate, setCurrentStep]);
+  }, [currentStep, isAuthenticated, userType, navigate, setCurrentStep, setData]);
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
+      // For Company step, ensure it's marked as completed before proceeding
+      if (currentStep === 1 && !data.companyStepCompleted) {
+        // Company step is not completed yet
+        alert("Please complete the company information before proceeding.");
+        return;
+      }
+      
+      // For Meeting step, ensure it's marked as completed before proceeding
+      if (currentStep === 2 && !data.meetingStepCompleted) {
+        alert("Please schedule your meeting before proceeding.");
+        return;
+      }
+      
       setCurrentStep(currentStep + 1);
     } else {
       // When finishing onboarding, mark as complete and redirect
@@ -132,9 +152,12 @@ const OnboardingWizard = () => {
           <Button onClick={handleBack}>
             Back
           </Button>
-          <Button variant="contained" onClick={handleNext}>
-            {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
-          </Button>
+          {/* Only show Next button if not on the final Payment step */}
+          {currentStep < steps.length - 1 && (
+            <Button variant="contained" onClick={handleNext}>
+              Next
+            </Button>
+          )}
         </Box>
       )}
     </Box>

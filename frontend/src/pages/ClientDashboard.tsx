@@ -45,17 +45,74 @@ const ClientDashboard = () => {
   useEffect(() => {
     // Check if payment_success parameter exists in URL
     const searchParams = new URLSearchParams(location.search);
-    setShowPaymentSuccess(searchParams.get('payment_success') === 'true');
+    const paymentSuccess = searchParams.get('payment_success') === 'true';
+    setShowPaymentSuccess(paymentSuccess);
+
+    // Mark onboarding as complete if payment was successful
+    const markPaymentComplete = async () => {
+      if (paymentSuccess) {
+        try {
+          // Use fetch API directly with full error handling
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/subscriptions/payment-complete/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Token ${localStorage.getItem('token')}`
+            },
+            credentials: 'include'
+          });
+          
+          const responseData = await response.json();
+          
+          if (!response.ok) {
+            console.error('Error response data:', responseData);
+            throw new Error(responseData.detail || responseData.error || 'Error completing payment');
+          }
+          
+          console.log('Payment completed successfully:', responseData);
+          
+          // After marking as complete, refresh the onboarding status
+          await fetchOnboardingStatus();
+          
+          // Clean up the URL by removing the payment_success parameter
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        } catch (error) {
+          console.error('Error marking payment as complete:', error);
+        }
+      }
+    };
 
     const fetchOnboardingStatus = async () => {
       try {
-        const status = await apiClient.get('/api/onboarding/user-onboarding-status/');
+        // Use fetch directly for better error handling
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${localStorage.getItem('token')}`
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch onboarding status');
+        }
+        
+        const status = await response.json();
+        console.log('Onboarding status:', status); // For debugging
+        
         if (status) {
-          const completedSteps = status.is_complete ? 4 : status.current_step || 1;
+          // If the payment is complete or the whole onboarding is complete, mark all steps as completed
+          const isPaymentComplete = status.payment_step_completed || status.is_complete;
+          const completedSteps = isPaymentComplete ? 4 : (status.current_step || 1);
+          
           setOnboardingStatus({
             completedSteps,
             totalSteps: 4,
           });
+          
+          // Only show the onboarding alert if the onboarding is not complete
           setShowOnboardingAlert(!status.is_complete);
         }
       } catch (error) {
@@ -63,7 +120,11 @@ const ClientDashboard = () => {
       }
     };
 
+    // First fetch the status, then handle payment completion if needed
     fetchOnboardingStatus();
+    if (paymentSuccess) {
+      markPaymentComplete();
+    }
   }, [location.search]);
 
   const onboardingPercentage = Math.round(

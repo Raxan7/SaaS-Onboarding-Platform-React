@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, status, mixins
+from rest_framework import generics, permissions, status, mixins, serializers
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -10,6 +10,7 @@ from .serializers import OnboardingStepSerializer, UserOnboardingSerializer
 from meetings.serializers import CreateMeetingSerializer
 from accounts.models import User
 from meetings.models import Meeting
+from django.utils import timezone
 
 class OnboardingStepListAPIView(generics.ListAPIView):
     queryset = OnboardingStep.objects.filter(is_active=True).order_by('order')
@@ -45,9 +46,14 @@ class UserOnboardingViewSet(mixins.RetrieveModelMixin,
             'job_title': user.job_title,
             'industry': user.industry
         }
+        # Mark the company step as completed
+        onboarding.data['company_step_completed'] = True
         onboarding.save()
         
-        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        return Response({
+            'user': UserSerializer(user).data,
+            'company_step_completed': True
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], url_path='meeting')
     def save_meeting_info(self, request):
@@ -67,9 +73,14 @@ class UserOnboardingViewSet(mixins.RetrieveModelMixin,
                 'meeting_date': meeting.scheduled_at.isoformat(),
                 'meeting_goals': meeting.goals
             }
+            # Mark the meeting step as completed
+            onboarding.data['meeting_step_completed'] = True
             onboarding.save()
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({
+                'meeting': serializer.data,
+                'meeting_step_completed': True
+            }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -97,10 +108,15 @@ class CompanyInfoAPIView(APIView):
             'job_title': user.job_title,
             'industry': user.industry
         }
+        # Mark the company step as completed
+        onboarding.data['company_step_completed'] = True
         onboarding.current_step = OnboardingStep.objects.filter(order=3).first()  # Move to the next step
         onboarding.save()
 
-        return Response({'status': 'Company info saved and step marked as complete'}, status=200)
+        return Response({
+            'status': 'Company info saved and step marked as complete',
+            'company_step_completed': True
+        }, status=200)
     
 
 class UserOnboardingStatusAPIView(generics.RetrieveAPIView):
@@ -109,16 +125,28 @@ class UserOnboardingStatusAPIView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         try:
             onboarding = UserOnboarding.objects.get(user=request.user)
+            
+            # Get step completion status from the data field
+            company_step_completed = onboarding.data.get('company_step_completed', False)
+            meeting_step_completed = onboarding.data.get('meeting_step_completed', False)
+            payment_step_completed = onboarding.data.get('payment_step_completed', False)
+            
             return Response({
                 'is_complete': onboarding.is_complete,
                 'current_step': onboarding.current_step.id if onboarding.current_step else None,
-                'user_type': request.user.user_type
+                'user_type': request.user.user_type,
+                'company_step_completed': company_step_completed,
+                'meeting_step_completed': meeting_step_completed,
+                'payment_step_completed': payment_step_completed
             })
         except UserOnboarding.DoesNotExist:
             return Response({
                 'is_complete': False,
                 'current_step': None,
-                'user_type': request.user.user_type
+                'user_type': request.user.user_type,
+                'company_step_completed': False,
+                'meeting_step_completed': False,
+                'payment_step_completed': False
             })
 
 class CompleteOnboardingAPIView(APIView):
@@ -164,3 +192,25 @@ class MeetingStepAPIView(APIView):
             return Response({"message": "Meeting saved and onboarding updated successfully."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UpdatePaymentInfoAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        plan_id = request.data.get('plan_id')
+        if not plan_id:
+            return Response({'error': 'Plan ID is required'}, status=400)
+
+        user = request.user
+        onboarding, _ = UserOnboarding.objects.get_or_create(user=user)
+        
+        # Initialize the data field if it's None
+        if onboarding.data is None:
+            onboarding.data = {}
+            
+        # Save the plan ID in the onboarding data
+        onboarding.data['selected_plan_id'] = plan_id
+        onboarding.save()
+
+        return Response({'status': 'Payment info updated successfully'}, status=200)

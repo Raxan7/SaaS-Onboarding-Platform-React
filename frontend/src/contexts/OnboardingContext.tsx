@@ -24,10 +24,12 @@ export interface OnboardingData {
     meetingDate: string;
     meetingGoals: string;
   };
+  meetingStepCompleted: boolean; // Added to track meeting step completion
   payment: {
     planId: string | null;
     plans?: Plan[]; // Optional if you want to store plans in context
   };
+  paymentStepCompleted: boolean; // Added to track payment step completion
 }
 
 const defaultOnboardingData: OnboardingData = {
@@ -46,9 +48,11 @@ const defaultOnboardingData: OnboardingData = {
     meetingDate: '',
     meetingGoals: ''
   },
+  meetingStepCompleted: false, // Default value for meeting completion
   payment: {
     planId: null
-  }
+  },
+  paymentStepCompleted: false // Default value for payment step completion
 };
 
 const OnboardingContext = createContext<{
