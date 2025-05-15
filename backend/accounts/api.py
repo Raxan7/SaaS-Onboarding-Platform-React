@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+import os
 
 from .serializers import User, UserRegisterSerializer, UserSerializer
 
@@ -95,17 +96,14 @@ from rest_framework.response import Response
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_csrf_token(request):
-    try:
-        csrf_token = get_token(request)
-        response = Response({'detail': 'CSRF cookie set'})
-        response.set_cookie(
-            'csrftoken',
-            csrf_token,
-            samesite='None',
-            secure=True,
-            httponly=False,
-            path='/'
-        )
-        return response
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
+    response = Response({'detail': 'CSRF cookie set'})
+    response.set_cookie(
+        'csrftoken',
+        get_token(request),
+        max_age=60 * 60 * 24 * 7,  # 1 week
+        secure=False,  # True in production
+        httponly=False,
+        samesite='Lax',
+        domain=None  # Let browser handle the domain
+    )
+    return response

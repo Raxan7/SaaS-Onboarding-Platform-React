@@ -152,23 +152,26 @@ REST_FRAMEWORK = {
 }
 
 # CSRF settings
-CSRF_COOKIE_DOMAIN = None  # Explicitly set to None
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False  # True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'  # or 'None' if using cross-domain
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',  # Your frontend URL
+    'http://127.0.0.1:3000',
+    # Add production domains when deployed
+]
 
 # Session settings (if using session authentication)
 SESSION_COOKIE_SAMESITE = 'Lax'  # Updated to match CSRF settings
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False  # Set to False for local development
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "https://saas-onboarding.onrender.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
-]
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development troubleshooting
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # In settings.py
 FRONTEND_URL = env('FRONTEND_URL', default='https://saas-onboarding.onrender.com')
