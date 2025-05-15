@@ -15,7 +15,11 @@ export async function fetchCSRFToken(): Promise<string | null> {
             console.error('Failed to fetch CSRF token:', response.statusText);
             return null;
         }
-        return getCookie('csrftoken');
+        const token = getCookie('csrftoken');
+        if (!token) {
+            console.warn('CSRF token not found in cookies.');
+        }
+        return token;
     } catch (error) {
         console.error('Error fetching CSRF token:', error);
         return null;

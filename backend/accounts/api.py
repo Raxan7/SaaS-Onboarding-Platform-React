@@ -104,7 +104,8 @@ def get_csrf_token(request):
             samesite='None',
             secure=True,
             httponly=False,
-            path='/'
+            path='/',
+            partitioned=True  # Add Partitioned attribute for cross-site cookies
         )
         return response
     except Exception as e:
