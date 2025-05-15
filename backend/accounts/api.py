@@ -104,7 +104,8 @@ def get_csrf_token(request):
             samesite='None',  # Changed to 'None'
             secure=True,      # Must be True in production
             httponly=False,
-            path='/'
+            path='/',
+            partitioned=True
         )
         return response
     except Exception as e:
