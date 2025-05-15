@@ -96,12 +96,27 @@ WSGI_APPLICATION = 'saas_backend.wsgi.application'
 # }
 
 # Use sqlite for development
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'saas_platform',
+        'USER': 'manyerere201',
+        'PASSWORD': 'exHjyP9UQFX0',
+        'HOST': 'ep-shy-mud-a5gs0r74.us-east-2.aws.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
+
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
