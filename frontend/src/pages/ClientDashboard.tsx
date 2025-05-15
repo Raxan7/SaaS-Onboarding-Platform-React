@@ -10,7 +10,9 @@ import {
   Alert,
   Chip,
   Divider,
-  useTheme
+  useTheme,
+  Collapse,
+  IconButton
 } from '@mui/material';
 import DashboardHeader from '../components/DashboardHeader';
 import MeetingsList from '../components/meetings/MeetingsList';
@@ -18,7 +20,8 @@ import ActiveMeeting from '../components/meetings/ActiveMeeting';
 import { useAuth } from '../contexts/AuthContext';
 import { useApiClient } from '../utils/apiClient';
 import { useEffect, useState } from 'react';
-import { CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
+import { CheckCircle, RadioButtonUnchecked, Close } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 
 const onboardingSteps = [
   { name: 'Account Setup', completed: true },
@@ -31,13 +34,19 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const apiClient = useApiClient();
   const theme = useTheme();
+  const location = useLocation();
   const [onboardingStatus, setOnboardingStatus] = useState({
     completedSteps: 1,
     totalSteps: 4,
   });
   const [showOnboardingAlert, setShowOnboardingAlert] = useState(true);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
   useEffect(() => {
+    // Check if payment_success parameter exists in URL
+    const searchParams = new URLSearchParams(location.search);
+    setShowPaymentSuccess(searchParams.get('payment_success') === 'true');
+
     const fetchOnboardingStatus = async () => {
       try {
         const status = await apiClient.get('/api/onboarding/user-onboarding-status/');
@@ -55,7 +64,7 @@ const ClientDashboard = () => {
     };
 
     fetchOnboardingStatus();
-  }, []);
+  }, [location.search]);
 
   const onboardingPercentage = Math.round(
     (onboardingStatus.completedSteps / onboardingStatus.totalSteps) * 100
@@ -73,6 +82,38 @@ const ClientDashboard = () => {
             Here's what's happening with your account today
           </Typography>
         </Box>
+
+        {/* Payment Success Alert */}
+        <Collapse in={showPaymentSuccess}>
+          <Alert 
+            severity="success" 
+            sx={{ 
+              mb: 4,
+              borderRadius: 2,
+              boxShadow: theme.shadows[1],
+              '& .MuiAlert-message': {
+                width: '100%'
+              }
+            }}
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => setShowPaymentSuccess(false)}
+              >
+                <Close fontSize="inherit" />
+              </IconButton>
+            }
+            icon={<CheckCircle fontSize="inherit" />}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <Typography variant="body1" fontWeight={500}>
+                Payment successful! Your subscription is now active.
+              </Typography>
+            </Box>
+          </Alert>
+        </Collapse>
 
         {showOnboardingAlert && (
           <Alert 
