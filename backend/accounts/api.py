@@ -9,6 +9,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.conf import settings
 import os
+import logging
 
 from .serializers import User, UserRegisterSerializer, UserSerializer
 
@@ -104,23 +105,40 @@ def get_csrf_token(request):
     secure = not settings.DEBUG
     samesite = 'None' if not settings.DEBUG else 'Lax'
     
-    # Set the cookie with appropriate attributes
-    response.set_cookie(
-        'csrftoken',
-        token,
-        max_age=60 * 60 * 24 * 7,  # 1 week
-        secure=secure,
-        httponly=False,
-        samesite=samesite,
-        partitioned=True,  # Add Partitioned attribute for Chrome
-        domain=None  # Let browser handle the domain
-    )
+    try:
+        # Try to set the cookie with all attributes including partitioned
+        response.set_cookie(
+            'csrftoken',
+            token,
+            max_age=60 * 60 * 24 * 7,  # 1 week
+            secure=secure,
+            httponly=False,
+            samesite=samesite,
+            domain=None  # Let browser handle the domain
+        )
+        
+        # Manually add Partitioned attribute to cookie header
+        for key, value in response.cookies.items():
+            if key == 'csrftoken':
+                cookie_str = value.output(header='').strip()
+                if 'Partitioned' not in cookie_str:
+                    response.headers.setdefault('Set-Cookie', '')
+                    # Create a new cookie string with Partitioned attribute
+                    response.headers['Set-Cookie'] = f"{cookie_str}; Partitioned"
     
-    # Add Partitioned attribute manually if Django version doesn't support it
-    response.headers.setdefault('Set-Cookie', '')
-    if 'csrftoken' in response.cookies and 'Partitioned' not in response.cookies['csrftoken'].output():
-        cookie_str = response.cookies['csrftoken'].output()
-        if 'Partitioned' not in cookie_str:
-            response.headers['Set-Cookie'] = cookie_str.split(': ', 1)[1].strip() + '; Partitioned'
+    except Exception as e:
+        # Fallback to standard cookie setting without partitioned attribute
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error setting CSRF cookie with partitioned attribute: {str(e)}")
+        
+        response.set_cookie(
+            'csrftoken',
+            token,
+            max_age=60 * 60 * 24 * 7,  # 1 week
+            secure=secure,
+            httponly=False,
+            samesite=samesite,
+            domain=None  # Let browser handle the domain
+        )
     
     return response

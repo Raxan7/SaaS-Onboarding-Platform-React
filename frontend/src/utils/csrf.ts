@@ -8,7 +8,7 @@ export function getCookie(name: string): string | null {
 export async function fetchCSRFToken(): Promise<string | null> {
     try {
         // Use the API_BASE_URL constant
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://saas-onboarding.onrender.com';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://saas-onboarding-platform-react.onrender.com';
         
         // First try to get existing cookie
         let csrfToken = getCookie('csrftoken');
@@ -24,10 +24,24 @@ export async function fetchCSRFToken(): Promise<string | null> {
             headers: {
                 'Accept': 'application/json',
             },
+            // Add cache busting parameter to avoid caching issues
+            cache: 'no-store',
         });
         
         if (!response.ok) {
-            console.error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
+            console.error(`Failed to fetch CSRF token: ${response.status}`);
+            
+            // Try to extract token from response data even if response wasn't OK
+            try {
+                const data = await response.json();
+                if (data && data.token) {
+                    console.log('Got CSRF token from response data despite error');
+                    return data.token;
+                }
+            } catch (e) {
+                // Ignore JSON parsing errors
+            }
+            
             return null;
         }
         
@@ -69,5 +83,13 @@ export async function ensureCsrfToken() {
     }
     
     console.error('Failed to get CSRF token after multiple attempts');
+    
+    // Fallback to a static middleware token approach if nothing else works
+    const middlewareToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (middlewareToken) {
+        console.log('Using middleware-provided CSRF token');
+        return middlewareToken;
+    }
+    
     return null;
 }
