@@ -32,6 +32,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimezonePicker from '../components/meetings/TimezonePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { PickerValue } from '@mui/x-date-pickers/internals';
 
 const HostDashboard = () => {
   const apiClient = useApiClient();
@@ -130,7 +131,7 @@ const HostDashboard = () => {
   }, [newMeeting.scheduled_at, newMeeting.duration, newMeeting.timezone, openNewMeetingDialog]);
 
   // Handle form input changes
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string | number | PickerValue) => {
     setNewMeeting(prev => ({ ...prev, [field]: value }));
   };
   
@@ -200,7 +201,7 @@ const HostDashboard = () => {
           scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
           duration: 30,
           timezone: '',
-          client_id: clients.length > 0 ? clients[0].id : ''
+          client_id: ''
         });
         setSuccess(false);
         
@@ -388,7 +389,7 @@ const HostDashboard = () => {
               />
               
               <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <DateTimePicker
                     label="Meeting Date & Time"
                     value={newMeeting.scheduled_at}
@@ -399,7 +400,7 @@ const HostDashboard = () => {
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <FormControl fullWidth disabled={loading || success}>
                     <InputLabel>Duration</InputLabel>
                     <Select

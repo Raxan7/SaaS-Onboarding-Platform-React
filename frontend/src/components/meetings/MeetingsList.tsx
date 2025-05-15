@@ -15,14 +15,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  MenuItem,
   Alert
 } from '@mui/material';
 import { Meeting } from '../../types/meeting';
 import { useApiClient } from '../../utils/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 import TimezonePicker from './TimezonePicker';
 
@@ -161,12 +161,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     }
   };
 
-  const statusOptions = [
-    { value: 'confirmed', label: 'Confirm' },
-    { value: 'rescheduled', label: 'Reschedule' },
-    { value: 'cancelled', label: 'Cancel' },
-    { value: 'completed', label: 'Mark as Completed' }
-  ];
 
   // Format the date considering the timezone
   const formatMeetingDateTime = (scheduledAt: string, timezone: string = 'UTC') => {
@@ -303,7 +297,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               variant="contained" 
                               color="primary"
                               size="small"
-                              onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url)}
+                              onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url || null)}
                             >
                               Start Meeting
                             </Button>
@@ -373,12 +367,14 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
           
           {selectedMeeting && (
             <Box sx={{ mt: 2 }}>
-              <DateTimePicker
-                label="New Meeting Time"
-                value={newTime || selectedMeeting.scheduled_at}
-                onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
-                sx={{ width: '100%', mb: 2 }}
-              />
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateTimePicker
+                  label="New Meeting Time"
+                  value={newTime ? new Date(newTime) : new Date(selectedMeeting.scheduled_at)}
+                  onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
+                  sx={{ width: '100%', mb: 2 }}
+                />
+              </LocalizationProvider>
               
               <TimezonePicker
                 value={timezone || selectedMeeting.timezone || 'UTC'}
@@ -391,11 +387,12 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
         <DialogActions>
           <Button onClick={() => setRescheduleDialogOpen(false)}>Cancel</Button>
           <Button 
-            onClick={handleReschedule}
-            variant="contained"
+            onClick={handleReschedule} 
+            variant="contained" 
+            color="primary" 
             disabled={availabilityChecking}
           >
-            {availabilityChecking ? 'Checking...' : 'Reschedule'}
+            {availabilityChecking ? 'Checking Availability...' : 'Reschedule'}
           </Button>
         </DialogActions>
       </Dialog>

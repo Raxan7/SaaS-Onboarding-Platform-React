@@ -32,6 +32,7 @@ import TimezonePicker from '../components/meetings/TimezonePicker';
 import { useMeetings } from '../contexts/MeetingContext';
 import { format } from 'date-fns';
 import DashboardHeader from '../components/DashboardHeader';
+import { PickerValue } from '@mui/x-date-pickers/internals';
 
 // Simplified steps - removed host selection
 const steps = ['Select Date & Time', 'Meeting Details', 'Review & Confirm'];
@@ -82,7 +83,7 @@ const ScheduleMeetingPage: React.FC = () => {
   }, [meetingData.scheduled_at, meetingData.duration, meetingData.timezone, checkTimeSlotAvailability]);
 
   // Handle form input changes
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string | number | PickerValue) => {
     setMeetingData(prev => ({ ...prev, [field]: value }));
   };
   
@@ -202,7 +203,7 @@ const ScheduleMeetingPage: React.FC = () => {
                 </Typography>
                 
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <DateTimePicker
                       label="Meeting Date & Time"
                       value={meetingData.scheduled_at}
@@ -213,7 +214,7 @@ const ScheduleMeetingPage: React.FC = () => {
                     />
                   </Grid>
                   
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth disabled={loading}>
                       <InputLabel>Duration</InputLabel>
                       <Select
@@ -231,7 +232,7 @@ const ScheduleMeetingPage: React.FC = () => {
                     </FormControl>
                   </Grid>
                   
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box sx={{ mt: 2 }}>
                       <TimezonePicker
                         value={meetingData.timezone}
@@ -296,7 +297,7 @@ const ScheduleMeetingPage: React.FC = () => {
                     <Divider sx={{ my: 2 }} />
                     
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Date & Time
                         </Typography>
@@ -305,7 +306,7 @@ const ScheduleMeetingPage: React.FC = () => {
                         </Typography>
                       </Grid>
                       
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Timezone
                         </Typography>
@@ -314,7 +315,7 @@ const ScheduleMeetingPage: React.FC = () => {
                         </Typography>
                       </Grid>
                       
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Duration
                         </Typography>
@@ -323,7 +324,7 @@ const ScheduleMeetingPage: React.FC = () => {
                         </Typography>
                       </Grid>
                       
-                      <Grid item xs={12}>
+                      <Grid size={{ xs: 12 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Meeting Goals
                         </Typography>
