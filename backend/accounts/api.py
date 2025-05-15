@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from django.conf import settings
 import os
 
 from .serializers import User, UserRegisterSerializer, UserSerializer
@@ -101,9 +102,9 @@ def get_csrf_token(request):
         'csrftoken',
         get_token(request),
         max_age=60 * 60 * 24 * 7,  # 1 week
-        secure=False,  # True in production
+        secure=not settings.DEBUG,  # True in production
         httponly=False,
-        samesite='Lax',
+        samesite='Lax' if settings.DEBUG else 'None',
         domain=None  # Let browser handle the domain
     )
     return response
