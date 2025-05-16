@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  TextField, 
-  FormHelperText,
-  Box
-} from '@mui/material';
+import { TextField } from '@mui/material';
 import { Autocomplete } from '@mui/material';
 
 // List of common timezones with their offset and region
@@ -102,11 +94,11 @@ const TimezonePicker: React.FC<TimezonePickerProps> = ({
   return (
     <Autocomplete
       value={value ? TIMEZONES.find(option => option.value === value) || null : null}
-      onChange={(event, newValue) => {
+      onChange={(_, newValue) => {
         onChange(newValue ? newValue.value : '');
       }}
       inputValue={searchText}
-      onInputChange={(event, newInputValue) => {
+      onInputChange={(_, newInputValue) => {
         setSearchText(newInputValue);
       }}
       options={TIMEZONES}

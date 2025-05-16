@@ -38,8 +38,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [newTime, setNewTime] = useState<string>('');
   const [timezone, setTimezone] = useState<string>('');
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<string>('');
   const [embeddedMeetingUrl, setEmbeddedMeetingUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [availabilityChecking, setAvailabilityChecking] = useState(false);
@@ -106,8 +104,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       setMeetings(meetings.map(m => 
         m.id === meetingId ? updatedMeeting : m
       ));
-      
-      setStatusDialogOpen(false);
       
       // Reload the page when a meeting is confirmed to reflect the layout changes
       if (status === 'confirmed') {

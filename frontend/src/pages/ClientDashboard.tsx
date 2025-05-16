@@ -23,7 +23,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
   CircularProgress,
   SelectChangeEvent
 } from '@mui/material';
@@ -71,7 +70,6 @@ const ClientDashboard = () => {
     timezone: '',
     host_id: ''
   });
-  const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -100,7 +98,7 @@ const ClientDashboard = () => {
     };
     
     checkAvailability();
-  }, [newMeeting.scheduled_at, newMeeting.duration, newMeeting.timezone, openNewMeetingDialog]);
+  }, [newMeeting.scheduled_at, newMeeting.duration, newMeeting.timezone, openNewMeetingDialog, apiClient]);
 
   useEffect(() => {
     // Check if payment_success parameter exists in URL
@@ -113,7 +111,7 @@ const ClientDashboard = () => {
       if (paymentSuccess) {
         try {
           // Use fetch API directly with full error handling
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/subscriptions/payment-complete/`, {
+          await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/payment/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -122,23 +120,10 @@ const ClientDashboard = () => {
             credentials: 'include'
           });
           
-          const responseData = await response.json();
-          
-          if (!response.ok) {
-            console.error('Error response data:', responseData);
-            throw new Error(responseData.detail || responseData.error || 'Error completing payment');
-          }
-          
-          console.log('Payment completed successfully:', responseData);
-          
-          // After marking as complete, refresh the onboarding status
+          // Refetch onboarding status to update UI
           await fetchOnboardingStatus();
-          
-          // Clean up the URL by removing the payment_success parameter
-          const newUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, newUrl);
         } catch (error) {
-          console.error('Error marking payment as complete:', error);
+          console.error('Error marking payment complete:', error);
         }
       }
     };
@@ -234,7 +219,7 @@ const ClientDashboard = () => {
     }
     
     try {
-      const response = await apiClient.post('/api/meetings/', {
+      await apiClient.post('/api/meetings/', {
         title: newMeeting.title,
         goals: newMeeting.goals,
         scheduled_at: newMeeting.scheduled_at.toISOString(),

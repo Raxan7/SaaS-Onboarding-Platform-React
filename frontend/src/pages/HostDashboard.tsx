@@ -37,7 +37,7 @@ import { PickerValue } from '@mui/x-date-pickers/internals';
 const HostDashboard = () => {
   const apiClient = useApiClient();
   const { user } = useAuth();
-  const { meetings, loading: meetingsLoading, fetchMeetings } = useMeetings();
+  const { meetings, fetchMeetings } = useMeetings();
   
   const [stats, setStats] = useState({
     totalMeetings: 0,
@@ -178,7 +178,7 @@ const HostDashboard = () => {
     }
     
     try {
-      const response = await apiClient.post('/api/meetings/', {
+      await apiClient.post('/api/meetings/', {
         title: newMeeting.title,
         goals: newMeeting.goals,
         scheduled_at: newMeeting.scheduled_at.toISOString(),

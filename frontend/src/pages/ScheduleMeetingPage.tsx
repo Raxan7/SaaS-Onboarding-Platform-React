@@ -11,7 +11,6 @@ import {
   InputLabel, 
   Select, 
   MenuItem, 
-  FormHelperText, 
   Grid,
   Alert,
   Stepper,
@@ -27,7 +26,6 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useNavigate } from 'react-router-dom';
-import { useApiClient } from '../utils/apiClient';
 import TimezonePicker from '../components/meetings/TimezonePicker';
 import { useMeetings } from '../contexts/MeetingContext';
 import { format } from 'date-fns';
@@ -39,7 +37,6 @@ const steps = ['Select Date & Time', 'Meeting Details', 'Review & Confirm'];
 
 const ScheduleMeetingPage: React.FC = () => {
   const navigate = useNavigate();
-  const apiClient = useApiClient();
   const { createMeeting, checkTimeSlotAvailability } = useMeetings();
   
   const [activeStep, setActiveStep] = useState(0);
