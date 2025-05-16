@@ -159,7 +159,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
 
 
   // Format the date considering the timezone
-  const formatMeetingDateTime = (scheduledAt: string, timezone: string = 'UTC') => {
+  const formatMeetingDateTime = (scheduledAt: string, _timezone: string = 'UTC') => {
     try {
       const date = new Date(scheduledAt);
       return format(date, 'PPP') + ' at ' + format(date, 'p');
