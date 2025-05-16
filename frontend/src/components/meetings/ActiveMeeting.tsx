@@ -11,7 +11,7 @@ import {
     Chip,
     Alert
   } from '@mui/material';
-  import { AccessTime, VideocamOutlined } from '@mui/icons-material';
+  import { AccessTime } from '@mui/icons-material';
   import { useEffect, useState } from 'react';
   import { useApiClient } from '../../utils/apiClient';
   import { Meeting } from '../../types/meeting';
