@@ -40,7 +40,7 @@ class Meeting(models.Model):
         return f"{self.user.email} - {self.scheduled_at}"
 
     def save(self, *args, **kwargs):
-        if not self.meeting_url and self.status == self.CONFIRMED:
+        if not self.meeting_url and (self.status == self.CONFIRMED or self.status == self.RESCHEDULED):
             self.meeting_url = self.generate_jitsi_url()
         super().save(*args, **kwargs)
     
@@ -53,7 +53,7 @@ class Meeting(models.Model):
     def is_active(self):
         now = timezone.now()
         meeting_end = self.scheduled_at + timezone.timedelta(minutes=self.duration)
-        return self.status == self.CONFIRMED and now >= self.scheduled_at and now <= meeting_end
+        return (self.status == self.CONFIRMED or self.status == self.RESCHEDULED) and now >= self.scheduled_at and now <= meeting_end
 
     @property
     def is_confirmed(self):

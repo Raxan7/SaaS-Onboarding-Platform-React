@@ -75,12 +75,20 @@ class ActiveMeetingsAPIView(generics.ListAPIView):
     def get_queryset(self):
         now = timezone.now()
         user = self.request.user
+        
+        # Include:
+        # 1. Upcoming meetings that are confirmed or rescheduled (next 24 hours)
+        # 2. Recent meetings that are confirmed or rescheduled (last hour)
         return Meeting.objects.filter(
             Q(user=user) | Q(host=user),
-            status=Meeting.CONFIRMED,
-            scheduled_at__lte=now,
-            scheduled_at__gte=now - timezone.timedelta(minutes=60)  # Show meetings that started in last hour
-        ).order_by('-scheduled_at')
+            Q(status=Meeting.CONFIRMED) | Q(status=Meeting.RESCHEDULED),
+            Q(
+                # Upcoming meetings in the next 24 hours
+                Q(scheduled_at__gt=now, scheduled_at__lte=now + timezone.timedelta(hours=24)) |
+                # Recent meetings in the last hour
+                Q(scheduled_at__lte=now, scheduled_at__gte=now - timezone.timedelta(minutes=60))
+            )
+        ).order_by('scheduled_at')[:5]  # Limit to 5 most relevant meetings
 
 
 class StartMeetingAPIView(generics.UpdateAPIView):
@@ -99,7 +107,7 @@ class StartMeetingAPIView(generics.UpdateAPIView):
             import uuid
             meeting.meeting_url = f"https://meet.jit.si/meeting-{uuid.uuid4()}"
         
-        if meeting.status != Meeting.CONFIRMED:
+        if meeting.status != Meeting.CONFIRMED and meeting.status != Meeting.RESCHEDULED:
             meeting.status = Meeting.CONFIRMED
         
         # Set the current user as the host when starting the meeting

@@ -265,7 +265,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               Confirm
                             </Button>
                           )}
-                          {['pending', 'confirmed'].includes(meeting.status) && (
+                          {['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && (
                             <>
                               <Button 
                                 variant="outlined" 
@@ -288,7 +288,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               </Button>
                             </>
                           )}
-                          {meeting.status === 'confirmed' && meeting.meeting_url && (
+                          {(meeting.status === 'confirmed' || meeting.status === 'rescheduled') && meeting.meeting_url && (
                             <Button 
                               variant="contained" 
                               color="primary"
@@ -301,7 +301,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                         </Box>
                       )}
 
-                      {userType === 'client' && ['pending', 'confirmed'].includes(meeting.status) && (
+                      {userType === 'client' && ['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && (
                         <>
                           <Button
                             variant="outlined"
@@ -325,7 +325,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                         </>
                       )}
 
-                      {meeting.meeting_url && meeting.status === 'confirmed' && (
+                      {meeting.meeting_url && (meeting.status === 'confirmed' || meeting.status === 'rescheduled') && (
                         <Button
                           variant="contained"
                           color="primary"
