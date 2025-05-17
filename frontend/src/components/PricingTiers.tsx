@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Box, Button, List, ListItem, ListItemIcon, Grid } from '@mui/material';
+import { Card, CardContent, Typography, Box, Button, List, ListItem, ListItemIcon, Grid, Chip } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { motion } from 'framer-motion';
 
@@ -7,45 +7,56 @@ const tiers = [
     title: 'Basic',
     price: '$29',
     period: '/month',
-    description: 'For small teams getting started',
+    description: 'Perfect for individuals or small teams exploring structured onboarding',
     features: [
-      'Up to 100 users',
-      'Basic onboarding flows',
-      'Email support',
-      'Standard integrations',
+      '1 qualified meeting included (Free Trial)',
+      'Access to AI-powered onboarding wizard',
+      'Personalized welcome guide',
+      'Secure account dashboard access',
+      'Standard onboarding use cases & video demos',
+      'Email support during trial period',
+      'Access to FAQs & knowledge base'
     ],
     cta: 'Start Free Trial',
     highlight: false,
+    color: 'success'
   },
   {
     title: 'Pro',
     price: '$99',
     period: '/month',
-    description: 'For growing businesses',
+    description: 'Ideal for growing teams that need advanced onboarding workflows and analytics',
     features: [
-      'Up to 500 users',
-      'Advanced onboarding',
-      'Priority support',
-      'API access',
-      'Custom workflows',
+      'Up to 5 qualified meetings per month',
+      'Onboarding progress tracking dashboard',
+      'Full feature walkthrough with real-time AI insights',
+      'Customizable onboarding workflows per client',
+      'Priority email & live chat support',
+      'Stripe billing integration & plan auto-upgrade',
+      'Customer testimonials management access',
+      'Advanced usage analytics'
     ],
     cta: 'Start Free Trial',
     highlight: true,
+    color: 'primary'
   },
   {
     title: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    description: 'For large organizations',
+    price: '$499',
+    period: '/month',
+    description: 'Designed for organizations with complex onboarding needs and white-glove support',
     features: [
-      'Unlimited users',
-      'Dedicated account manager',
-      '24/7 support',
-      'SSO & advanced security',
-      'Custom integrations',
+      'Unlimited qualified meetings',
+      'Dedicated success manager',
+      'Custom integration (CRM, scheduling, etc.)',
+      'Role-based dashboard customization',
+      'SLA-backed support & live onboarding sessions',
+      'Full onboarding data exports & compliance support',
+      'Branding customization and white-labeling options'
     ],
     cta: 'Contact Sales',
     highlight: false,
+    color: 'default'
   },
 ];
 
@@ -57,10 +68,55 @@ export default function PricingTiers() {
           <motion.div whileHover={{ y: -10 }}>
             <Card
               sx={{
-                border: tier.highlight ? '2px solid #6C63FF' : 'none',
+                border: tier.highlight ? '2px solid #6C63FF' : tier.color === 'success' ? '2px solid #4caf50' : tier.color === 'default' ? '2px solid #333' : 'none',
                 transform: tier.highlight ? 'scale(1.03)' : 'none',
+                borderRadius: 2,
+                height: '100%',
+                boxShadow: tier.highlight ? '0 8px 24px rgba(108, 99, 255, 0.2)' : '0 4px 12px rgba(0,0,0,0.1)',
+                position: 'relative',
+                overflow: 'visible',
               }}
             >
+              {tier.color === 'success' && (
+                <Box sx={{ 
+                  position: 'absolute', 
+                  top: -12, 
+                  left: 0, 
+                  width: '100%', 
+                  display: 'flex', 
+                  justifyContent: 'center' 
+                }}>
+                  <Chip 
+                    label="Most Popular for Beginners" 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: '#4caf50', 
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }} 
+                  />
+                </Box>
+              )}
+              {tier.highlight && (
+                <Box sx={{ 
+                  position: 'absolute', 
+                  top: -12, 
+                  left: 0, 
+                  width: '100%', 
+                  display: 'flex', 
+                  justifyContent: 'center' 
+                }}>
+                  <Chip 
+                    label="Most Popular" 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: '#6C63FF', 
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }} 
+                  />
+                </Box>
+              )}
               <CardContent>
                 <Typography variant="h5" gutterBottom>
                   {tier.title}
@@ -88,10 +144,23 @@ export default function PricingTiers() {
                 </List>
                 <Button
                   fullWidth
-                  variant={tier.highlight ? 'contained' : 'outlined'}
-                  color={tier.highlight ? 'secondary' : 'primary'}
+                  variant={tier.highlight || tier.color === 'success' ? 'contained' : 'outlined'}
+                  color={tier.color === 'success' ? 'success' : tier.highlight ? 'primary' : 'inherit'}
                   size="large"
-                  sx={{ mt: 3 }}
+                  sx={{ 
+                    mt: 3,
+                    py: 1.5,
+                    fontSize: '0.95rem',
+                    fontWeight: 'medium',
+                    ...(tier.color === 'default' && {
+                      color: 'text.primary',
+                      borderColor: 'text.primary',
+                      '&:hover': {
+                        borderColor: 'text.primary',
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                      }
+                    })
+                  }}
                 >
                   {tier.cta}
                 </Button>
