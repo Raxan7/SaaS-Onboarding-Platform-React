@@ -1,16 +1,21 @@
 import { AppBar, Toolbar, Container, Box, Avatar, Typography, IconButton, Menu, MenuItem, Badge, useMediaQuery, useTheme } from '@mui/material';
-import { Notifications, HelpOutline, Settings, Logout } from '@mui/icons-material';
+import { Notifications, HelpOutline, Settings, Logout, Menu as MenuIcon } from '@mui/icons-material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import logo from './logo.jpg';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  onMobileDrawerToggle?: () => void;
+}
+
+export default function DashboardHeader({ onMobileDrawerToggle }: DashboardHeaderProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const { logout } = useAuth();
+  const menuOpen = Boolean(anchorEl);
+  const { logout, user } = useAuth();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -29,9 +34,11 @@ export default function DashboardHeader() {
           backgroundColor: 'background.paper',
           color: 'text.primary',
           borderBottom: `1px solid ${theme.palette.divider}`,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          width: '100%'
         }}
       >
-        <Container maxWidth="xl">
+        <Container maxWidth={false}>
           <Toolbar sx={{ 
             justifyContent: 'space-between', 
             px: { xs: 2, sm: 3 },
@@ -39,6 +46,17 @@ export default function DashboardHeader() {
           }}>
             {/* Logo and Dashboard Title */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              {isMobile && (
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="start"
+                  onClick={onMobileDrawerToggle}
+                  sx={{ mr: 1, color: 'text.secondary' }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
               <Box 
                 component={Link} 
                 to="/dashboard" 
@@ -111,7 +129,7 @@ export default function DashboardHeader() {
               
               <Menu
                 anchorEl={anchorEl}
-                open={open}
+                open={menuOpen}
                 onClose={handleMenuClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}

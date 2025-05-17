@@ -41,8 +41,7 @@ const OnboardingWizard = () => {
           
           // Check if onboarding is complete
           if (statusData.is_complete) {
-            const dashboardPath = userType === 'host' ? '/host-dashboard' : '/client-dashboard';
-            navigate(dashboardPath);
+            navigate('/dashboard');
             return;
           }
           
@@ -96,8 +95,7 @@ const OnboardingWizard = () => {
           credentials: 'include'
         });
         
-        const dashboardPath = userType === 'host' ? '/host-dashboard' : '/client-dashboard';
-        navigate(dashboardPath);
+        navigate('/dashboard');
       } catch (error) {
         console.error('Error completing onboarding:', error);
       }
