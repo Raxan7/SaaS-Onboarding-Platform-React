@@ -115,16 +115,139 @@ def stripe_webhook(request):
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
     except ValueError as e:
+        print(f"Webhook error: {str(e)}")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
+        print(f"Webhook signature verification failed: {str(e)}")
         return HttpResponse(status=400)
 
     # Handle webhook events
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        # Handle successful payment
-        # Update your database here
+    try:
+        print(f"Processing webhook event: {event['type']}")
         
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            customer_id = session.get('customer')
+            subscription_id = session.get('subscription')
+            print(f"Checkout session completed - Customer ID: {customer_id}, Subscription ID: {subscription_id}")
+            
+            from accounts.models import User
+            from subscriptions.models import Plan, Subscription
+            from onboarding.models import UserOnboarding
+            
+            print(f"Checkout completed for customer: {customer_id}, subscription: {subscription_id}")
+            
+            # Find the user by Stripe customer ID
+            try:
+                user = User.objects.get(stripe_customer_id=customer_id)
+                print(f"Found user: {user.email}")
+                
+                # Get subscription details from Stripe
+                if subscription_id:
+                    stripe_subscription = stripe.Subscription.retrieve(subscription_id)
+                    price_id = stripe_subscription['items']['data'][0]['price']['id']
+                    
+                    print(f"Subscription details - Price ID: {price_id}")
+                    
+                    # Find the corresponding plan
+                    try:
+                        plan = Plan.objects.get(stripe_price_id=price_id)
+                        print(f"Found plan: {plan.name}")
+                        
+                        # Create or update subscription
+                        subscription, created = Subscription.objects.update_or_create(
+                            user=user,
+                            defaults={
+                                'plan': plan,
+                                'status': 'active',
+                                'stripe_subscription_id': subscription_id,
+                                'current_period_end': timezone.datetime.fromtimestamp(
+                                    stripe_subscription.current_period_end, 
+                                    tz=timezone.get_current_timezone()
+                                )
+                            }
+                        )
+                        
+                        if created:
+                            print(f"Created new subscription for {user.email}")
+                        else:
+                            print(f"Updated subscription for {user.email}")
+                        
+                        # Update onboarding status
+                        onboarding, _ = UserOnboarding.objects.get_or_create(user=user)
+                        
+                        # Initialize data if needed
+                        if not onboarding.data:
+                            onboarding.data = {}
+                            
+                        onboarding.data['payment_step_completed'] = True
+                        onboarding.data['selected_plan_id'] = price_id
+                        onboarding.is_complete = True
+                        onboarding.completed_at = timezone.now()
+                        onboarding.save()
+                        
+                        print(f"Updated onboarding status for {user.email}")
+                    
+                    except Plan.DoesNotExist:
+                        print(f"Plan not found for price_id: {price_id}")
+                
+                else:
+                    print("No subscription ID found in session")
+            
+            except User.DoesNotExist:
+                print(f"User not found for customer: {customer_id}")
+                
+        elif event['type'] == 'invoice.payment_succeeded':
+            invoice = event['data']['object']
+            customer_id = invoice.get('customer')
+            subscription_id = invoice.get('subscription')
+            
+            # Handle successful recurring payment
+            if subscription_id:
+                from accounts.models import User
+                from subscriptions.models import Subscription
+                
+                try:
+                    user = User.objects.get(stripe_customer_id=customer_id)
+                    subscription = Subscription.objects.get(stripe_subscription_id=subscription_id)
+                    
+                    # Get updated subscription details from Stripe
+                    stripe_sub = stripe.Subscription.retrieve(subscription_id)
+                    
+                    # Update subscription period end
+                    subscription.current_period_end = timezone.datetime.fromtimestamp(
+                        stripe_sub.current_period_end, 
+                        tz=timezone.get_current_timezone()
+                    )
+                    subscription.status = 'active'
+                    subscription.save()
+                    
+                    print(f"Updated subscription renewal for {user.email}")
+                    
+                except (User.DoesNotExist, Subscription.DoesNotExist) as e:
+                    print(f"Error updating subscription: {str(e)}")
+        
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription_data = event['data']['object']
+            subscription_id = subscription_data.get('id')
+            
+            from subscriptions.models import Subscription
+            
+            try:
+                subscription = Subscription.objects.get(stripe_subscription_id=subscription_id)
+                subscription.status = 'canceled'
+                subscription.save()
+                
+                print(f"Subscription {subscription_id} marked as canceled")
+                
+            except Subscription.DoesNotExist:
+                print(f"Subscription not found: {subscription_id}")
+    
+    except Exception as e:
+        print(f"Error processing webhook: {str(e)}")
+        import traceback
+        traceback.print_exc()
+    
     return HttpResponse(status=200)
 
 @api_view(['GET'])

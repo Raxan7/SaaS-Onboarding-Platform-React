@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status, mixins, serializers
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Plan
@@ -12,6 +11,7 @@ from rest_framework import status
 from django.utils import timezone
 from .models import Subscription
 from onboarding.models import UserOnboarding
+from .serializers import SubscriptionSerializer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -47,15 +47,45 @@ class PlanListAPIView(generics.ListAPIView):
 
         except Exception as e:
             return Response([{
-                'id': 'basic_monthly',
+                'id': 'price_1RO3HrLa8vPOEHR78kogds4D',
                 'name': 'Basic Plan',
                 'price': '$29/month',
-                'features': ['Up to 100 users', 'Basic support']
+                'features': [
+                    '1 qualified meeting included (Free Trial)',
+                    'Access to AI-powered onboarding wizard',
+                    'Personalized welcome guide',
+                    'Secure account dashboard access',
+                    'Standard onboarding use cases & video demos',
+                    'Email support during trial period',
+                    'Access to FAQs & knowledge base'
+                ]
             }, {
-                'id': 'pro_monthly',
+                'id': 'price_1RO3I9La8vPOEHR7d9EzMNvl',
                 'name': 'Pro Plan',
                 'price': '$99/month',
-                'features': ['Unlimited users', 'Priority support']
+                'features': [
+                    'Up to 5 qualified meetings per month',
+                    'Onboarding progress tracking dashboard',
+                    'Full feature walkthrough with real-time AI insights',
+                    'Customizable onboarding workflows per client',
+                    'Priority email & live chat support',
+                    'Stripe billing integration & plan auto-upgrade',
+                    'Customer testimonials management access',
+                    'Advanced usage analytics'
+                ]
+            }, {
+                'id': 'price_1RPhD8La8vPOEHR7GtHdIp91',
+                'name': 'Enterprise Plan',
+                'price': '$499/month',
+                'features': [
+                    'Unlimited qualified meetings',
+                    'Dedicated success manager',
+                    'Custom integration (CRM, scheduling, etc.)',
+                    'Role-based dashboard customization',
+                    'SLA-backed support & live onboarding sessions',
+                    'Full onboarding data exports & compliance support',
+                    'Branding customization and white-labeling options'
+                ]
             }])
 
 class PaymentCompleteView(APIView):
@@ -108,6 +138,11 @@ class PaymentCompleteView(APIView):
                 subscription.plan = plan
                 subscription.status = 'active'
                 subscription.updated_at = timezone.now()
+                
+                # Set current period end to 30 days from now for monthly plans
+                if not subscription.current_period_end or subscription.current_period_end < timezone.now():
+                    subscription.current_period_end = timezone.now() + timezone.timedelta(days=30)
+                
                 subscription.save()
                 print(f"Updated subscription for user {user.id} with plan {plan.id}")
             except Subscription.DoesNotExist:
@@ -116,7 +151,8 @@ class PaymentCompleteView(APIView):
                     user=user,
                     plan=plan,
                     status='active',
-                    stripe_subscription_id='manual_activation'  # Placeholder
+                    stripe_subscription_id='manual_activation',  # Placeholder
+                    current_period_end=timezone.now() + timezone.timedelta(days=30)  # Set expiration to 30 days from now
                 )
                 print(f"Created new subscription for user {user.id} with plan {plan.id}")
             
@@ -141,4 +177,58 @@ class PaymentCompleteView(APIView):
             return Response({
                 'error': str(e),
                 'detail': 'An error occurred while marking payment as complete'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get the authenticated user's current subscription details
+        """
+        try:
+            subscription = Subscription.objects.filter(user=request.user, status='active').first()
+            
+            if not subscription:
+                # Check if user has completed onboarding with payment
+                onboarding = UserOnboarding.objects.filter(user=request.user, is_complete=True).first()
+                if onboarding and onboarding.data and onboarding.data.get('payment_step_completed'):
+                    # User has completed payment but subscription record might be missing
+                    # Get selected plan ID if available
+                    selected_plan_id = onboarding.data.get('selected_plan_id')
+                    plan = None
+                    
+                    if selected_plan_id:
+                        try:
+                            plan = Plan.objects.get(stripe_price_id=selected_plan_id)
+                        except Plan.DoesNotExist:
+                            # Try default plans
+                            plan = Plan.objects.filter(is_active=True).first()
+                    
+                    if plan:
+                        # Create a subscription record
+                        subscription = Subscription.objects.create(
+                            user=request.user,
+                            plan=plan,
+                            status='active',
+                            stripe_subscription_id='auto_generated',
+                            current_period_end=timezone.now() + timezone.timedelta(days=30)
+                        )
+                        return Response(SubscriptionSerializer(subscription).data)
+                
+                return Response({
+                    'error': 'No active subscription found',
+                    'has_completed_payment': bool(onboarding and onboarding.data and onboarding.data.get('payment_step_completed', False)),
+                    'status': 'not_subscribed'
+                }, status=status.HTTP_200_OK)
+            
+            return Response(SubscriptionSerializer(subscription).data)
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({
+                'error': str(e),
+                'detail': 'An error occurred while fetching subscription details'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
