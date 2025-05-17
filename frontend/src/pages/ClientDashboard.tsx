@@ -39,6 +39,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import TimezonePicker from '../components/meetings/TimezonePicker';
 import { useApiClient } from '../utils/apiClient';
 import { PickerValue } from '@mui/x-date-pickers/internals';
+import SubscriptionInfo from '../components/subscriptions/SubscriptionInfo';
 
 const onboardingSteps = [
   { name: 'Account Setup', completed: true },
@@ -110,8 +111,9 @@ const ClientDashboard = () => {
     const markPaymentComplete = async () => {
       if (paymentSuccess) {
         try {
+          console.log("Marking payment as complete...");
           // Use fetch API directly with full error handling
-          await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/payment/`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/payment/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -119,6 +121,15 @@ const ClientDashboard = () => {
             },
             credentials: 'include'
           });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error from payment completion API:", errorData);
+            throw new Error(errorData.error || 'Failed to mark payment as complete');
+          }
+          
+          const result = await response.json();
+          console.log("Payment marked as complete:", result);
           
           // Refetch onboarding status to update UI
           await fetchOnboardingStatus();
@@ -168,9 +179,24 @@ const ClientDashboard = () => {
     // First fetch the status, then handle payment completion if needed
     fetchOnboardingStatus();
     if (paymentSuccess) {
+      // Show a success message for payment
+      setShowPaymentSuccess(true);
+      // Mark payment as complete in the backend
       markPaymentComplete();
     }
   }, [location.search]);
+
+  // Display payment success alert
+  useEffect(() => {
+    if (showPaymentSuccess) {
+      // Hide the payment success alert after 10 seconds
+      const timer = setTimeout(() => {
+        setShowPaymentSuccess(false);
+      }, 10000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showPaymentSuccess]);
 
   const onboardingPercentage = Math.round(
     (onboardingStatus.completedSteps / onboardingStatus.totalSteps) * 100
@@ -427,6 +453,12 @@ const ClientDashboard = () => {
             </Card>
           </Grid>
           
+          <Grid size={{ xs: 12, md: 6 }}>
+            <SubscriptionInfo />
+          </Grid>
+        </Grid>
+        
+        <Grid container spacing={4}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ boxShadow: theme.shadows[2] }}>
               <CardContent>
