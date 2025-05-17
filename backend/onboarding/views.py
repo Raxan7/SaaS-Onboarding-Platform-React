@@ -202,6 +202,18 @@ class UpdatePaymentInfoAPIView(APIView):
         if not plan_id:
             return Response({'error': 'Plan ID is required'}, status=400)
 
+        # Validate that the plan ID matches one of our Stripe price IDs
+        valid_price_ids = [
+            'price_1RO3HrLa8vPOEHR78kogds4D',  # Basic Plan
+            'price_1RO3I9La8vPOEHR7d9EzMNvl',  # Pro Plan
+            'price_1RPhD8La8vPOEHR7GtHdIp91',  # Enterprise Plan
+        ]
+        
+        if plan_id not in valid_price_ids:
+            return Response({
+                'error': f'Invalid plan ID: {plan_id}. Must be one of the valid Stripe price IDs.'
+            }, status=400)
+
         user = request.user
         onboarding, _ = UserOnboarding.objects.get_or_create(user=user)
         
@@ -214,3 +226,70 @@ class UpdatePaymentInfoAPIView(APIView):
         onboarding.save()
 
         return Response({'status': 'Payment info updated successfully'}, status=200)
+
+
+class PaymentCompleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        
+        try:
+            # Get the user's onboarding data
+            onboarding, _ = UserOnboarding.objects.get_or_create(user=user)
+            
+            # Initialize the data field if it's None
+            if onboarding.data is None:
+                onboarding.data = {}
+            
+            # Mark payment step as completed and onboarding as complete
+            onboarding.data['payment_step_completed'] = True
+            onboarding.is_complete = True
+            onboarding.completed_at = timezone.now()
+            onboarding.save()
+            
+            # If we're also creating a subscription, do so here
+            selected_plan_id = onboarding.data.get('selected_plan_id')
+            if selected_plan_id:
+                # Import here to avoid circular imports
+                from subscriptions.models import Plan, Subscription
+                
+                try:
+                    # Find the plan
+                    plan = Plan.objects.get(stripe_price_id=selected_plan_id)
+                    
+                    # Create or update subscription
+                    subscription, created = Subscription.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            'plan': plan,
+                            'status': 'active',
+                            'stripe_subscription_id': 'payment_complete_action',
+                            'current_period_end': timezone.now() + timezone.timedelta(days=30)
+                        }
+                    )
+                    
+                    print(f"{'Created' if created else 'Updated'} subscription for user {user.id} with plan {plan.id}")
+                except Plan.DoesNotExist:
+                    print(f"Plan not found for stripe_price_id: {selected_plan_id}")
+                except Exception as e:
+                    print(f"Error creating subscription: {str(e)}")
+            
+            print(f"Successfully marked onboarding as complete for user {user.id}")
+            
+            return Response({
+                'status': 'Payment and onboarding completed successfully',
+                'is_complete': True,
+                'payment_step_completed': True
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            import traceback
+            print(f"Error in PaymentCompleteAPIView: {str(e)}")
+            traceback.print_exc()
+            return Response({
+                'error': str(e),
+                'detail': 'An error occurred while marking payment as complete'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+
+
