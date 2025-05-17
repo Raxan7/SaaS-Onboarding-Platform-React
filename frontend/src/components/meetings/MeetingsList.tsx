@@ -325,7 +325,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                         </>
                       )}
 
-                      {meeting.meeting_url && (meeting.status === 'confirmed' || meeting.status === 'rescheduled') && (
+                      {meeting.meeting_url && (meeting.status === 'confirmed' || meeting.status === 'rescheduled') && userType === 'client' && (
                         <Button
                           variant="contained"
                           color="primary"
