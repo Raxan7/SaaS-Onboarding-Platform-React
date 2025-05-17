@@ -20,6 +20,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ScheduleMeetingPage from './pages/ScheduleMeetingPage';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import LiveChat from './components/LiveChat';
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
                     </Route>
                   </Routes>
                   <Footer />
+                  <LiveChat />
                 </ErrorBoundary>
               </ThemeProvider>
             </LocalizationProvider>

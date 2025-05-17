@@ -4,9 +4,11 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Footer() {
   const theme = useTheme();
+  const { isAuthenticated } = useAuth();
   
   return (
     <Box
@@ -122,79 +124,49 @@ export default function Footer() {
             >
               Home
             </Link>
-            <Link 
-              component={RouterLink} 
-              to="/pricing" 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{
-                display: 'block', 
-                mb: 1.5,
-                transition: 'all 0.2s',
-                '&:hover': { 
-                  color: theme.palette.primary.main,
-                  transform: 'translateX(3px)'
-                }
-              }}
-            >
-              Pricing
-            </Link>
-            <Link 
-              component={RouterLink} 
-              to="/login" 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{
-                display: 'block', 
-                mb: 1.5,
-                transition: 'all 0.2s',
-                '&:hover': { 
-                  color: theme.palette.primary.main,
-                  transform: 'translateX(3px)'
-                }
-              }}
-            >
-              Login
-            </Link>
+            {!isAuthenticated && (
+              <>
+                <Link 
+                  component={RouterLink} 
+                  to="/pricing" 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{
+                    display: 'block', 
+                    mb: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': { 
+                      color: theme.palette.primary.main,
+                      transform: 'translateX(3px)'
+                    }
+                  }}
+                >
+                  Pricing
+                </Link>
+                <Link 
+                  component={RouterLink} 
+                  to="/login" 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{
+                    display: 'block', 
+                    mb: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': { 
+                      color: theme.palette.primary.main,
+                      transform: 'translateX(3px)'
+                    }
+                  }}
+                >
+                  Login
+                </Link>
+              </>
+            )}
           </Grid>
           <Grid size={{ xs: 6, md: 2.5 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
-              Dashboard
+              Actions
             </Typography>
-            <Link 
-              component={RouterLink} 
-              to="/client-dashboard" 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{
-                display: 'block', 
-                mb: 1.5,
-                transition: 'all 0.2s',
-                '&:hover': { 
-                  color: theme.palette.primary.main,
-                  transform: 'translateX(3px)'
-                }
-              }}
-            >
-              Client Dashboard
-            </Link>
-            <Link 
-              component={RouterLink} 
-              to="/host-dashboard" 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{
-                display: 'block', 
-                mb: 1.5,
-                transition: 'all 0.2s',
-                '&:hover': { 
-                  color: theme.palette.primary.main,
-                  transform: 'translateX(3px)'
-                }
-              }}
-            >
-              Host Dashboard
-            </Link>
             <Link 
               component={RouterLink} 
               to="/schedule-meeting" 

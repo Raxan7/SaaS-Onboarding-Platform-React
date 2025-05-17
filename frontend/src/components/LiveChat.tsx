@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Box, IconButton, Paper, TextField, Typography, Avatar, Badge, Slide, Grow } from '@mui/material';
+import { Box, IconButton, Paper, TextField, Typography, Avatar, Badge, Slide, Grow, Button } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import KnowledgeBase from './KnowledgeBase';
 
 export default function LiveChat() {
   const [open, setOpen] = useState(false);
@@ -10,6 +12,7 @@ export default function LiveChat() {
     { text: 'Hello! How can I help you today?', sender: 'bot' },
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -17,7 +20,10 @@ export default function LiveChat() {
       setNewMessage('');
       // Simulate bot response
       setTimeout(() => {
-        setMessages(prev => [...prev, { text: 'Thanks for your message! Our team will get back to you soon.', sender: 'bot' }]);
+        setMessages(prev => [...prev, { 
+          text: 'Thanks for your message! Our team will get back to you soon. You might also find helpful information in our Knowledge Base.',
+          sender: 'bot'
+        }]);
       }, 1000);
     }
   };
@@ -43,7 +49,14 @@ export default function LiveChat() {
       </Grow>
 
       <Slide direction="up" in={open} mountOnEnter unmountOnExit>
-        <Paper elevation={10} sx={{ width: 320, height: 400, display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
+        <Paper elevation={10} sx={{ 
+          width: 320, 
+          height: 450, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          borderRadius: 2,
+          overflow: 'hidden' 
+        }}>
           <Box sx={{ 
             backgroundColor: 'primary.main', 
             color: 'white', 
@@ -53,63 +66,103 @@ export default function LiveChat() {
             alignItems: 'center',
             borderRadius: '8px 8px 0 0'
           }}>
-            <Typography variant="subtitle1">Live Support</Typography>
+            <Typography variant="subtitle1">{showKnowledgeBase ? 'Knowledge Base' : 'Live Support'}</Typography>
             <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: 'white' }}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
-          <Box sx={{ flex: 1, p: 2, overflowY: 'auto', backgroundColor: 'background.paper' }}>
-            {messages.map((message, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                  mb: 2,
-                }}
-              >
-                {message.sender === 'bot' && (
-                  <Avatar sx={{ width: 24, height: 24, mr: 1, bgcolor: 'secondary.main' }}>S</Avatar>
-                )}
-                <Paper
-                  elevation={1}
-                  sx={{
-                    p: 1.5,
-                    maxWidth: '70%',
-                    backgroundColor: message.sender === 'user' ? 'primary.main' : 'background.default',
-                    color: message.sender === 'user' ? 'white' : 'text.primary',
-                    borderRadius: message.sender === 'user' ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  <Typography variant="body2">{message.text}</Typography>
-                </Paper>
+          {showKnowledgeBase ? (
+            <Box sx={{ height: '100%', overflow: 'hidden' }}>
+              <KnowledgeBase />
+            </Box>
+          ) : (
+            <>
+              <Box sx={{ flex: 1, p: 2, overflowY: 'auto', backgroundColor: 'background.paper' }}>
+                {messages.map((message, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                      mb: 2,
+                    }}
+                  >
+                    {message.sender === 'bot' && (
+                      <Avatar sx={{ width: 24, height: 24, mr: 1, bgcolor: 'secondary.main' }}>S</Avatar>
+                    )}
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        p: 1.5,
+                        maxWidth: '70%',
+                        backgroundColor: message.sender === 'user' ? 'primary.main' : 'background.default',
+                        color: message.sender === 'user' ? 'white' : 'text.primary',
+                        borderRadius: message.sender === 'user' ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      }}
+                    >
+                      <Typography variant="body2">{message.text}</Typography>
+                      {message.sender === 'bot' && message.text.includes('Knowledge Base') && (
+                        <Button 
+                          size="small" 
+                          variant="text" 
+                          startIcon={<MenuBookIcon fontSize="small" />}
+                          onClick={() => setShowKnowledgeBase(true)}
+                          sx={{ mt: 1, fontSize: '0.75rem', p: 0 }}
+                        >
+                          Open Knowledge Base
+                        </Button>
+                      )}
+                    </Paper>
+                  </Box>
+                ))}
               </Box>
-            ))}
-          </Box>
-          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="small"
-              placeholder="Type your message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              InputProps={{
-                endAdornment: (
-                  <IconButton edge="end" onClick={handleSendMessage} sx={{ color: 'primary.main' }}>
-                    <SendIcon />
-                  </IconButton>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                },
-              }}
-            />
-          </Box>
+              <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton edge="end" onClick={handleSendMessage} sx={{ color: 'primary.main' }}>
+                        <SendIcon />
+                      </IconButton>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button 
+                    size="small" 
+                    onClick={() => setShowKnowledgeBase(true)}
+                    startIcon={<MenuBookIcon fontSize="small" />}
+                    sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                  >
+                    Browse Knowledge Base
+                  </Button>
+                </Box>
+              </Box>
+            </>
+          )}
+          {showKnowledgeBase && (
+            <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider', backgroundColor: 'background.default', textAlign: 'center' }}>
+              <Button 
+                size="small"
+                onClick={() => setShowKnowledgeBase(false)}
+                sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+              >
+                Back to Chat
+              </Button>
+            </Box>
+          )}
         </Paper>
       </Slide>
     </Box>
