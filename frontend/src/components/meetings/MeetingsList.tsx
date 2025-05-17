@@ -225,11 +225,12 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                   
                   {meeting?.status ? (
                     <Chip 
-                      label={meeting.status.toUpperCase()} 
+                      label={meeting.status === 'rescheduled' ? 'RESCHEDULED & CONFIRMED' : meeting.status.toUpperCase()} 
                       color={
                         meeting.status === 'confirmed' ? 'success' :
                         meeting.status === 'pending' ? 'warning' :
-                        meeting.status === 'cancelled' ? 'error' : 'info'
+                        meeting.status === 'cancelled' ? 'error' : 
+                        meeting.status === 'rescheduled' ? 'success' : 'info'
                       }
                       variant="outlined"
                       size="small"
