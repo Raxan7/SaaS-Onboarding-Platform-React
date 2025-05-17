@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'onboarding',
     'meetings',
+    'support',
 ]
 
 # Update MIDDLEWARE to ensure proper ordering
