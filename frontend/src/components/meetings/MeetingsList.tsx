@@ -250,7 +250,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                     </Typography>
                   </Box>
                 )}
-
+                
                 {showActions && (
                   <Box mt={3}>
                     <Divider sx={{ mb: 2 }} />
