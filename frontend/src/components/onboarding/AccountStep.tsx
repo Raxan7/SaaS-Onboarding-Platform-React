@@ -59,8 +59,15 @@ const AccountStep = () => {
 
       if (isLogin) {
         // For login, proceed with full authentication
-        await login(responseData.token, responseData.user_type || 'client', responseData.user);
-        navigate('/onboarding?step=1'); // Start from step 1 after login
+        const userType = responseData.user_type || 'client';
+        await login(responseData.token, userType, responseData.user);
+        
+        // Redirect to the appropriate dashboard based on user type
+        if (userType === 'host') {
+          navigate('/host-dashboard');
+        } else {
+          navigate('/client-dashboard');
+        }
       } else {
         // For registration, redirect to login page
         navigate('/login');
