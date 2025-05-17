@@ -17,7 +17,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 
-// FAQ data structure
+// FAQ data structure - used as fallback when API doesn't return data
 const faqData = [
   {
     question: "How do I schedule my first meeting?",
@@ -31,6 +31,7 @@ const faqData = [
     question: "How can I reschedule a meeting?",
     answer: "In your dashboard, find the meeting you wish to reschedule in the 'Meetings' section. Click on 'Reschedule', select a new date and time, and confirm. Both parties will receive an updated invitation."
   },
+  // Keep a few more questions as fallback
   {
     question: "Does the platform support video meetings?",
     answer: "Yes, our platform provides built-in video conferencing using Jitsi Meet. When it's time for your meeting, simply click the 'Join Meeting' button in your dashboard."
