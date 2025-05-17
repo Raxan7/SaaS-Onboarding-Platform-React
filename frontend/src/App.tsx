@@ -21,6 +21,12 @@ import ScheduleMeetingPage from './pages/ScheduleMeetingPage';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import LiveChat from './components/LiveChat';
+import MeetingsPage from './pages/MeetingsPage';
+import SubscriptionPage from './pages/SubscriptionPage';
+import SupportPage from './pages/SupportPage';
+import KnowledgeBasePage from './pages/KnowledgeBasePage';
+import SettingsPage from './pages/SettingsPage';
+import HelpPage from './pages/HelpPage';
 
 
 function App() {
@@ -40,19 +46,25 @@ function App() {
                     <Route path="/onboarding" element={<OnboardingPage />} />
 
                     {/* Client routes */}
-                    <Route element={<ProtectedRouteWithUserType requiredUserType="client" redirectPath="/host-dashboard" />}>
+                    <Route element={<ProtectedRouteWithUserType requiredUserType="client" redirectPath="/dashboard" />}>
                       <Route path="/client-dashboard" element={<ClientDashboard />} />
                       <Route path="/schedule-meeting" element={<ScheduleMeetingPage />} />
                     </Route>
 
                     {/* Host routes */}
-                    <Route element={<ProtectedRouteWithUserType requiredUserType="host" redirectPath="/client-dashboard" />}>
+                    <Route element={<ProtectedRouteWithUserType requiredUserType="host" redirectPath="/dashboard" />}>
                       <Route path="/host-dashboard" element={<HostDashboard />} />
                     </Route>
 
                     {/* Protected routes (for both types) */}
                     <Route element={<ProtectedRoute />}>
                       <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/meetings" element={<MeetingsPage />} />
+                      <Route path="/subscription" element={<SubscriptionPage />} />
+                      <Route path="/support" element={<SupportPage />} />
+                      <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/help" element={<HelpPage />} />
                     </Route>
                   </Routes>
                   <Footer />
