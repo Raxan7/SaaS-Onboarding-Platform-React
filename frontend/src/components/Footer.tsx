@@ -34,7 +34,7 @@ export default function Footer() {
     >
       <Container maxWidth="lg">
         <Grid container spacing={4} alignItems="flex-start">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box mb={2}>
               <Typography 
                 variant="h5" 
@@ -101,7 +101,7 @@ export default function Footer() {
               </Stack>
             </Box>
           </Grid>
-          <Grid item xs={6} md={2.5}>
+          <Grid size={{ xs: 6, md: 2.5 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
               Quick Links
             </Typography>
@@ -157,7 +157,7 @@ export default function Footer() {
               Login
             </Link>
           </Grid>
-          <Grid item xs={6} md={2.5}>
+          <Grid size={{ xs: 6, md: 2.5 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
               Dashboard
             </Typography>
@@ -213,7 +213,7 @@ export default function Footer() {
               Schedule a Meeting
             </Link>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
               Legal
             </Typography>
