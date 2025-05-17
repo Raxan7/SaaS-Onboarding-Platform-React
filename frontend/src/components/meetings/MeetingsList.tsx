@@ -292,8 +292,45 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                             <Button 
                               variant="contained" 
                               color="primary"
-                              size="small"
+                              size="medium"
                               onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url || null)}
+                              sx={{
+                                background: 'linear-gradient(45deg, #6C63FF 30%, #5046e4 90%)',
+                                boxShadow: '0 4px 8px 2px rgba(108, 99, 255, .3)',
+                                fontWeight: 'bold',
+                                padding: '8px 20px',
+                                fontSize: '0.9rem',
+                                letterSpacing: '0.5px',
+                                transition: 'all 0.25s ease-in-out',
+                                '&:hover': {
+                                  transform: 'scale(1.05)',
+                                  background: 'linear-gradient(45deg, #5046e4 30%, #403ab3 90%)',
+                                  boxShadow: '0 6px 10px 2px rgba(108, 99, 255, .4)',
+                                }
+                              }}
+                              startIcon={<Box 
+                                component="span" 
+                                sx={{ 
+                                  width: '14px', 
+                                  height: '14px', 
+                                  borderRadius: '50%', 
+                                  backgroundColor: '#F2994A', 
+                                  display: 'inline-block',
+                                  boxShadow: '0 0 0 rgba(242, 153, 74, 0.4)',
+                                  animation: 'pulse 1.5s infinite',
+                                  '@keyframes pulse': {
+                                    '0%': {
+                                      boxShadow: '0 0 0 0 rgba(242, 153, 74, 0.4)',
+                                    },
+                                    '70%': {
+                                      boxShadow: '0 0 0 10px rgba(242, 153, 74, 0)',
+                                    },
+                                    '100%': {
+                                      boxShadow: '0 0 0 0 rgba(242, 153, 74, 0)',
+                                    },
+                                  },
+                                }} 
+                              />}
                             >
                               Start Meeting
                             </Button>
