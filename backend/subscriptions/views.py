@@ -51,27 +51,28 @@ class PlanListAPIView(generics.ListAPIView):
                 'name': 'Basic Plan',
                 'price': '$29/month',
                 'features': [
-                    '1 qualified meeting included (Free Trial)',
+                    '2 qualified meetings included (Free Trial)',
                     'Access to AI-powered onboarding wizard',
                     'Personalized welcome guide',
-                    'Secure account dashboard access',
-                    'Standard onboarding use cases & video demos',
-                    'Email support during trial period',
-                    'Access to FAQs & knowledge base'
+                    'Secure account dashboard with real-time tracking',
+                    'Enhanced onboarding use cases & video tutorials',
+                    'Email support during extended business hours',
+                    'Access to comprehensive FAQs & knowledge base',
+                    'Basic analytics and meeting insights'
                 ]
             }, {
                 'id': 'price_1RO3I9La8vPOEHR7d9EzMNvl',
                 'name': 'Pro Plan',
                 'price': '$99/month',
                 'features': [
-                    'Up to 5 qualified meetings per month',
-                    'Onboarding progress tracking dashboard',
+                    'Up to 10 qualified meetings per month',
+                    'Advanced meeting tracking dashboard',
                     'Full feature walkthrough with real-time AI insights',
                     'Customizable onboarding workflows per client',
                     'Priority email & live chat support',
                     'Stripe billing integration & plan auto-upgrade',
                     'Customer testimonials management access',
-                    'Advanced usage analytics'
+                    'Enhanced analytics with custom reporting'
                 ]
             }, {
                 'id': 'price_1RPhD8La8vPOEHR7GtHdIp91',
@@ -80,11 +81,12 @@ class PlanListAPIView(generics.ListAPIView):
                 'features': [
                     'Unlimited qualified meetings',
                     'Dedicated success manager',
-                    'Custom integration (CRM, scheduling, etc.)',
-                    'Role-based dashboard customization',
-                    'SLA-backed support & live onboarding sessions',
-                    'Full onboarding data exports & compliance support',
-                    'Branding customization and white-labeling options'
+                    'Full API access & enterprise integrations (CRM, ERP)',
+                    'Custom roles with granular permission controls',
+                    '24/7 SLA-backed premium support & live onboarding',
+                    'Comprehensive analytics with customizable exports',
+                    'Advanced branding customization and white-labeling',
+                    'SSO authentication & enhanced security features'
                 ]
             }])
 

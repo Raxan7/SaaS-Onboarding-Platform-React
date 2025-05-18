@@ -65,13 +65,13 @@ const PaymentStep = () => {
             name: 'Basic Plan',
             price: '$29/month',
             features: [
-              '1 qualified meeting included (Free Trial)',
-              'Access to AI-powered onboarding wizard',
-              'Personalized welcome guide',
-              'Secure account dashboard access',
-              'Standard onboarding use cases & video demos',
-              'Email support during trial period',
-              'Access to FAQs & knowledge base'
+              '2 qualified meetings included during free trial',
+              'Host and join meetings with enhanced features',
+              'AI-powered onboarding wizard for initial setup',
+              'Secure dashboard with real-time meeting tracking',
+              'Access to video tutorials, use cases & comprehensive FAQs',
+              'Email support during extended business hours',
+              'Basic analytics and meeting insights'
             ],
           },
           {
@@ -79,14 +79,14 @@ const PaymentStep = () => {
             name: 'Pro Plan',
             price: '$99/month',
             features: [
-              'Up to 5 qualified meetings per month',
-              'Onboarding progress tracking dashboard',
-              'Full feature walkthrough with real-time AI insights',
-              'Customizable onboarding workflows per client',
-              'Priority email & live chat support',
-              'Stripe billing integration & plan auto-upgrade',
-              'Customer testimonials management access',
-              'Advanced usage analytics'
+              'Up to 10 qualified meetings/month',
+              'Priority access to live chat support',
+              'Advanced meeting tracking dashboard',
+              'Team role management (Hosts, Clients)',
+              'Automated calendar invites & confirmations',
+              'Stripe billing and automatic plan upgrades',
+              'Access to customer testimonials dashboard',
+              'Enhanced analytics with custom reporting'
             ],
           },
           {
@@ -94,13 +94,14 @@ const PaymentStep = () => {
             name: 'Enterprise Plan',
             price: '$499/month',
             features: [
-              'Unlimited qualified meetings',
-              'Dedicated success manager',
-              'Custom integration (CRM, scheduling, etc.)',
-              'Role-based dashboard customization',
-              'SLA-backed support & live onboarding sessions',
-              'Full onboarding data exports & compliance support',
-              'Branding customization and white-labeling options'
+              'Unlimited qualified meetings/month',
+              'Dedicated account manager',
+              'Comprehensive analytics with customizable exports',
+              'Full API access & enterprise integrations (CRM, ERP)',
+              'Custom roles with granular permission controls',
+              '24/7 SLA-backed premium support',
+              'Advanced branding & white-label options',
+              'SSO authentication & enhanced security features'
             ],
           },
         ];
