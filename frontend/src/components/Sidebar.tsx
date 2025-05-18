@@ -1,4 +1,5 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, useTheme, styled } from '@mui/material';
+// filepath: /home/saidi/Projects/HighEndProjects/SaasPlatform/saas-onboarding-platform/frontend/src/components/Sidebar.tsx
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, useTheme } from '@mui/material';
 import { 
   Dashboard as DashboardIcon,
   CalendarMonth as CalendarIcon,
@@ -19,28 +20,10 @@ interface SidebarProps {
 
 const drawerWidth = 240;
 
-const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
-  borderRadius: '8px',
-  margin: '4px 8px',
-  '&.Mui-selected': {
-    backgroundColor: theme.palette.primary.light,
-    color: theme.palette.primary.main,
-    '& .MuiListItemIcon-root': {
-      color: theme.palette.primary.main,
-    },
-    '&:hover': {
-      backgroundColor: theme.palette.primary.light,
-    },
-  },
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
 export default function Sidebar({ open, onClose, variant }: SidebarProps) {
   const theme = useTheme();
   const location = useLocation();
-  const { subscription, hasCompletedPayment } = useSubscription();
+  const { subscription } = useSubscription();
   
   const isPathActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -65,11 +48,28 @@ export default function Sidebar({ open, onClose, variant }: SidebarProps) {
         <List component="nav" disablePadding>
           {navigationItems.map((item) => (
             <ListItem key={item.text} disablePadding>
-              <StyledListItemButton
-                component={Link}
+              <ListItemButton
+                component={Link as any}
                 to={item.path}
                 selected={isPathActive(item.path)}
                 onClick={variant === 'temporary' ? onClose : undefined}
+                sx={{
+                  borderRadius: '8px',
+                  margin: '4px 8px',
+                  '&.Mui-selected': {
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.main,
+                    '& .MuiListItemIcon-root': {
+                      color: theme.palette.primary.main,
+                    },
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.light,
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
               >
                 <ListItemIcon 
                   sx={{ 
@@ -85,7 +85,7 @@ export default function Sidebar({ open, onClose, variant }: SidebarProps) {
                     fontWeight: isPathActive(item.path) ? 600 : 400,
                   }}
                 />
-              </StyledListItemButton>
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
@@ -95,11 +95,28 @@ export default function Sidebar({ open, onClose, variant }: SidebarProps) {
         <List component="nav" disablePadding>
           {secondaryItems.map((item) => (
             <ListItem key={item.text} disablePadding>
-              <StyledListItemButton
-                component={Link}
+              <ListItemButton
+                component={Link as any}
                 to={item.path}
                 selected={isPathActive(item.path)}
                 onClick={variant === 'temporary' ? onClose : undefined}
+                sx={{
+                  borderRadius: '8px',
+                  margin: '4px 8px',
+                  '&.Mui-selected': {
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.main,
+                    '& .MuiListItemIcon-root': {
+                      color: theme.palette.primary.main,
+                    },
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.light,
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
               >
                 <ListItemIcon 
                   sx={{ 
@@ -115,7 +132,7 @@ export default function Sidebar({ open, onClose, variant }: SidebarProps) {
                     fontWeight: isPathActive(item.path) ? 600 : 400,
                   }}
                 />
-              </StyledListItemButton>
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
@@ -160,26 +177,23 @@ export default function Sidebar({ open, onClose, variant }: SidebarProps) {
   );
 
   return (
-    <>
-      {/* Mobile drawer */}
-      <Drawer
-        variant={variant}
-        open={open}
-        onClose={onClose}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', md: variant === 'permanent' ? 'block' : 'none' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: drawerWidth,
-            borderRight: `1px solid ${theme.palette.divider}`,
-            backgroundColor: 'background.paper',
-            boxShadow: variant === 'temporary' ? theme.shadows[8] : 'none',
-          },
-        }}
-      >
-        {drawerContent}
-      </Drawer>
-    </>
+    <Drawer
+      variant={variant}
+      open={open}
+      onClose={onClose}
+      ModalProps={{ keepMounted: true }}
+      sx={{
+        display: { xs: 'block', md: variant === 'permanent' ? 'block' : 'none' },
+        '& .MuiDrawer-paper': {
+          boxSizing: 'border-box',
+          width: drawerWidth,
+          borderRight: `1px solid ${theme.palette.divider}`,
+          backgroundColor: 'background.paper',
+          boxShadow: variant === 'temporary' ? theme.shadows[8] : 'none',
+        },
+      }}
+    >
+      {drawerContent}
+    </Drawer>
   );
 }

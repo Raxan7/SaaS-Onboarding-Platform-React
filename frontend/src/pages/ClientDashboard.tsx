@@ -23,8 +23,7 @@ import {
   MenuItem,
   CircularProgress,
   SelectChangeEvent,
-  Paper,
-  Container
+  Paper
 } from '@mui/material';
 import MeetingsList from '../components/meetings/MeetingsList';
 import ActiveMeeting from '../components/meetings/ActiveMeeting';

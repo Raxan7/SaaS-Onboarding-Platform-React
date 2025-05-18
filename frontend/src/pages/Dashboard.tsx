@@ -1,4 +1,4 @@
-import { Typography, Box, Grid, Card, CardContent, LinearProgress, Paper, Alert, Chip, IconButton, Collapse } from '@mui/material';
+import { Typography, Box, Grid, CardContent, LinearProgress, Paper, Alert, Chip, IconButton, Collapse } from '@mui/material';
 import { CheckCircle, People, TrendingUp, CalendarToday, RadioButtonUnchecked, Close } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
