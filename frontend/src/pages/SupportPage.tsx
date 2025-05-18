@@ -57,7 +57,7 @@ const SupportPage = () => {
         <Box sx={{ p: 3 }}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="Subject"
                   fullWidth
@@ -67,7 +67,7 @@ const SupportPage = () => {
                   disabled={submitted}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   select
                   label="Category"
@@ -84,7 +84,7 @@ const SupportPage = () => {
                   <MenuItem value="other">Other</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   label="Message"
                   fullWidth
@@ -96,7 +96,7 @@ const SupportPage = () => {
                   disabled={submitted}
                 />
               </Grid>
-              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button 
                   type="submit" 
                   variant="contained" 

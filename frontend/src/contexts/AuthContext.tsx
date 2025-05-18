@@ -10,6 +10,7 @@ type User = {
   first_name: string;
   last_name: string;
   user_type: string;
+  company_name?: string;
 };
 
 // Define the context type

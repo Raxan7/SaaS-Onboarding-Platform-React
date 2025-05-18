@@ -126,7 +126,7 @@ const KnowledgeBasePage = () => {
         </Typography>
         <Grid container spacing={2}>
           {['Getting Started', 'Account Management', 'Technical', 'Security', 'Billing', 'Support'].map((category) => (
-            <Grid item xs={6} sm={4} md={2} key={category}>
+            <Grid size={{ xs: 6, sm: 4, md: 2 }} key={category}>
               <Paper 
                 elevation={1} 
                 sx={{ 
@@ -158,7 +158,7 @@ const KnowledgeBasePage = () => {
         </Typography>
         <Grid container spacing={3}>
           {filteredArticles.map((article) => (
-            <Grid item xs={12} md={6} key={article.id}>
+            <Grid size={{ xs: 12, md: 6 }} key={article.id}>
               <Card 
                 sx={{ 
                   borderRadius: 2,
