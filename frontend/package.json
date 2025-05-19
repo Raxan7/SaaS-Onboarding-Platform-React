@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && node direct-build.cjs",
+    "build:alt": "tsc -b && node --require ./vite-patch.cjs vite build",
+    "build:legacy": "tsc -b && node build.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

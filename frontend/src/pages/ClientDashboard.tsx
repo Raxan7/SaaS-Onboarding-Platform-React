@@ -40,6 +40,7 @@ import { useApiClient } from '../utils/apiClient';
 import { PickerValue } from '@mui/x-date-pickers/internals';
 import DashboardLayout from '../components/DashboardLayout';
 import { useMeetingLimits } from '../hooks/useMeetingLimits';
+import WalkThrough from '../components/WalkThrough';
 
 const onboardingSteps = [
   { name: 'Account Setup', completed: true },
@@ -60,6 +61,7 @@ const ClientDashboard = () => {
   });
   const [showOnboardingAlert, setShowOnboardingAlert] = useState(true);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showWalkThrough, setShowWalkThrough] = useState(false);
   
   // New Meeting Dialog State
   const [openNewMeetingDialog, setOpenNewMeetingDialog] = useState(false);
@@ -198,6 +200,19 @@ const ClientDashboard = () => {
     }
   }, [showPaymentSuccess]);
 
+  // Check if the user has completed the walk-through
+  useEffect(() => {
+    const hasCompletedWalkThrough = localStorage.getItem('walkThroughCompleted') === 'true';
+    if (!hasCompletedWalkThrough) {
+      // Delay showing the walk-through to allow the page to fully render
+      const timer = setTimeout(() => {
+        setShowWalkThrough(true);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const onboardingPercentage = Math.round(
     (onboardingStatus.completedSteps / onboardingStatus.totalSteps) * 100
   );
@@ -301,13 +316,26 @@ const ClientDashboard = () => {
   return (
     <DashboardLayout>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" fontWeight={600} gutterBottom>
-          Welcome back, {user?.first_name}!
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4" component="h1" fontWeight={600} gutterBottom>
+            Welcome back, {user?.first_name}!
+          </Typography>
+          <Button 
+            variant="outlined" 
+            size="small" 
+            onClick={() => setShowWalkThrough(true)}
+            sx={{ height: 36 }}
+          >
+            Dashboard Tour
+          </Button>
+        </Box>
         <Typography variant="subtitle1" color="text.secondary">
           Here's what's happening with your account today
         </Typography>
       </Box>
+
+      {/* AI Walk-through Component */}
+      <WalkThrough open={showWalkThrough} onClose={() => setShowWalkThrough(false)} />
 
       {/* Payment Success Alert */}
       <Collapse in={showPaymentSuccess}>
@@ -375,7 +403,7 @@ const ClientDashboard = () => {
 
       <Grid container spacing={4} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }}>
+          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }} data-tour="onboarding-progress">
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" fontWeight={600}>
@@ -435,7 +463,7 @@ const ClientDashboard = () => {
         </Grid>
         
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }}>
+          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }} data-tour="active-meeting">
             <CardContent>
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 Active Meeting
@@ -462,6 +490,7 @@ const ClientDashboard = () => {
                   sx={{ borderRadius: 8 }}
                   disabled={!!(limits && !limits.can_create)}
                   title={limits && !limits.can_create ? `You've reached your limit of ${limits.limit} meetings this month` : ""}
+                  data-tour="new-meeting-button"
                 >
                   New Meeting
                 </Button>
@@ -473,13 +502,15 @@ const ClientDashboard = () => {
         </Grid>
         
         <Grid size={{ xs: 12, md: 6 }}>
-          <MeetingUsage />
+          <div data-tour="meeting-usage">
+            <MeetingUsage />
+          </div>
         </Grid>
       </Grid>
       
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }} data-tour="past-meetings">
             <CardContent>
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 Past Meetings
