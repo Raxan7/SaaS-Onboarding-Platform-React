@@ -4,7 +4,8 @@ from .views import (
     MeetingRetrieveUpdateAPIView, 
     ActiveMeetingsAPIView, 
     StartMeetingAPIView,
-    CheckAvailabilityAPIView
+    CheckAvailabilityAPIView,
+    MeetingLimitsAPIView
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('<int:pk>/start/', StartMeetingAPIView.as_view(), name='start-meeting'),
     path('active/', ActiveMeetingsAPIView.as_view(), name='active-meetings'),
     path('check-availability/', CheckAvailabilityAPIView.as_view(), name='check-availability'),
+    path('limits/', MeetingLimitsAPIView.as_view(), name='meeting-limits'),
 ]

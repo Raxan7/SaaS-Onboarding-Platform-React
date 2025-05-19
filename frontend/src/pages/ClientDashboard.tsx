@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import MeetingsList from '../components/meetings/MeetingsList';
 import ActiveMeeting from '../components/meetings/ActiveMeeting';
+import MeetingUsage from '../components/meetings/MeetingUsage';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { CheckCircle, RadioButtonUnchecked, Close, Add as AddIcon } from '@mui/icons-material';
@@ -37,8 +38,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import TimezonePicker from '../components/meetings/TimezonePicker';
 import { useApiClient } from '../utils/apiClient';
 import { PickerValue } from '@mui/x-date-pickers/internals';
-import SubscriptionInfo from '../components/subscriptions/SubscriptionInfo';
 import DashboardLayout from '../components/DashboardLayout';
+import { useMeetingLimits } from '../hooks/useMeetingLimits';
 
 const onboardingSteps = [
   { name: 'Account Setup', completed: true },
@@ -206,6 +207,9 @@ const ClientDashboard = () => {
     setNewMeeting(prev => ({ ...prev, [field]: value }));
   };
   
+  // Get meeting limits
+  const { limits, refresh: refreshLimits } = useMeetingLimits();
+  
   // Handle meeting creation
   const handleCreateMeeting = async () => {
     setLoading(true);
@@ -236,9 +240,15 @@ const ClientDashboard = () => {
       return;
     }
     
-    
     if (doubleBookingWarning) {
       setError('Please select a different time to avoid scheduling conflicts');
+      setLoading(false);
+      return;
+    }
+    
+    // Check if user has reached their meeting limit
+    if (limits && !limits.can_create) {
+      setError(`You've reached your monthly meeting limit (${limits.limit} meetings). Please upgrade your plan for more meetings.`);
       setLoading(false);
       return;
     }
@@ -257,6 +267,9 @@ const ClientDashboard = () => {
       // Meeting created successfully
       setSuccess(true);
       
+      // Refresh meeting limits to show updated count
+      refreshLimits();
+      
       // Close the dialog and reset form after a short delay
       setTimeout(() => {
         setOpenNewMeetingDialog(false);
@@ -272,9 +285,14 @@ const ClientDashboard = () => {
         // Refresh the page to show the new meeting
         window.location.reload();
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating meeting:', err);
-      setError('Failed to create meeting. Please try again.');
+      // Check if the error is related to meeting limits
+      if (err.response && err.response.status === 403 && err.response.data && err.response.data.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('Failed to create meeting. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -442,6 +460,8 @@ const ClientDashboard = () => {
                   onClick={() => setOpenNewMeetingDialog(true)}
                   startIcon={<AddIcon />}
                   sx={{ borderRadius: 8 }}
+                  disabled={!!(limits && !limits.can_create)}
+                  title={limits && !limits.can_create ? `You've reached your limit of ${limits.limit} meetings this month` : ""}
                 >
                   New Meeting
                 </Button>
@@ -453,7 +473,7 @@ const ClientDashboard = () => {
         </Grid>
         
         <Grid size={{ xs: 12, md: 6 }}>
-          <SubscriptionInfo />
+          <MeetingUsage />
         </Grid>
       </Grid>
       
@@ -495,6 +515,13 @@ const ClientDashboard = () => {
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
               Meeting scheduled successfully!
+            </Alert>
+          )}
+          
+          {limits && !limits.can_create && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              You have reached your monthly meeting limit ({limits.limit} meetings). 
+              Please upgrade your plan to schedule more meetings.
             </Alert>
           )}
           
@@ -577,7 +604,7 @@ const ClientDashboard = () => {
             variant="contained" 
             color="primary" 
             onClick={handleCreateMeeting}
-            disabled={loading || !!doubleBookingWarning || success}
+            disabled={!!(loading || !!doubleBookingWarning || success || (limits && !limits.can_create))}
           >
             {loading ? <CircularProgress size={24} /> : 'Schedule Meeting'}
           </Button>
