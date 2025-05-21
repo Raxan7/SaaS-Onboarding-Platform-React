@@ -13,6 +13,7 @@ import '@fontsource/inter/700.css';
 import axios from 'axios';
 import { API_BASE_URL } from './utils/constants';
 import { fetchCSRFToken } from './utils/csrf';
+import { setupAxiosInterceptors } from './utils/errorInterceptor';
 
 // Set base URL for API requests
 axios.defaults.baseURL = API_BASE_URL;
@@ -61,6 +62,9 @@ axios.interceptors.request.use(async (config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// Setup error handling interceptors
+setupAxiosInterceptors();
 
 // Call initialization before rendering app
 initializeCSRF().then(() => {

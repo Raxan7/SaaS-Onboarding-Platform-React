@@ -26,6 +26,13 @@ const OnboardingWizard = () => {
         navigate('/login');
         return;
       }
+      
+      // If the user is a host, redirect them to the host dashboard
+      // Hosts don't need to complete the onboarding process
+      if (userType === 'host') {
+        navigate('/host-dashboard');
+        return;
+      }
 
       try {
         const response = await fetch('/api/onboarding/user-onboarding-status/', {

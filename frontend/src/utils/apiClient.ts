@@ -6,38 +6,46 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const createApiClient = (_getAuthHeader: () => { Authorization: string; } | {}) => {
   const apiClient = async (endpoint: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('token');
-    if (!token || token === 'null') {
-      console.warn('Token is null or invalid. Ensure the user is logged in before making API calls.');
-      return Promise.reject(new Error('Authentication token is missing or invalid.'));
-    } else {
-      console.log('Token found in localStorage:', token); // Debugging log
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || token === 'null' || token === 'undefined') {
+        console.warn('Token is null or invalid. Ensure the user is logged in before making API calls.');
+        return Promise.reject(new Error('Authentication token is missing or invalid.'));
+      } else {
+        console.log('Token found in localStorage:', token); // Debugging log
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken') || '',
+        Authorization: token ? `Token ${token}` : '', // Use 'Token' prefix for the Authorization header
+        ...options.headers,
+      };
+
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        // Clear auth data on 401 Unauthorized
+        localStorage.removeItem('token');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('user');
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Request failed');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API request error:', error);
+      throw error;
     }
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken') || '',
-      Authorization: token ? `Token ${token}` : '', // Use 'Token' prefix for the Authorization header
-      ...options.headers,
-    };
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
-
-    if (response.status === 401) {
-      // Handle token expiration if needed
-      throw new Error('Authentication required');
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Request failed');
-    }
-
-    return response.json();
   };
 
   return {
@@ -47,6 +55,8 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
     put: (endpoint: string, data: any) => 
       apiClient(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (endpoint: string) => apiClient(endpoint, { method: 'DELETE' }),
+    patch: (endpoint: string, data: any) => 
+      apiClient(endpoint, { method: 'PATCH', body: JSON.stringify(data) })
   };
 };
 

@@ -1,8 +1,21 @@
 import { Container, Typography, Box } from '@mui/material';
 import OnboardingWizard from '../components/OnboardingWizard';
 import { OnboardingProvider } from '../contexts/OnboardingContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const OnboardingPage = () => {
+  const { isAuthenticated, userType } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect host users to the host dashboard
+  useEffect(() => {
+    if (isAuthenticated && userType === 'host') {
+      navigate('/host-dashboard');
+    }
+  }, [isAuthenticated, userType, navigate]);
+
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <Box textAlign="center" sx={{ mb: 6 }}>

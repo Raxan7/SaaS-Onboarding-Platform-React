@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { theme } from './styles/theme';
 import Home from './pages/Home';
 import Pricing from './pages/Pricing';
-import Dashboard from './pages/Dashboard';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './styles/globalStyles.css';
@@ -58,7 +57,6 @@ function App() {
 
                     {/* Protected routes (for both types) */}
                     <Route element={<ProtectedRoute />}>
-                      <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/meetings" element={<MeetingsPage />} />
                       <Route path="/subscription" element={<SubscriptionPage />} />
                       <Route path="/support" element={<SupportPage />} />

@@ -64,7 +64,8 @@ const ProtectedRouteWithUserType = ({
   }
 
   // If authenticated but onboarding isn't complete, redirect to onboarding
-  if (!isOnboardingComplete && window.location.pathname !== '/onboarding') {
+  // Only enforce onboarding completion for client users
+  if (!isOnboardingComplete && userType === 'client' && window.location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 

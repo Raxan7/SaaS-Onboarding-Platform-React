@@ -124,6 +124,17 @@ class UserOnboardingStatusAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        # For host users, always consider onboarding as complete
+        if request.user.user_type == 'host':
+            return Response({
+                'is_complete': True,
+                'current_step': None,
+                'user_type': 'host',
+                'company_step_completed': True,
+                'meeting_step_completed': True,
+                'payment_step_completed': True
+            })
+            
         try:
             onboarding = UserOnboarding.objects.get(user=request.user)
             

@@ -109,6 +109,12 @@ const ClientDashboard = () => {
     const paymentSuccess = searchParams.get('payment_success') === 'true';
     setShowPaymentSuccess(paymentSuccess);
 
+    // Only fetch onboarding status for client users - hosts don't need to complete onboarding
+    if (user?.user_type !== 'client') {
+      setShowOnboardingAlert(false);
+      return;
+    }
+
     // Mark onboarding as complete if payment was successful
     const markPaymentComplete = async () => {
       if (paymentSuccess) {
@@ -186,7 +192,7 @@ const ClientDashboard = () => {
       // Mark payment as complete in the backend
       markPaymentComplete();
     }
-  }, [location.search]);
+  }, [location.search, user?.user_type]);
 
   // Display payment success alert
   useEffect(() => {

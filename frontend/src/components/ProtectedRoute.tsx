@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userType } = useAuth();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -51,8 +51,8 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // If authenticated but onboarding isn't complete, redirect to onboarding
-  if (!isOnboardingComplete && window.location.pathname !== '/onboarding') {
+  // Only enforce onboarding completion for client users
+  if (!isOnboardingComplete && userType === 'client' && window.location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 

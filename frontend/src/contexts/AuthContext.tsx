@@ -2,16 +2,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { API_BASE_URL } from '../utils/constants';
 import axios from 'axios';
-
-// Define the User type
-type User = {
-  id: number;
-  email: string;
-  first_name: string;
-  last_name: string;
-  user_type: string;
-  company_name?: string;
-};
+import { User } from '../types/user';
+import { getSafeUserData } from '../utils/userStorage';
 
 // Define the context type
 interface AuthContextType {
@@ -44,30 +36,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   // Initialize auth state from localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUserType = localStorage.getItem('userType');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUserType) {
-      setToken(storedToken);
-      setUserType(storedUserType);
-      setIsAuthenticated(true);
+    try {
+      const storedToken = localStorage.getItem('token');
+      const storedUserType = localStorage.getItem('userType');
       
-      // Log state during initialization for debugging
-      console.log('Token during initialization:', storedToken);
-      console.log('UserType during initialization:', storedUserType);
-      console.log('User during initialization:', storedUser ? JSON.parse(storedUser) : null);
-      
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          console.error('Error parsing stored user', e);
+      if (storedToken && storedUserType) {
+        setToken(storedToken);
+        setUserType(storedUserType);
+        setIsAuthenticated(true);
+        
+        // Log state during initialization for debugging
+        console.log('Token during initialization:', storedToken);
+        console.log('UserType during initialization:', storedUserType);
+        
+        // Use our utility function to safely get user data
+        const safeUser = getSafeUserData();
+        if (safeUser) {
+          console.log('User during initialization:', safeUser);
+          setUser(safeUser);
         }
+        
+        // Also set the token in axios defaults
+        axios.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
       }
-      
-      // Also set the token in axios defaults
-      axios.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
+    } catch (error) {
+      console.error('Error initializing auth from localStorage:', error);
+      // Reset localStorage if there was a critical error
+      localStorage.removeItem('token');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('user');
     }
   }, []);
   
@@ -78,15 +75,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(newUser);
     setIsAuthenticated(true);
     
-    // Store in localStorage
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('userType', newUserType);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    
-    // Set for all axios requests
-    axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
-    
-    console.log('Login successful:', { newToken, newUserType, newUser });
+    try {
+      // Store in localStorage with error handling
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('userType', newUserType);
+      
+      // Store user data safely - making sure it's a valid object
+      if (newUser && typeof newUser === 'object') {
+        localStorage.setItem('user', JSON.stringify({
+          id: newUser.id || 0,
+          email: newUser.email || '',
+          first_name: newUser.first_name || '',
+          last_name: newUser.last_name || '',
+          user_type: newUser.user_type || 'client',
+          company_name: newUser.company_name || ''
+        }));
+      }
+      
+      // Set for all axios requests
+      axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
+      
+      console.log('Login successful:', { newToken, newUserType });
+    } catch (error) {
+      console.error('Error saving auth data to localStorage:', error);
+    }
   };
   
   const logout = () => {
