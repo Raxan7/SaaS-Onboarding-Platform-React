@@ -17,6 +17,7 @@ import {
   DialogActions,
   Alert
 } from '@mui/material';
+import GoogleMeetFrame from './GoogleMeetFrame';
 import { Meeting } from '../../types/meeting';
 import { useApiClient } from '../../utils/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
@@ -384,11 +385,10 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
 
       {embeddedMeetingUrl && (
         <Box mt={2} sx={{ height: '500px', border: '1px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-          <iframe
-            src={embeddedMeetingUrl}
-            style={{ width: '100%', height: '100%', border: 0 }}
-            allow="camera; microphone; fullscreen; display-capture"
-            title="Embedded Meeting"
+          <GoogleMeetFrame
+            meetingUrl={embeddedMeetingUrl}
+            height="100%"
+            onError={(errorMsg) => setError(errorMsg)}
           />
         </Box>
       )}

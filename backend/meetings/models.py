@@ -41,13 +41,14 @@ class Meeting(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.meeting_url and (self.status == self.CONFIRMED or self.status == self.RESCHEDULED):
-            self.meeting_url = self.generate_jitsi_url()
+            self.meeting_url = self.generate_google_meet_url()
         super().save(*args, **kwargs)
     
-    def generate_jitsi_url(self):
-        import uuid
-        room_name = f"meeting-{uuid.uuid4()}"
-        return f"https://meet.jit.si/{room_name}"
+    def generate_google_meet_url(self):
+        from .google_meet_utils import generate_google_meet_url_with_params
+        # Use the meeting title (or a default) to create a recognizable meeting
+        meeting_name = self.title or f"Meeting-{self.id}"
+        return generate_google_meet_url_with_params(meeting_name)
     
     @property
     def is_active(self):

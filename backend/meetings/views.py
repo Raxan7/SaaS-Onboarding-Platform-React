@@ -117,9 +117,15 @@ class StartMeetingAPIView(generics.UpdateAPIView):
         if user.user_type != 'host':
             raise PermissionDenied("Only hosts can start meetings")
         
-        if not meeting.meeting_url:
-            import uuid
-            meeting.meeting_url = f"https://meet.jit.si/meeting-{uuid.uuid4()}"
+        # Always generate a fresh meeting URL when a host starts a meeting, even if one exists
+        from .google_meet_utils import generate_google_meet_url_with_params
+        meeting_name = meeting.title or f"Meeting-{meeting.id}"
+        
+        # Include the host name in the meeting to make it more identifiable
+        host_name = user.get_full_name() if user.get_full_name() else user.email
+        full_meeting_name = f"{meeting_name} - Hosted by {host_name}"
+        
+        meeting.meeting_url = generate_google_meet_url_with_params(full_meeting_name)
         
         if meeting.status != Meeting.CONFIRMED and meeting.status != Meeting.RESCHEDULED:
             meeting.status = Meeting.CONFIRMED

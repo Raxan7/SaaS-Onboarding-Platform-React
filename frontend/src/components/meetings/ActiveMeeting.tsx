@@ -16,6 +16,7 @@ import {
   import { useApiClient } from '../../utils/apiClient';
   import { Meeting } from '../../types/meeting';
   import { format, differenceInMinutes } from 'date-fns';
+  import GoogleMeetFrame from './GoogleMeetFrame';
 
   // Local storage keys
   const ACTIVE_MEETING_CACHE_KEY = 'active-meeting-cache';
@@ -434,11 +435,13 @@ import {
                 overflow: 'hidden',
                 mb: 2
               }}>
-                <iframe
-                  src={activeMeeting.meeting_url}
-                  style={{ width: '100%', height: '100%', border: 0 }}
-                  allow="camera; microphone; fullscreen; display-capture"
-                  title="Meeting"
+                <GoogleMeetFrame
+                  meetingUrl={activeMeeting.meeting_url}
+                  height="100%"
+                  onError={(errorMsg) => {
+                    console.error('Meeting frame error:', errorMsg);
+                    setError(`Meeting error: ${errorMsg}`);
+                  }}
                 />
               </Box>
               <Stack direction="row" spacing={2}>
