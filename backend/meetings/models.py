@@ -9,6 +9,8 @@ class Meeting(models.Model):
     RESCHEDULED = 'rescheduled'
     CANCELLED = 'cancelled'
     COMPLETED = 'completed'
+    STARTED = 'started'
+    EXPIRED = 'expired'
     
     STATUS_CHOICES = [
         (PENDING, 'Pending'),
@@ -16,6 +18,8 @@ class Meeting(models.Model):
         (RESCHEDULED, 'Rescheduled'),
         (CANCELLED, 'Cancelled'),
         (COMPLETED, 'Completed'),
+        (STARTED, 'Started'),
+        (EXPIRED, 'Expired'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client_meetings')
@@ -41,14 +45,14 @@ class Meeting(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.meeting_url and (self.status == self.CONFIRMED or self.status == self.RESCHEDULED):
-            self.meeting_url = self.generate_google_meet_url()
+            self.meeting_url = self.generate_livekit_url()
         super().save(*args, **kwargs)
     
-    def generate_google_meet_url(self):
-        from .google_meet_utils import generate_google_meet_url_with_params
-        # Use the meeting title (or a default) to create a recognizable meeting
+    def generate_livekit_url(self):
+        from .livekit_utils import generate_livekit_meeting_url
+        # Use the meeting title (or a default) to create a recognizable room
         meeting_name = self.title or f"Meeting-{self.id}"
-        return generate_google_meet_url_with_params(meeting_name)
+        return generate_livekit_meeting_url(meeting_title=meeting_name)
     
     @property
     def is_active(self):
@@ -59,6 +63,37 @@ class Meeting(models.Model):
     @property
     def is_confirmed(self):
         return self.status == self.CONFIRMED
+    
+    def mark_as_expired_if_needed(self):
+        """
+        Check if this meeting should be marked as expired.
+        Returns True if the meeting was marked as expired, False otherwise.
+        """
+        if self.status == self.PENDING:
+            now = timezone.now()
+            if now > self.scheduled_at:
+                self.status = self.EXPIRED
+                self.save()
+                return True
+        return False
+    
+    @classmethod
+    def mark_expired_meetings(cls):
+        """
+        Mark all pending meetings that have passed their scheduled time as expired.
+        Returns the number of meetings that were marked as expired.
+        """
+        now = timezone.now()
+        expired_meetings = cls.objects.filter(
+            status=cls.PENDING,
+            scheduled_at__lt=now
+        )
+        
+        count = expired_meetings.count()
+        if count > 0:
+            expired_meetings.update(status=cls.EXPIRED)
+        
+        return count
         
     def has_conflict(self, user_id):
         """
@@ -66,8 +101,8 @@ class Meeting(models.Model):
         """
         from django.db.models import Q, F, ExpressionWrapper, DateTimeField, DurationField
         
-        # Exclude cancelled meetings and this meeting if it's being updated
-        query = ~Q(status=self.CANCELLED) & ~Q(id=self.id if self.id else -1)
+        # Exclude cancelled and expired meetings and this meeting if it's being updated
+        query = ~Q(status=self.CANCELLED) & ~Q(status=self.EXPIRED) & ~Q(id=self.id if self.id else -1)
         
         # Find meetings for the same user or host
         query &= Q(user_id=user_id) | Q(host_id=user_id)

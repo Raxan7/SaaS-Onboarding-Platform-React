@@ -43,12 +43,6 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
       position: 'bottom'
     },
     {
-      selector: '[data-tour="onboarding-progress"]',
-      title: 'Onboarding Progress',
-      description: 'Track your onboarding progress here. Complete all steps to unlock the full potential of the platform.',
-      position: 'right'
-    },
-    {
       selector: '[data-tour="active-meeting"]',
       title: 'Active Meeting',
       description: 'This shows your current or next upcoming meeting. You can join directly from here when it\'s time.',
@@ -71,6 +65,12 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
       title: 'Meeting History',
       description: 'View your past meetings and their details here.',
       position: 'top'
+    },
+    {
+      selector: 'a[href="/subscription"]',
+      title: 'Subscription & Onboarding',
+      description: 'Visit your Subscription page to manage your plan and track your onboarding progress.',
+      position: 'right'
     }
   ];
 
@@ -137,6 +137,14 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
 
     const currentSelector = steps[activeStep].selector;
     const element = findTargetElement(currentSelector);
+    
+    if (!element) {
+      console.warn(`Element with selector "${currentSelector}" not found. This might be on another page.`);
+      
+      // For selector that references elements on other pages, we'll show a message
+      // The element will be null, so the UI will adjust accordingly
+    }
+    
     setTargetElement(element);
   }, [activeStep, open]);
 
@@ -219,7 +227,7 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
         )}
         
         {/* Content box */}
-        <Fade in={!!targetElement}>
+        <Fade in={true}>
           <Paper
             elevation={5}
             sx={{
@@ -228,9 +236,11 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
               p: 3,
               maxWidth: 350,
               borderRadius: 2,
-              transform: `translate(${steps[activeStep].position === 'left' ? -100 : steps[activeStep].position === 'right' ? 20 : -50}%, ${steps[activeStep].position === 'top' ? -100 : steps[activeStep].position === 'bottom' ? 20 : -50}%)`,
-              top: contentPosition.top,
-              left: contentPosition.left,
+              transform: targetElement 
+                ? `translate(${steps[activeStep].position === 'left' ? -100 : steps[activeStep].position === 'right' ? 20 : -50}%, ${steps[activeStep].position === 'top' ? -100 : steps[activeStep].position === 'bottom' ? 20 : -50}%)`
+                : 'translate(-50%, -50%)',
+              top: targetElement ? contentPosition.top : '50%',
+              left: targetElement ? contentPosition.left : '50%',
               backgroundColor: 'white',
               boxShadow: theme.shadows[10]
             }}
@@ -248,7 +258,9 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
             </Typography>
             
             <Typography variant="body2" paragraph sx={{ mb: 3 }}>
-              {steps[activeStep].description}
+              {!targetElement && steps[activeStep].selector === 'a[href="/subscription"]' 
+                ? "Navigate to the Subscription page via the sidebar to see your onboarding progress and manage your subscription."
+                : steps[activeStep].description}
             </Typography>
             
             <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 2, '& .MuiStepLabel-root': { fontSize: '0.875rem' }, '& .MuiSvgIcon-root': { fontSize: '1.25rem' } }}>
@@ -278,14 +290,26 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
                   Finish
                 </Button>
               ) : (
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={handleNext}
-                  endIcon={<ArrowForward />}
-                >
-                  Next
-                </Button>
+                <>
+                  {!targetElement && steps[activeStep].selector === 'a[href="/subscription"]' ? (
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={() => window.location.href = "/subscription"}
+                    >
+                      Go to Subscription
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={handleNext}
+                      endIcon={<ArrowForward />}
+                    >
+                      Next
+                    </Button>
+                  )}
+                </>
               )}
             </Box>
           </Paper>

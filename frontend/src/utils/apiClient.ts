@@ -37,11 +37,32 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Request failed');
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorData.detail || errorMessage;
+          console.error('API error response:', errorData);
+        } catch (e) {
+          // If response is not JSON, use text content if available
+          try {
+            const textContent = await response.text();
+            console.error('API error text response:', textContent);
+            if (textContent) errorMessage += `: ${textContent}`;
+          } catch (textError) {
+            console.error('Failed to extract error text content', textError);
+          }
+        }
+        throw new Error(errorMessage);
       }
 
-      return response.json();
+      try {
+        const jsonData = await response.json();
+        console.log(`API response for ${endpoint}:`, jsonData);
+        return jsonData;
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+        throw new Error('Failed to parse API response as JSON');
+      }
     } catch (error) {
       console.error('API request error:', error);
       throw error;

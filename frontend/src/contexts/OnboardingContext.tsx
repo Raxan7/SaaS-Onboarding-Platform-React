@@ -60,19 +60,54 @@ const OnboardingContext = createContext<{
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
   currentStep: number;
   setCurrentStep: (step: number) => void;
+  checkOnboardingCompletion: () => Promise<boolean>;
 }>({
   data: defaultOnboardingData,
   setData: () => {},
   currentStep: 0,
-  setCurrentStep: () => {}
+  setCurrentStep: () => {},
+  checkOnboardingCompletion: async () => false
 });
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<OnboardingData>(defaultOnboardingData);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Method to check if onboarding is complete from the backend API
+  const checkOnboardingCompletion = async (): Promise<boolean> => {
+    try {
+      // Check if user is authenticated by looking for token
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const statusData = await response.json();
+        return statusData.is_complete || false;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  };
+
   return (
-    <OnboardingContext.Provider value={{ data, setData, currentStep, setCurrentStep }}>
+    <OnboardingContext.Provider value={{ 
+      data, 
+      setData, 
+      currentStep, 
+      setCurrentStep,
+      checkOnboardingCompletion
+    }}>
       {children}
     </OnboardingContext.Provider>
   );

@@ -16,3 +16,8 @@ stripe==12.1.0
 typing_extensions==4.13.2
 urllib3==2.4.0
 whitenoise==6.9.0
+cryptography==42.0.0
+# LiveKit Python SDK for token generation and server-side APIs
+livekit==1.0.8
+livekit-api==1.0.2
+livekit-protocol==1.0.3

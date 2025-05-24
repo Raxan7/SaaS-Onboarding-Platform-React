@@ -5,7 +5,8 @@ from .views import (
     ActiveMeetingsAPIView, 
     StartMeetingAPIView,
     CheckAvailabilityAPIView,
-    MeetingLimitsAPIView
+    MeetingLimitsAPIView,
+    LiveKitTokenAPIView
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('active/', ActiveMeetingsAPIView.as_view(), name='active-meetings'),
     path('check-availability/', CheckAvailabilityAPIView.as_view(), name='check-availability'),
     path('limits/', MeetingLimitsAPIView.as_view(), name='meeting-limits'),
+    path('livekit-token/<int:pk>/', LiveKitTokenAPIView.as_view(), name='livekit-token'),
 ]

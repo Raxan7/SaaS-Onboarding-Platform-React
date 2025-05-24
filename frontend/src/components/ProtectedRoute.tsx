@@ -55,6 +55,11 @@ const ProtectedRoute = () => {
   if (!isOnboardingComplete && userType === 'client' && window.location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
+  
+  // Prevent users who completed onboarding from accessing the onboarding page
+  if (isOnboardingComplete && userType === 'client' && window.location.pathname === '/onboarding') {
+    return <Navigate to="/client-dashboard" replace />;
+  }
 
   // If authenticated and onboarding is complete, allow access to the route
   return <Outlet />;

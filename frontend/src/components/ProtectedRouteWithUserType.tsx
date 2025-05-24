@@ -68,6 +68,11 @@ const ProtectedRouteWithUserType = ({
   if (!isOnboardingComplete && userType === 'client' && window.location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
+  
+  // Prevent users who completed onboarding from accessing the onboarding page
+  if (isOnboardingComplete && userType === 'client' && window.location.pathname === '/onboarding') {
+    return <Navigate to="/client-dashboard" replace />;
+  }
 
   return <Outlet />;
 };

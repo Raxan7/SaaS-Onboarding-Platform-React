@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (token: string, userType: string, user: User) => Promise<void>;
   logout: () => void;
   getAuthHeader: () => { Authorization: string } | {};
+  checkOnboardingStatus: () => Promise<boolean>;
 }
 
 // Create the context with default values
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: () => {},
   getAuthHeader: () => ({}),
+  checkOnboardingStatus: async () => false,
 });
 
 // Create a provider component
@@ -134,6 +136,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return token ? { Authorization: `Token ${token}` } : {};
   };
   
+  // Add method to check onboarding status
+  const checkOnboardingStatus = async (): Promise<boolean> => {
+    if (!isAuthenticated || !token) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/onboarding/user-onboarding-status/`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const statusData = await response.json();
+        return statusData.is_complete || false;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  };
+  
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
@@ -142,7 +171,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       token, 
       login, 
       logout,
-      getAuthHeader
+      getAuthHeader,
+      checkOnboardingStatus
     }}>
       {children}
     </AuthContext.Provider>

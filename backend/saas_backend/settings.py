@@ -22,6 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# LiveKit Configuration
+LIVEKIT_API_URL = env('LIVEKIT_API_URL', default='wss://saas-meeting-ks82pn02.livekit.cloud')
+LIVEKIT_API_KEY = env('LIVEKIT_API_KEY', default='API6w9sfv23jgFk')
+LIVEKIT_API_SECRET = env('LIVEKIT_API_SECRET', default='k1YTVVEo1iYAJvJeCXzkbiUK0ZH7z3hwMAVVL1OXbwK')
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-your-secret-key')
 
@@ -246,3 +251,7 @@ CACHES = {
 
 # Rate limiting settings
 STRIPE_RATE_LIMIT = 10  # seconds between requests
+
+# LiveKit settings for video conferencing
+# NOTE: These are already defined above, this duplicate declaration was causing issues
+# LIVEKIT_API_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET are already set

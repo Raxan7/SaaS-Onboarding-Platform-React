@@ -4,11 +4,8 @@ import {
   Box, 
   Grid, 
   CardContent, 
-  LinearProgress, 
   Alert,
-  Chip,
   Divider,
-  useTheme,
   Collapse,
   IconButton,
   Button,
@@ -23,14 +20,14 @@ import {
   MenuItem,
   CircularProgress,
   SelectChangeEvent,
-  Paper
+  Paper,
+  LinearProgress
 } from '@mui/material';
 import MeetingsList from '../components/meetings/MeetingsList';
 import ActiveMeeting from '../components/meetings/ActiveMeeting';
-import MeetingUsage from '../components/meetings/MeetingUsage';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { CheckCircle, RadioButtonUnchecked, Close, Add as AddIcon } from '@mui/icons-material';
+import { CheckCircle, Close, Add as AddIcon } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -42,16 +39,10 @@ import DashboardLayout from '../components/DashboardLayout';
 import { useMeetingLimits } from '../hooks/useMeetingLimits';
 import WalkThrough from '../components/WalkThrough';
 
-const onboardingSteps = [
-  { name: 'Account Setup', completed: true },
-  { name: 'Company Info', completed: false },
-  { name: 'Meeting Scheduling', completed: false },
-  { name: 'Payment', completed: false },
-];
+// Onboarding steps moved to SubscriptionPage
 
 const ClientDashboard = () => {
   const { user } = useAuth();
-  const theme = useTheme();
   const location = useLocation();
   const apiClient = useApiClient();
   
@@ -321,38 +312,134 @@ const ClientDashboard = () => {
 
   return (
     <DashboardLayout>
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1" fontWeight={600} gutterBottom>
-            Welcome back, {user?.first_name}!
-          </Typography>
-          <Button 
-            variant="outlined" 
-            size="small" 
-            onClick={() => setShowWalkThrough(true)}
-            sx={{ height: 36 }}
-          >
-            Dashboard Tour
-          </Button>
+      {/* Enhanced Header Section with Gradient Background */}
+      <Box sx={{ 
+        mb: 6,
+        p: 4,
+        borderRadius: 3,
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '50%',
+          height: '100%',
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat',
+          opacity: 0.1,
+        }
+      }}>
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Header Content */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 0 } }}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                component="h1" 
+                fontWeight={700} 
+                gutterBottom
+                sx={{ 
+                  background: 'linear-gradient(45deg, #ffffff 30%, #f8f9ff 90%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' }
+                }}
+              >
+                Welcome back, {user?.first_name}! ✨
+              </Typography>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  opacity: 0.9,
+                  fontWeight: 400,
+                  fontSize: { xs: '0.95rem', sm: '1.1rem' }
+                }}
+              >
+                Here's what's happening with your account today
+              </Typography>
+            </Box>
+            
+            {/* Tour Button - Only show on desktop */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Button 
+                variant="contained"
+                size="large"
+                onClick={() => setShowWalkThrough(true)}
+                sx={{ 
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: 2,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.3)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                  }
+                }}
+              >
+                🎯 Dashboard Tour
+              </Button>
+            </Box>
+          </Box>
+          
+          {/* Tour Button - Mobile version positioned below header */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mt: 2 }}>
+            <Button 
+              variant="contained"
+              size="medium"
+              onClick={() => setShowWalkThrough(true)}
+              sx={{ 
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                fontWeight: 600,
+                px: 3,
+                py: 1.2,
+                borderRadius: 2,
+                transition: 'all 0.3s ease',
+                fontSize: '0.9rem',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                }
+              }}
+            >
+              🎯 Dashboard Tour
+            </Button>
+          </Box>
         </Box>
-        <Typography variant="subtitle1" color="text.secondary">
-          Here's what's happening with your account today
-        </Typography>
       </Box>
 
       {/* AI Walk-through Component */}
       <WalkThrough open={showWalkThrough} onClose={() => setShowWalkThrough(false)} />
 
-      {/* Payment Success Alert */}
+      {/* Enhanced Payment Success Alert */}
       <Collapse in={showPaymentSuccess}>
         <Alert 
           severity="success" 
           sx={{ 
             mb: 4,
-            borderRadius: 2,
-            boxShadow: theme.shadows[1],
+            borderRadius: 3,
+            bgcolor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(76, 175, 80, 0.2)',
             '& .MuiAlert-message': {
               width: '100%'
+            },
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
             }
           }}
           action={
@@ -361,6 +448,14 @@ const ClientDashboard = () => {
               color="inherit"
               size="small"
               onClick={() => setShowPaymentSuccess(false)}
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                  transform: 'scale(1.1)'
+                },
+                transition: 'all 0.2s ease'
+              }}
             >
               <Close fontSize="inherit" />
             </IconButton>
@@ -368,195 +463,386 @@ const ClientDashboard = () => {
           icon={<CheckCircle fontSize="inherit" />}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <Typography variant="body1" fontWeight={500}>
-              Payment successful! Your subscription is now active.
-            </Typography>
+            <Box>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
+                🎉 Payment Successful!
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Your subscription is now active and ready to use.
+              </Typography>
+            </Box>
           </Box>
         </Alert>
       </Collapse>
 
+      {/* Enhanced Onboarding Alert */}
       {showOnboardingAlert && (
         <Alert 
           severity="warning" 
           sx={{ 
             mb: 4,
-            borderRadius: 2,
-            boxShadow: theme.shadows[1],
+            borderRadius: 3,
+            bgcolor: 'rgba(255, 193, 7, 0.1)',
+            border: '1px solid rgba(255, 193, 7, 0.3)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(255, 193, 7, 0.2)',
             '& .MuiAlert-message': {
               width: '100%'
+            },
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
             }
           }}
           action={
-            <Chip 
-              label="Continue Onboarding" 
+            <Button 
+              variant="contained"
               onClick={() => window.location.href = "/onboarding?step=2"}
-              color="warning"
-              variant="outlined"
-              clickable
-            />
+              sx={{
+                bgcolor: 'rgba(255, 193, 7, 0.8)',
+                color: 'white',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                boxShadow: '0 4px 15px rgba(255, 193, 7, 0.3)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 193, 7, 1)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 20px rgba(255, 193, 7, 0.4)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Continue Setup 🚀
+            </Button>
           }
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <Typography variant="body1">
-              Complete your onboarding to schedule your first free meeting
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {onboardingPercentage}% completed
-            </Typography>
+            <Box>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
+                🎯 Complete Your Setup
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Finish your onboarding to unlock your first free consultation meeting
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mr: 2 }}>
+                  Progress: {onboardingPercentage}%
+                </Typography>
+                <Box sx={{ width: 100, mr: 1 }}>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={onboardingPercentage} 
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 4,
+                        backgroundColor: '#ff9800'
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </Alert>
       )}
 
-      <Grid container spacing={4} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }} data-tour="onboarding-progress">
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" fontWeight={600}>
-                  Onboarding Progress
+      {/* Enhanced Active Meeting Section */}
+      <Grid container spacing={4} sx={{ mb: 6 }}>
+        <Grid size={{ xs: 12 }}>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              height: '100%', 
+              borderRadius: 4, 
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '4px',
+                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+              }
+            }} 
+            data-tour="active-meeting"
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Box 
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mr: 2,
+                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+                  }}
+                >
+                  <Typography variant="h5" sx={{ color: 'white' }}>🎥</Typography>
+                </Box>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={700}
+                  sx={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  Active Meeting
                 </Typography>
-                <Chip 
-                  label={`${onboardingStatus.completedSteps}/${onboardingStatus.totalSteps}`} 
-                  color="primary" 
-                  variant="outlined"
-                />
               </Box>
-              
-              <LinearProgress
-                variant="determinate"
-                value={onboardingPercentage}
-                sx={{ 
-                  height: 10, 
-                  borderRadius: 5, 
-                  mb: 3,
-                  backgroundColor: theme.palette.grey[200],
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 5
-                  }
-                }}
-              />
-              
-              <Box sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-                gap: 2 
-              }}>
-                {onboardingSteps.map((step, index) => (
-                  <Box 
-                    key={step.name} 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      p: 1.5,
-                      borderRadius: 1,
-                      backgroundColor: index < onboardingStatus.completedSteps ? 
-                        theme.palette.success.light : theme.palette.grey[100]
-                    }}
-                  >
-                    {index < onboardingStatus.completedSteps ? (
-                      <CheckCircle color="success" sx={{ mr: 2 }} />
-                    ) : (
-                      <RadioButtonUnchecked color="disabled" sx={{ mr: 2 }} />
-                    )}
-                    <Typography variant="body1" fontWeight={500}>
-                      {step.name}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </CardContent>
-          </Paper>
-        </Grid>
-        
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }} data-tour="active-meeting">
-            <CardContent>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                Active Meeting
-              </Typography>
               <ActiveMeeting />
             </CardContent>
           </Paper>
         </Grid>
       </Grid>
 
-      <Grid container spacing={4} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" fontWeight={600}>
-                  Upcoming Meetings
-                </Typography>
+      {/* Enhanced Meeting Management Section */}
+      <Grid container spacing={4} sx={{ mb: 6 }}>
+        {/* Upcoming Meetings Card */}
+        <Grid size={{ xs: 12 }}>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              borderRadius: 4, 
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)',
+              border: '1px solid rgba(102, 126, 234, 0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 40px rgba(102, 126, 234, 0.1)'
+              }
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box 
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 3,
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mr: 2,
+                      boxShadow: '0 8px 25px rgba(79, 172, 254, 0.3)'
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ color: 'white' }}>📅</Typography>
+                  </Box>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700}
+                    sx={{ 
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >
+                    Upcoming Meetings
+                  </Typography>
+                </Box>
                 <Button 
                   variant="contained" 
-                  color="primary" 
                   onClick={() => setOpenNewMeetingDialog(true)}
                   startIcon={<AddIcon />}
-                  sx={{ borderRadius: 8 }}
                   disabled={!!(limits && !limits.can_create)}
                   title={limits && !limits.can_create ? `You've reached your limit of ${limits.limit} meetings this month` : ""}
                   data-tour="new-meeting-button"
+                  sx={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: 3,
+                    px: 3,
+                    py: 1.5,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 12px 35px rgba(102, 126, 234, 0.4)'
+                    },
+                    '&:disabled': {
+                      background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)',
+                      color: '#a0aec0'
+                    }
+                  }}
                 >
                   New Meeting
                 </Button>
               </Box>
-              <Divider sx={{ mb: 3 }} />
+              <Divider sx={{ mb: 3, bgcolor: 'rgba(102, 126, 234, 0.1)' }} />
               <MeetingsList filter="upcoming" />
             </CardContent>
           </Paper>
         </Grid>
-        
-        <Grid size={{ xs: 12, md: 6 }}>
-          <div data-tour="meeting-usage">
-            <MeetingUsage />
-          </div>
-        </Grid>
       </Grid>
       
+      {/* Enhanced Past Meetings Section */}
       <Grid container spacing={4}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }} data-tour="past-meetings">
-            <CardContent>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                Past Meetings
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
+        <Grid size={{ xs: 12 }}>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              borderRadius: 4, 
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+              border: '1px solid rgba(252, 182, 159, 0.3)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 40px rgba(252, 182, 159, 0.2)'
+              }
+            }} 
+            data-tour="past-meetings"
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Box 
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mr: 2,
+                    boxShadow: '0 8px 25px rgba(255, 154, 158, 0.3)'
+                  }}
+                >
+                  <Typography variant="h6" sx={{ color: 'white' }}>📚</Typography>
+                </Box>
+                <Typography 
+                  variant="h6" 
+                  fontWeight={700}
+                  sx={{ 
+                    background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  Meeting History
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 3, bgcolor: 'rgba(252, 182, 159, 0.3)' }} />
               <MeetingsList filter="past" showActions={false} />
             </CardContent>
           </Paper>
         </Grid>
       </Grid>
       
-      {/* New Meeting Dialog */}
+      {/* Enhanced New Meeting Dialog */}
       <Dialog 
         open={openNewMeetingDialog} 
         onClose={() => !loading && setOpenNewMeetingDialog(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)',
+            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(102, 126, 234, 0.1)'
+          }
+        }}
       >
-        <DialogTitle>Schedule New Meeting</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ 
+          p: 4, 
+          pb: 2,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          borderRadius: '16px 16px 0 0'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box 
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                background: 'rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mr: 2
+              }}
+            >
+              <Typography variant="h6">📅</Typography>
+            </Box>
+            <Typography variant="h5" fontWeight={700}>
+              Schedule New Meeting
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 4 }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(244, 67, 54, 0.15)'
+              }}
+            >
               {error}
             </Alert>
           )}
           
           {doubleBookingWarning && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
+            <Alert 
+              severity="warning" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(255, 193, 7, 0.15)'
+              }}
+            >
               {doubleBookingWarning}
             </Alert>
           )}
           
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Meeting scheduled successfully!
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)'
+              }}
+            >
+              🎉 Meeting scheduled successfully!
             </Alert>
           )}
           
           {limits && !limits.can_create && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
+            <Alert 
+              severity="warning" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(255, 193, 7, 0.15)'
+              }}
+            >
               You have reached your monthly meeting limit ({limits.limit} meetings). 
               Please upgrade your plan to schedule more meetings.
             </Alert>
@@ -572,6 +858,17 @@ const ClientDashboard = () => {
                 margin="normal"
                 required
                 disabled={loading || success}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 3,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea'
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea'
+                    }
+                  }
+                }}
               />
               
               <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -581,13 +878,38 @@ const ClientDashboard = () => {
                     value={newMeeting.scheduled_at}
                     onChange={(newValue) => handleInputChange('scheduled_at', newValue)}
                     disablePast
-                    sx={{ width: '100%' }}
+                    sx={{ 
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 3,
+                        '&:hover fieldset': {
+                          borderColor: '#667eea'
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#667eea'
+                        }
+                      }
+                    }}
                     disabled={loading || success}
                   />
                 </Grid>
                 
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth disabled={loading || success}>
+                  <FormControl 
+                    fullWidth 
+                    disabled={loading || success}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 3,
+                        '&:hover fieldset': {
+                          borderColor: '#667eea'
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#667eea'
+                        }
+                      }
+                    }}
+                  >
                     <InputLabel>Duration</InputLabel>
                     <Select
                       value={newMeeting.duration.toString()}
@@ -626,24 +948,54 @@ const ClientDashboard = () => {
                 required
                 placeholder="What would you like to discuss in this meeting?"
                 disabled={loading || success}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 3,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea'
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea'
+                    }
+                  }
+                }}
               />
             </Box>
           </LocalizationProvider>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 4, pt: 2 }}>
           <Button 
             onClick={() => setOpenNewMeetingDialog(false)} 
             disabled={loading}
+            sx={{
+              borderRadius: 3,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              fontWeight: 600
+            }}
           >
             Cancel
           </Button>
           <Button 
             variant="contained" 
-            color="primary" 
             onClick={handleCreateMeeting}
             disabled={!!(loading || !!doubleBookingWarning || success || (limits && !limits.can_create))}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: 3,
+              px: 4,
+              py: 1.5,
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
+                boxShadow: '0 12px 35px rgba(102, 126, 234, 0.4)'
+              }
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Schedule Meeting'}
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Schedule Meeting'}
           </Button>
         </DialogActions>
       </Dialog>

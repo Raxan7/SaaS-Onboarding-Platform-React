@@ -10,14 +10,13 @@ import {
   CircularProgress,
   Stack,
   Divider,
-  useTheme,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert
 } from '@mui/material';
-import GoogleMeetFrame from './GoogleMeetFrame';
+import LiveKitRoom from './LiveKitRoom';
 import { Meeting } from '../../types/meeting';
 import { useApiClient } from '../../utils/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
@@ -42,9 +41,9 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
   const [embeddedMeetingUrl, setEmbeddedMeetingUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [availabilityChecking, setAvailabilityChecking] = useState(false);
+  const [starting, setStarting] = useState(false);
   const apiClient = useApiClient();
   const { userType } = useAuth();
-  const theme = useTheme();
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -169,71 +168,215 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     }
   };
 
-  if (loading) return <CircularProgress />;
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <CircularProgress 
+        sx={{ 
+          color: 'primary.main',
+          '& .MuiCircularProgress-circle': {
+            strokeLinecap: 'round',
+          }
+        }} 
+      />
+    </Box>
+  );
 
   return (
     <Box>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 2,
+            borderRadius: 2,
+            background: 'rgba(239, 68, 68, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(239, 68, 68, 0.2)'
+          }}
+        >
           {error}
         </Alert>
       )}
       
       {filteredMeetings.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          No meetings found
-        </Typography>
+        <Box 
+          sx={{
+            textAlign: 'center',
+            py: 6,
+            background: 'linear-gradient(135deg, rgba(147, 197, 253, 0.1) 0%, rgba(196, 181, 253, 0.1) 100%)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 3,
+            border: '1px solid rgba(147, 197, 253, 0.2)'
+          }}
+        >
+          <Box 
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2,
+              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+            }}
+          >
+            <Typography variant="h4" sx={{ color: 'white' }}>📅</Typography>
+          </Box>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            No meetings found
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {filter === 'upcoming' ? 'You have no upcoming meetings scheduled.' :
+             filter === 'past' ? 'No past meetings to display.' :
+             'No meetings to display.'}
+          </Typography>
+        </Box>
       ) : (
-        <Stack spacing={2}>
+        <Stack spacing={3}>
           {filteredMeetings.map(meeting => (
             <Card 
               key={`meeting-${meeting.id}`} 
               sx={{ 
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: 3,
+                border: '1px solid rgba(255, 255, 255, 0.3)',
                 borderLeft: `4px solid ${
-                  meeting.status === 'confirmed' ? theme.palette.success.main :
-                  meeting.status === 'pending' ? theme.palette.warning.main :
-                  meeting.status === 'cancelled' ? theme.palette.error.main : 
-                  theme.palette.info.main
+                  meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? '#4ade80' :
+                  meeting.status === 'pending' ? '#f59e0b' :
+                  meeting.status === 'started' ? '#3b82f6' :
+                  meeting.status === 'cancelled' ? '#ef4444' : 
+                  '#6b7280'
                 }`,
-                boxShadow: theme.shadows[1]
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.1)'
+                }
               }}
             >
-              <CardContent>
+              <CardContent sx={{ p: 3 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                  <Box>
-                    <Typography variant="h6" fontWeight={600}>
-                      {meeting.title || 'Consultation Meeting'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {formatMeetingDateTime(meeting.scheduled_at, meeting.timezone)}
-                    </Typography>
+                  <Box sx={{ flex: 1 }}>
+                    {/* Enhanced meeting header with gradient title */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Box 
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 2,
+                          background: `linear-gradient(135deg, ${
+                            meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? '#4ade80, #22c55e' :
+                            meeting.status === 'pending' ? '#f59e0b, #d97706' :
+                            meeting.status === 'started' ? '#3b82f6, #1d4ed8' :
+                            meeting.status === 'cancelled' ? '#ef4444, #dc2626' : 
+                            meeting.status === 'expired' ? '#94a3b8, #64748b' :
+                            '#6b7280, #4b5563'
+                          })`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mr: 2,
+                          boxShadow: `0 4px 12px ${
+                            meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? 'rgba(74, 222, 128, 0.3)' :
+                            meeting.status === 'pending' ? 'rgba(245, 158, 11, 0.3)' :
+                            meeting.status === 'started' ? 'rgba(59, 130, 246, 0.3)' :
+                            meeting.status === 'cancelled' ? 'rgba(239, 68, 68, 0.3)' : 
+                            meeting.status === 'expired' ? 'rgba(148, 163, 184, 0.3)' :
+                            'rgba(107, 114, 128, 0.3)'
+                          }`
+                        }}
+                      >
+                        <Typography variant="body1" sx={{ color: 'white' }}>
+                          {meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? '✅' :
+                           meeting.status === 'pending' ? '⏳' :
+                           meeting.status === 'started' ? '🔴' :
+                           meeting.status === 'cancelled' ? '❌' : 
+                           meeting.status === 'expired' ? '⏰' : '📅'}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography 
+                          variant="h6" 
+                          fontWeight={700}
+                          sx={{ 
+                            background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                          }}
+                        >
+                          {meeting.title || 'Consultation Meeting'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                          {formatMeetingDateTime(meeting.scheduled_at, meeting.timezone)}
+                        </Typography>
+                      </Box>
+                    </Box>
                     
-                    {/* Display timezone information */}
-                    <Chip 
-                      label={meeting.timezone || 'UTC'} 
-                      size="small" 
-                      color="primary" 
-                      variant="outlined"
-                      sx={{ mt: 0.5, mr: 1 }}
-                    />
-                    
-                    {meeting.duration && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        Duration: {meeting.duration} minutes
-                      </Typography>
-                    )}
+                    {/* Enhanced timezone and duration info */}
+                    <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                      <Chip 
+                        label={meeting.timezone || 'UTC'} 
+                        size="small" 
+                        sx={{
+                          background: 'rgba(255, 255, 255, 0.7)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(102, 126, 234, 0.2)',
+                          fontWeight: 500,
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                      
+                      {meeting.duration && (
+                        <Chip 
+                          label={`${meeting.duration} minutes`}
+                          size="small" 
+                          sx={{
+                            background: 'rgba(255, 255, 255, 0.7)',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(102, 126, 234, 0.2)',
+                            fontWeight: 500,
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      )}
+                    </Stack>
                   </Box>
                   
+                  {/* Enhanced status chip */}
                   {meeting?.status ? (
                     <Chip 
-                      label={meeting.status === 'rescheduled' ? 'RESCHEDULED & CONFIRMED' : meeting.status.toUpperCase()} 
-                      color={
-                        meeting.status === 'confirmed' ? 'success' :
-                        meeting.status === 'pending' ? 'warning' :
-                        meeting.status === 'cancelled' ? 'error' : 
-                        meeting.status === 'rescheduled' ? 'success' : 'info'
-                      }
-                      variant="outlined"
+                      label={
+                        meeting.status === 'rescheduled' ? 'RESCHEDULED & CONFIRMED' : 
+                        meeting.status === 'started' ? 'IN PROGRESS' : 
+                        meeting.status.toUpperCase()
+                      } 
+                      sx={{
+                        background: `linear-gradient(135deg, ${
+                          meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? '#4ade80, #22c55e' :
+                          meeting.status === 'pending' ? '#f59e0b, #d97706' :
+                          meeting.status === 'started' ? '#3b82f6, #1d4ed8' :
+                          meeting.status === 'cancelled' ? '#ef4444, #dc2626' : 
+                          meeting.status === 'expired' ? '#94a3b8, #64748b' :
+                          '#6b7280, #4b5563'
+                        })`,
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        borderRadius: 2,
+                        boxShadow: `0 4px 12px ${
+                          meeting.status === 'confirmed' || meeting.status === 'rescheduled' ? 'rgba(74, 222, 128, 0.3)' :
+                          meeting.status === 'pending' ? 'rgba(245, 158, 11, 0.3)' :
+                          meeting.status === 'started' ? 'rgba(59, 130, 246, 0.3)' :
+                          meeting.status === 'cancelled' ? 'rgba(239, 68, 68, 0.3)' : 
+                          meeting.status === 'expired' ? 'rgba(148, 163, 184, 0.3)' :
+                          'rgba(107, 114, 128, 0.3)'
+                        }`
+                      }}
                       size="small"
                     />
                   ) : (
@@ -242,8 +385,17 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                 </Box>
                 
                 {meeting.goals && (
-                  <Box mt={1.5}>
-                    <Typography variant="body2" fontWeight={500}>
+                  <Box 
+                    sx={{
+                      mt: 2,
+                      background: 'rgba(255, 255, 255, 0.5)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 2,
+                      p: 2,
+                      border: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={600} gutterBottom>
                       Meeting Goals:
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -254,20 +406,43 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                 
                 {showActions && (
                   <Box mt={3}>
-                    <Divider sx={{ mb: 2 }} />
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Divider sx={{ 
+                      mb: 2,
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%)'
+                    }} />
+                    
+                    <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
                       {userType === 'host' && meeting?.id && (
-                        <Box mt={2} display="flex" gap={1}>
+                        <>
                           {meeting.status === 'pending' && (
                             <Button 
                               variant="contained" 
                               size="small"
                               onClick={() => handleStatusUpdate(meeting.id, 'confirmed')}
+                              sx={{
+                                background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: 2,
+                                px: 3,
+                                py: 1,
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                textTransform: 'none',
+                                boxShadow: '0 4px 15px rgba(74, 222, 128, 0.3)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 8px 25px rgba(74, 222, 128, 0.4)',
+                                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                                }
+                              }}
                             >
-                              Confirm
+                              ✅ Confirm
                             </Button>
                           )}
-                          {['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && (
+                          
+                          {['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && meeting.status !== 'expired' && (
                             <>
                               <Button 
                                 variant="outlined" 
@@ -277,70 +452,166 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                                   setTimezone(meeting.timezone || 'UTC');
                                   setRescheduleDialogOpen(true);
                                 }}
+                                sx={{
+                                  background: 'rgba(255, 255, 255, 0.8)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderRadius: 2,
+                                  px: 3,
+                                  py: 1,
+                                  fontWeight: 600,
+                                  fontSize: '0.875rem',
+                                  textTransform: 'none',
+                                  border: '1px solid rgba(102, 126, 234, 0.3)',
+                                  color: '#667eea',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                                    borderColor: '#667eea',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
+                                  }
+                                }}
                               >
-                                Reschedule
+                                📅 Reschedule
                               </Button>
+                              
                               <Button 
                                 variant="outlined" 
-                                color="error"
                                 size="small"
                                 onClick={() => handleStatusUpdate(meeting.id, 'cancelled')}
+                                sx={{
+                                  background: 'rgba(255, 255, 255, 0.8)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderRadius: 2,
+                                  px: 3,
+                                  py: 1,
+                                  fontWeight: 600,
+                                  fontSize: '0.875rem',
+                                  textTransform: 'none',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  color: '#ef4444',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                                    borderColor: '#ef4444',
+                                    boxShadow: '0 4px 15px rgba(239, 68, 68, 0.2)'
+                                  }
+                                }}
                               >
-                                Cancel
+                                ❌ Cancel
                               </Button>
                             </>
                           )}
-                          {(meeting.status === 'confirmed' || meeting.status === 'rescheduled') && meeting.meeting_url && (
+                          
+                          {(meeting.status === 'confirmed' || meeting.status === 'rescheduled') && (
                             <Button 
                               variant="contained" 
-                              color="primary"
+                              size="medium"
+                              disabled={starting}
+                              onClick={async () => {
+                                try {
+                                  setStarting(true);
+                                  const updatedMeeting = await apiClient.put(`/api/meetings/${meeting.id}/start/`, {});
+                                  setMeetings(meetings.map(m => 
+                                    m.id === meeting.id ? updatedMeeting : m
+                                  ));
+                                  if (updatedMeeting.meeting_url) {
+                                    setEmbeddedMeetingUrl(updatedMeeting.meeting_url);
+                                  }
+                                } catch (err) {
+                                  console.error('Error starting meeting:', err);
+                                  setError('Failed to start meeting');
+                                } finally {
+                                  setStarting(false);
+                                }
+                              }}
+                              sx={{
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: 2,
+                                px: 4,
+                                py: 1.5,
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                textTransform: 'none',
+                                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-3px)',
+                                  boxShadow: '0 10px 30px rgba(102, 126, 234, 0.5)',
+                                  background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'
+                                },
+                                '&:disabled': {
+                                  background: 'rgba(102, 126, 234, 0.5)',
+                                  transform: 'none',
+                                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
+                                }
+                              }}
+                              startIcon={starting ? (
+                                <CircularProgress size={16} sx={{ color: 'white' }} />
+                              ) : (
+                                <Box 
+                                  component="span" 
+                                  sx={{ 
+                                    width: '12px', 
+                                    height: '12px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: '#f59e0b', 
+                                    display: 'inline-block',
+                                    boxShadow: '0 0 0 rgba(245, 158, 11, 0.4)',
+                                    animation: 'pulse 1.5s infinite',
+                                    '@keyframes pulse': {
+                                      '0%': {
+                                        boxShadow: '0 0 0 0 rgba(245, 158, 11, 0.4)',
+                                      },
+                                      '70%': {
+                                        boxShadow: '0 0 0 8px rgba(245, 158, 11, 0)',
+                                      },
+                                      '100%': {
+                                        boxShadow: '0 0 0 0 rgba(245, 158, 11, 0)',
+                                      },
+                                    },
+                                  }} 
+                                />
+                              )}
+                            >
+                              {starting ? 'Starting...' : 'Start Meeting'}
+                            </Button>
+                          )}
+                          
+                          {meeting.status === 'started' && meeting.meeting_url && (
+                            <Button 
+                              variant="contained" 
                               size="medium"
                               onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url || null)}
                               sx={{
-                                background: 'linear-gradient(45deg, #6C63FF 30%, #5046e4 90%)',
-                                boxShadow: '0 4px 8px 2px rgba(108, 99, 255, .3)',
-                                fontWeight: 'bold',
-                                padding: '8px 20px',
+                                background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: 2,
+                                px: 4,
+                                py: 1.5,
+                                fontWeight: 700,
                                 fontSize: '0.9rem',
-                                letterSpacing: '0.5px',
-                                transition: 'all 0.25s ease-in-out',
+                                textTransform: 'none',
+                                boxShadow: '0 6px 20px rgba(74, 222, 128, 0.4)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                transition: 'all 0.3s ease',
                                 '&:hover': {
-                                  transform: 'scale(1.05)',
-                                  background: 'linear-gradient(45deg, #5046e4 30%, #403ab3 90%)',
-                                  boxShadow: '0 6px 10px 2px rgba(108, 99, 255, .4)',
+                                  transform: 'translateY(-3px)',
+                                  boxShadow: '0 10px 30px rgba(74, 222, 128, 0.5)',
+                                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
                                 }
                               }}
-                              startIcon={<Box 
-                                component="span" 
-                                sx={{ 
-                                  width: '14px', 
-                                  height: '14px', 
-                                  borderRadius: '50%', 
-                                  backgroundColor: '#F2994A', 
-                                  display: 'inline-block',
-                                  boxShadow: '0 0 0 rgba(242, 153, 74, 0.4)',
-                                  animation: 'pulse 1.5s infinite',
-                                  '@keyframes pulse': {
-                                    '0%': {
-                                      boxShadow: '0 0 0 0 rgba(242, 153, 74, 0.4)',
-                                    },
-                                    '70%': {
-                                      boxShadow: '0 0 0 10px rgba(242, 153, 74, 0)',
-                                    },
-                                    '100%': {
-                                      boxShadow: '0 0 0 0 rgba(242, 153, 74, 0)',
-                                    },
-                                  },
-                                }} 
-                              />}
                             >
-                              Start Meeting
+                              🎥 Join Meeting
                             </Button>
                           )}
-                        </Box>
+                        </>
                       )}
 
-                      {userType === 'client' && ['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && (
+                      {userType === 'client' && ['pending', 'confirmed', 'rescheduled'].includes(meeting.status) && meeting.status !== 'expired' && (
                         <>
                           <Button
                             variant="outlined"
@@ -350,28 +621,109 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               setTimezone(meeting.timezone || 'UTC');
                               setRescheduleDialogOpen(true);
                             }}
+                            sx={{
+                              background: 'rgba(255, 255, 255, 0.8)',
+                              backdropFilter: 'blur(10px)',
+                              borderRadius: 2,
+                              px: 3,
+                              py: 1,
+                              fontWeight: 600,
+                              fontSize: '0.875rem',
+                              textTransform: 'none',
+                              border: '1px solid rgba(102, 126, 234, 0.3)',
+                              color: '#667eea',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                                borderColor: '#667eea',
+                                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
+                              }
+                            }}
                           >
-                            Reschedule
+                            📅 Reschedule
                           </Button>
+                          
                           <Button
                             variant="outlined"
-                            color="error"
                             size="small"
                             onClick={() => handleStatusUpdate(meeting.id, 'cancelled')}
+                            sx={{
+                              background: 'rgba(255, 255, 255, 0.8)',
+                              backdropFilter: 'blur(10px)',
+                              borderRadius: 2,
+                              px: 3,
+                              py: 1,
+                              fontWeight: 600,
+                              fontSize: '0.875rem',
+                              textTransform: 'none',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#ef4444',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                                borderColor: '#ef4444',
+                                boxShadow: '0 4px 15px rgba(239, 68, 68, 0.2)'
+                              }
+                            }}
                           >
-                            Cancel
+                            ❌ Cancel
                           </Button>
                         </>
                       )}
 
-                      {meeting.meeting_url && (meeting.status === 'confirmed' || meeting.status === 'rescheduled') && userType === 'client' && (
+                      {meeting.meeting_url && meeting.status === 'started' && userType === 'client' && (
                         <Button
                           variant="contained"
-                          color="primary"
                           size="small"
                           onClick={() => window.open(meeting.meeting_url, '_blank')}
+                          sx={{
+                            background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: 2,
+                            px: 3,
+                            py: 1,
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            textTransform: 'none',
+                            boxShadow: '0 4px 15px rgba(74, 222, 128, 0.3)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 8px 25px rgba(74, 222, 128, 0.4)',
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                            }
+                          }}
                         >
-                          Join Meeting
+                          🎥 Join Meeting
+                        </Button>
+                      )}
+                      
+                      {(meeting.status === 'confirmed' || meeting.status === 'rescheduled') && userType === 'client' && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          disabled={true}
+                          sx={{
+                            background: 'rgba(102, 126, 234, 0.3)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: 2,
+                            px: 3,
+                            py: 1,
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            textTransform: 'none',
+                            color: 'rgba(102, 126, 234, 0.8)',
+                            border: '1px solid rgba(102, 126, 234, 0.2)',
+                            '&.Mui-disabled': {
+                              color: 'rgba(102, 126, 234, 0.6)',
+                              background: 'rgba(102, 126, 234, 0.2)'
+                            }
+                          }}
+                        >
+                          ⏳ Waiting for host...
                         </Button>
                       )}
                     </Stack>
@@ -383,21 +735,62 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
         </Stack>
       )}
 
-      {embeddedMeetingUrl && (
+      {embeddedMeetingUrl && selectedMeeting && (
         <Box mt={2} sx={{ height: '500px', border: '1px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-          <GoogleMeetFrame
+          <LiveKitRoom
             meetingUrl={embeddedMeetingUrl}
+            meetingId={selectedMeeting.id}
             height="100%"
             onError={(errorMsg) => setError(errorMsg)}
           />
         </Box>
       )}
 
-      {/* Reschedule Dialog with TimezonePicker */}
-      <Dialog open={rescheduleDialogOpen} onClose={() => setRescheduleDialogOpen(false)}>
-        <DialogTitle>Reschedule Meeting</DialogTitle>
-        <DialogContent>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {/* Enhanced Reschedule Dialog with Modern Design */}
+      <Dialog 
+        open={rescheduleDialogOpen} 
+        onClose={() => setRescheduleDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+            minWidth: 400
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 700,
+            fontSize: '1.5rem',
+            pb: 1,
+            borderBottom: '1px solid rgba(102, 126, 234, 0.2)'
+          }}
+        >
+          📅 Reschedule Meeting
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 3 }}>
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 2,
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: 2
+              }}
+            >
+              {error}
+            </Alert>
+          )}
           
           {selectedMeeting && (
             <Box sx={{ mt: 2 }}>
@@ -406,7 +799,23 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                   label="New Meeting Time"
                   value={newTime ? new Date(newTime) : new Date(selectedMeeting.scheduled_at)}
                   onChange={(newValue) => setNewTime(newValue?.toISOString() || '')}
-                  sx={{ width: '100%', mb: 2 }}
+                  sx={{ 
+                    width: '100%', 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      background: 'rgba(255, 255, 255, 0.7)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 2,
+                      border: '1px solid rgba(102, 126, 234, 0.2)',
+                      '&:hover': {
+                        border: '1px solid rgba(102, 126, 234, 0.4)'
+                      },
+                      '&.Mui-focused': {
+                        border: '1px solid #667eea',
+                        boxShadow: '0 0 0 3px rgba(102, 126, 234, 0.1)'
+                      }
+                    }
+                  }}
                 />
               </LocalizationProvider>
               
@@ -418,15 +827,65 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRescheduleDialogOpen(false)}>Cancel</Button>
+        
+        <DialogActions sx={{ p: 3, pt: 2 }}>
+          <Button 
+            onClick={() => setRescheduleDialogOpen(false)}
+            sx={{
+              background: 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              border: '1px solid rgba(107, 114, 128, 0.3)',
+              color: '#6b7280',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%)',
+                borderColor: '#6b7280',
+                boxShadow: '0 4px 15px rgba(107, 114, 128, 0.2)'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          
           <Button 
             onClick={handleReschedule} 
-            variant="contained" 
-            color="primary" 
+            variant="contained"
             disabled={availabilityChecking}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 2,
+              px: 4,
+              py: 1,
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 10px 30px rgba(102, 126, 234, 0.5)',
+                background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'
+              },
+              '&:disabled': {
+                background: 'rgba(102, 126, 234, 0.5)',
+                transform: 'none',
+                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
+              }
+            }}
+            startIcon={availabilityChecking ? (
+              <CircularProgress size={16} sx={{ color: 'white' }} />
+            ) : null}
           >
-            {availabilityChecking ? 'Checking Availability...' : 'Reschedule'}
+            {availabilityChecking ? 'Checking...' : '📅 Reschedule'}
           </Button>
         </DialogActions>
       </Dialog>

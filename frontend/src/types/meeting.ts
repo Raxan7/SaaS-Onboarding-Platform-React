@@ -19,7 +19,7 @@ export interface Meeting {
     duration: number;
     timezone: string; // Added timezone field
     meeting_url?: string;
-    status: 'pending' | 'confirmed' | 'rescheduled' | 'cancelled' | 'completed';
+    status: 'pending' | 'confirmed' | 'rescheduled' | 'cancelled' | 'completed' | 'started' | 'expired';
     is_qualified: boolean;
     notes?: string;
     created_at: string;

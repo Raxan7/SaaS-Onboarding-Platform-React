@@ -48,7 +48,7 @@ const OnboardingWizard = () => {
           
           // Check if onboarding is complete
           if (statusData.is_complete) {
-            navigate('/dashboard');
+            navigate('/client-dashboard');
             return;
           }
           
@@ -102,7 +102,7 @@ const OnboardingWizard = () => {
           credentials: 'include'
         });
         
-        navigate('/dashboard');
+        navigate('/client-dashboard');
       } catch (error) {
         console.error('Error completing onboarding:', error);
       }

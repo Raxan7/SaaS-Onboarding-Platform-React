@@ -526,7 +526,7 @@ const PaymentStep = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, gap: 2 }}>
         <Button 
           variant="outlined" 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/client-dashboard')}
           disabled={loading || paymentProcessing}
         >
           Skip for now

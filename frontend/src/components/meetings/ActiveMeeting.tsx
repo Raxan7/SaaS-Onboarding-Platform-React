@@ -1,22 +1,21 @@
 // components/meetings/ActiveMeeting.tsx
 import { 
-    Box, 
-    Typography, 
-    Button, 
-    CircularProgress,
-    Card,
-    CardContent,
-    useTheme,
-    Stack,
-    Chip,
-    Alert
-  } from '@mui/material';
-  import { AccessTime } from '@mui/icons-material';
-  import { useEffect, useState } from 'react';
-  import { useApiClient } from '../../utils/apiClient';
-  import { Meeting } from '../../types/meeting';
-  import { format, differenceInMinutes } from 'date-fns';
-  import GoogleMeetFrame from './GoogleMeetFrame';
+  Box, 
+  Typography, 
+  Button, 
+  CircularProgress,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
+  Alert
+} from '@mui/material';
+import { AccessTime } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import { useApiClient } from '../../utils/apiClient';
+import { Meeting } from '../../types/meeting';
+import { format, differenceInMinutes } from 'date-fns';
+import LiveKitRoom from './LiveKitRoom';
 
   // Local storage keys
   const ACTIVE_MEETING_CACHE_KEY = 'active-meeting-cache';
@@ -95,7 +94,6 @@ import {
     const [timeUntilMeeting, setTimeUntilMeeting] = useState<string>('');
     const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
     const apiClient = useApiClient();
-    const theme = useTheme();
     
     // Track document visibility to reduce API calls when tab is not visible
     useEffect(() => {
@@ -190,14 +188,14 @@ import {
           
           lastFetchTime = now;
           
-          // Find the next upcoming meeting that is confirmed or rescheduled
+          // Find the next upcoming meeting that is confirmed, rescheduled, or started
           const currentTime = new Date();
           const upcomingMeetings = meetings.filter((m: Meeting) => 
             (new Date(m.scheduled_at) > currentTime && 
-             (m.status === 'confirmed' || m.status === 'rescheduled')) ||
+             (m.status === 'confirmed' || m.status === 'rescheduled' || m.status === 'started')) ||
             // Include meetings that started in the last hour
             (differenceInMinutes(currentTime, new Date(m.scheduled_at)) <= 60 && 
-             (m.status === 'confirmed' || m.status === 'rescheduled'))
+             (m.status === 'confirmed' || m.status === 'rescheduled' || m.status === 'started'))
           );
           
           // Track if we found changes
@@ -363,6 +361,9 @@ import {
         
         // Update the cache with the latest meeting data
         cacheMeetingData(updatedMeeting);
+        
+        // Notification for clients will be handled by the backend
+        // For host, just update the UI
       } catch (error) {
         console.error('Error starting meeting:', error);
       } finally {
@@ -376,67 +377,178 @@ import {
   
   if (!activeMeeting) {
     return (
-      <Alert severity="info">
-        You have no active meetings. Schedule a meeting to get started.
-      </Alert>
+      <Box 
+        sx={{
+          background: 'linear-gradient(135deg, rgba(147, 197, 253, 0.1) 0%, rgba(196, 181, 253, 0.1) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 3,
+          border: '1px solid rgba(147, 197, 253, 0.2)',
+          p: 4,
+          textAlign: 'center'
+        }}
+      >
+        <Box 
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 2,
+            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+          }}
+        >
+          <Typography variant="h4" sx={{ color: 'white' }}>📅</Typography>
+        </Box>
+        <Typography variant="h6" fontWeight={600} gutterBottom>
+          No Active Meetings
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          You have no active meetings. Schedule a meeting to get started.
+        </Typography>
+      </Box>
     );
   }
   
     return (
-      <Card sx={{ boxShadow: theme.shadows[2] }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-            <Typography variant="h6" fontWeight={600}>
-              {activeMeeting.title || 'Consultation Meeting'}
-            </Typography>
+      <Card 
+        sx={{ 
+          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(168, 237, 234, 0.1) 100%)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 3,
+          border: '1px solid rgba(102, 126, 234, 0.2)',
+          borderTop: '3px solid',
+          borderImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 12px 40px rgba(102, 126, 234, 0.15)'
+          }
+        }}
+      >
+        <CardContent sx={{ p: 4 }}>
+          {/* Header with gradient icon and title */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box 
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: 2,
+                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+                }}
+              >
+                <Typography variant="h6" sx={{ color: 'white' }}>📹</Typography>
+              </Box>
+              <Box>
+                <Typography 
+                  variant="h6" 
+                  fontWeight={700}
+                  sx={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  {activeMeeting.title || 'Consultation Meeting'}
+                </Typography>
+              </Box>
+            </Box>
             
             <Chip 
               label={timeUntilMeeting} 
-              color="primary" 
+              sx={{
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                fontWeight: 600,
+                color: 'primary.main',
+                border: '1px solid rgba(102, 126, 234, 0.2)'
+              }}
               size="small"
               icon={<AccessTime />}
             />
           </Box>
           
-          <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          {/* Enhanced meeting info chips */}
+          <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', gap: 1 }}>
             <Chip 
               label={format(new Date(activeMeeting.scheduled_at), 'PPP p')} 
               size="small" 
-              variant="outlined"
+              sx={{
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(102, 126, 234, 0.2)',
+                fontWeight: 500
+              }}
             />
             
             <Chip 
               label={activeMeeting.timezone || 'UTC'} 
               size="small" 
-              variant="outlined" 
+              sx={{
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(102, 126, 234, 0.2)',
+                fontWeight: 500
+              }}
             />
             
             {activeMeeting.duration && (
               <Chip 
                 label={`${activeMeeting.duration} min`} 
                 size="small" 
-                variant="outlined" 
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.7)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(102, 126, 234, 0.2)',
+                  fontWeight: 500
+                }}
               />
             )}
           </Stack>
           
           {activeMeeting.goals && (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {activeMeeting.goals}
-            </Typography>
+            <Box 
+              sx={{
+                background: 'rgba(255, 255, 255, 0.5)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 2,
+                p: 2,
+                mb: 3,
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              }}
+            >
+              <Typography variant="body2" fontWeight={600} gutterBottom>
+                Meeting Goals:
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {activeMeeting.goals}
+              </Typography>
+            </Box>
           )}
           
-          {activeMeeting.meeting_url ? (
+          {activeMeeting.status === 'started' && activeMeeting.meeting_url ? (
             <>
               <Box sx={{ 
                 height: '400px', 
-                border: `1px solid ${theme.palette.divider}`, 
-                borderRadius: 2, 
+                border: '1px solid rgba(102, 126, 234, 0.2)', 
+                borderRadius: 3, 
                 overflow: 'hidden',
-                mb: 2
+                mb: 3,
+                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.1)'
               }}>
-                <GoogleMeetFrame
+                <LiveKitRoom
                   meetingUrl={activeMeeting.meeting_url}
+                  meetingId={activeMeeting.id}
                   height="100%"
                   onError={(errorMsg) => {
                     console.error('Meeting frame error:', errorMsg);
@@ -447,9 +559,21 @@ import {
               <Stack direction="row" spacing={2}>
                 <Button 
                   variant="contained" 
-                  color="primary"
                   onClick={() => window.open(activeMeeting.meeting_url, '_blank')}
                   fullWidth
+                  sx={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: 2,
+                    py: 1.5,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5046e4 0%, #6B46C1 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 12px 30px rgba(102, 126, 234, 0.4)'
+                    }
+                  }}
                 >
                   Open in New Window
                 </Button>
@@ -457,17 +581,171 @@ import {
             </>
           ) : (
             <Box textAlign="center" py={4}>
-              <Typography variant="body1" mb={2}>
-                This meeting hasn't started yet
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleStartMeeting}
-                disabled={starting}
-              >
-                {starting ? 'Starting...' : 'Start Meeting'}
-              </Button>
+              {(activeMeeting.status === 'confirmed' || activeMeeting.status === 'rescheduled') && (
+                <>
+                  {activeMeeting.host && activeMeeting.user && activeMeeting.host.id !== activeMeeting.user.id ? (
+                    // For clients when the meeting is confirmed but not started
+                    <>
+                      <Box 
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mx: 'auto',
+                          mb: 2,
+                          boxShadow: '0 8px 25px rgba(245, 87, 108, 0.3)'
+                        }}
+                      >
+                        <Typography variant="h4" sx={{ color: 'white' }}>⏰</Typography>
+                      </Box>
+                      <Typography variant="body1" mb={2} fontWeight={600}>
+                        Waiting for the host to start the meeting
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        disabled={true}
+                        sx={{
+                          background: 'rgba(158, 158, 158, 0.5)',
+                          borderRadius: 2,
+                          py: 1.5,
+                          px: 4,
+                          fontWeight: 600,
+                          textTransform: 'none'
+                        }}
+                      >
+                        Join Meeting
+                      </Button>
+                    </>
+                  ) : (
+                    // For hosts when meeting is confirmed but not started
+                    <>
+                      <Box 
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mx: 'auto',
+                          mb: 2,
+                          boxShadow: '0 8px 25px rgba(74, 222, 128, 0.3)'
+                        }}
+                      >
+                        <Typography variant="h4" sx={{ color: 'white' }}>🚀</Typography>
+                      </Box>
+                      <Typography variant="body1" mb={2} fontWeight={600}>
+                        This meeting is confirmed. Click below to start it.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        onClick={handleStartMeeting}
+                        disabled={starting}
+                        sx={{
+                          background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                          borderRadius: 2,
+                          py: 1.5,
+                          px: 4,
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          boxShadow: '0 8px 25px rgba(74, 222, 128, 0.3)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 12px 30px rgba(74, 222, 128, 0.4)'
+                          }
+                        }}
+                      >
+                        {starting ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={20} sx={{ color: 'white' }} />
+                            Starting...
+                          </Box>
+                        ) : 'Start Meeting'}
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+
+              {activeMeeting.status === 'started' && !activeMeeting.meeting_url && (
+                <>
+                  <Box 
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                      boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)'
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: 'white' }}>🔗</Typography>
+                  </Box>
+                  <Typography variant="body1" mb={2} fontWeight={600}>
+                    This meeting has been started by the host
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={handleStartMeeting}
+                    disabled={starting}
+                    sx={{
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      borderRadius: 2,
+                      py: 1.5,
+                      px: 4,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 12px 30px rgba(59, 130, 246, 0.4)'
+                      }
+                    }}
+                  >
+                    {starting ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} sx={{ color: 'white' }} />
+                        Connecting...
+                      </Box>
+                    ) : 'Join Meeting'}
+                  </Button>
+                </>
+              )}
+
+              {activeMeeting.status === 'pending' && (
+                <>
+                  <Box 
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                      boxShadow: '0 8px 25px rgba(245, 158, 11, 0.3)'
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: 'white' }}>⏳</Typography>
+                  </Box>
+                  <Typography variant="body1" mb={2} fontWeight={600}>
+                    This meeting has not been confirmed yet
+                  </Typography>
+                </>
+              )}
             </Box>
           )}
         </CardContent>

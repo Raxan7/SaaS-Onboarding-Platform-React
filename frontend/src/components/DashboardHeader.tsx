@@ -14,7 +14,7 @@ export default function DashboardHeader({ onMobileDrawerToggle }: DashboardHeade
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
-  const { logout } = useAuth();
+  const { logout, userType } = useAuth();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -33,7 +33,7 @@ export default function DashboardHeader({ onMobileDrawerToggle }: DashboardHeade
           backgroundColor: 'background.paper',
           color: 'text.primary',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          zIndex: theme.zIndex.drawer + 1, // Ensure header is above sidebar
           width: '100%'
         }}
       >
@@ -58,7 +58,7 @@ export default function DashboardHeader({ onMobileDrawerToggle }: DashboardHeade
               )}
               <Box 
                 component={Link} 
-                to="/dashboard" 
+                to={userType === 'host' ? '/host-dashboard' : '/client-dashboard'} 
                 sx={{ 
                   textDecoration: 'none', 
                   display: 'flex', 
