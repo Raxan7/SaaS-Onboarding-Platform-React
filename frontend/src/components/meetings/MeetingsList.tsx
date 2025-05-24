@@ -67,8 +67,16 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     const now = new Date();
     const meetingDate = new Date(meeting.scheduled_at);
     
-    if (filter === 'upcoming') return meetingDate > now && meeting.status !== 'cancelled';
-    if (filter === 'past') return meetingDate <= now || meeting.status === 'completed';
+    if (filter === 'upcoming') {
+      // Only show active/future meetings that haven't been terminated
+      return meetingDate > now && 
+             !['cancelled', 'completed', 'expired'].includes(meeting.status);
+    }
+    if (filter === 'past') {
+      // Show past meetings OR any terminated meetings (completed, cancelled, expired)
+      return meetingDate <= now || 
+             ['completed', 'cancelled', 'expired'].includes(meeting.status);
+    }
     return true;
   });
 

@@ -111,6 +111,10 @@ const LiveKitRoom = ({
     room.on(RoomEvent.ConnectionStateChanged, handleConnectionStateChanged);
     room.on(RoomEvent.Disconnected, () => {
       console.log('[LiveKitRoom] Disconnected from room');
+      // Call the onMeetingEnd callback when the room disconnects
+      if (onMeetingEnd) {
+        onMeetingEnd();
+      }
     });
     room.on(RoomEvent.SignalConnected, () => {
       console.log('[LiveKitRoom] Signal connected, publishing media');
@@ -140,7 +144,7 @@ const LiveKitRoom = ({
         });
       }
     };
-  }, [room, onError]);
+  }, [room, onError, onMeetingEnd]);
 
   // Fetch token and connect to the room
   useEffect(() => {
