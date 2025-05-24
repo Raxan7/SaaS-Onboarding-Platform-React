@@ -869,7 +869,8 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
             meetingUrl={embeddedMeetingUrl}
             meetingId={selectedMeeting.id}
             height="100%"
-            onError={(errorMsg) => setError(errorMsg)}
+            onError={(errorMsg: string) => setError(errorMsg)}
+            onMeetingEnd={() => handleEndMeeting(selectedMeeting.id)}
           />
         </Box>
       )}

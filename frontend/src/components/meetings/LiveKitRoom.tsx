@@ -122,13 +122,13 @@ function MeetingHeader({
     
     switch (connectionState) {
       case ConnectionState.Connected:
-        return roomName || 'Meeting Room';
+        return roomName || 'Live Meeting Room';
       case ConnectionState.Connecting:
-        return 'Connecting...';
+        return 'Connecting to meeting...';
       case ConnectionState.Reconnecting:
-        return 'Reconnecting...';
+        return 'Reconnecting to meeting...';
       default:
-        return 'Disconnected';
+        return 'Meeting disconnected';
     }
   };
 

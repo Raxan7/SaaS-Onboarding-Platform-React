@@ -85,7 +85,7 @@ const MeetingUsage = () => {
                 boxShadow: '0 8px 25px rgba(250, 112, 154, 0.3)'
               }}
             >
-              <Typography variant="h6" sx={{ color: 'white' }}>📊</Typography>
+              <Typography variant="h6" sx={{ color: 'white' }}>📅</Typography>
             </Box>
             <Typography 
               variant="h6" 
