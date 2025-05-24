@@ -312,134 +312,87 @@ const ClientDashboard = () => {
 
   return (
     <DashboardLayout>
-      {/* Enhanced Header Section with Gradient Background */}
+      {/* Professional Header Section */}
       <Box sx={{ 
-        mb: 6,
+        mb: 4,
         p: 4,
-        borderRadius: 3,
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '50%',
-          height: '100%',
-          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat',
-          opacity: 0.1,
-        }
+        borderRadius: 2,
+        backgroundColor: '#ffffff',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}>
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          {/* Header Content */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 0 } }}>
-            <Box>
-              <Typography 
-                variant="h3" 
-                component="h1" 
-                fontWeight={700} 
-                gutterBottom
-                sx={{ 
-                  background: 'linear-gradient(45deg, #ffffff 30%, #f8f9ff 90%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' }
-                }}
-              >
-                Welcome back, {user?.first_name}! ✨
-              </Typography>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  opacity: 0.9,
-                  fontWeight: 400,
-                  fontSize: { xs: '0.95rem', sm: '1.1rem' }
-                }}
-              >
-                Here's what's happening with your account today
-              </Typography>
-            </Box>
-            
-            {/* Tour Button - Only show on desktop */}
-            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-              <Button 
-                variant="contained"
-                size="large"
-                onClick={() => setShowWalkThrough(true)}
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  color: 'white',
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1.5,
-                  borderRadius: 2,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.3)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-                  }
-                }}
-              >
-                🎯 Dashboard Tour
-              </Button>
-            </Box>
-          </Box>
-          
-          {/* Tour Button - Mobile version positioned below header */}
-          <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mt: 2 }}>
-            <Button 
-              variant="contained"
-              size="medium"
-              onClick={() => setShowWalkThrough(true)}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 0 } }}>
+          <Box>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              fontWeight={600} 
+              gutterBottom
               sx={{ 
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: 'white',
-                fontWeight: 600,
-                px: 3,
-                py: 1.2,
-                borderRadius: 2,
-                transition: 'all 0.3s ease',
-                fontSize: '0.9rem',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-                }
+                color: '#111827',
+                fontSize: { xs: '1.5rem', sm: '1.875rem', md: '2.25rem' }
               }}
             >
-              🎯 Dashboard Tour
-            </Button>
+              Welcome back, {user?.first_name}!
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#6b7280',
+                fontSize: { xs: '0.875rem', md: '1rem' }
+              }}
+            >
+              Ready to schedule your next consultation?
+            </Typography>
           </Box>
+          
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenNewMeetingDialog(true)}
+            disabled={!!(limits && !limits.can_create)}
+            sx={{
+              backgroundColor: '#3b82f6',
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              '&:hover': {
+                backgroundColor: '#2563eb',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#9ca3af',
+                color: '#ffffff'
+              }
+            }}
+          >
+            Request New Meeting
+          </Button>
         </Box>
       </Box>
 
       {/* AI Walk-through Component */}
       <WalkThrough open={showWalkThrough} onClose={() => setShowWalkThrough(false)} />
 
-      {/* Enhanced Payment Success Alert */}
+      {/* Payment Success Alert */}
       <Collapse in={showPaymentSuccess}>
         <Alert 
           severity="success" 
           sx={{ 
             mb: 4,
-            borderRadius: 3,
-            bgcolor: 'rgba(76, 175, 80, 0.1)',
-            border: '1px solid rgba(76, 175, 80, 0.3)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(76, 175, 80, 0.2)',
+            borderRadius: 2,
+            backgroundColor: '#ffffff',
+            border: '1px solid #10b981',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             '& .MuiAlert-message': {
               width: '100%'
             },
             '& .MuiAlert-icon': {
-              fontSize: '2rem'
+              color: '#10b981'
             }
           }}
           action={
@@ -449,12 +402,10 @@ const ClientDashboard = () => {
               size="small"
               onClick={() => setShowPaymentSuccess(false)}
               sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: '#6b7280',
                 '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  transform: 'scale(1.1)'
-                },
-                transition: 'all 0.2s ease'
+                  backgroundColor: '#f3f4f6'
+                }
               }}
             >
               <Close fontSize="inherit" />
@@ -464,10 +415,10 @@ const ClientDashboard = () => {
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <Box>
-              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
-                🎉 Payment Successful!
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5, color: '#111827' }}>
+                Payment Successful!
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" sx={{ color: '#6b7280' }}>
                 Your subscription is now active and ready to use.
               </Typography>
             </Box>
@@ -475,22 +426,21 @@ const ClientDashboard = () => {
         </Alert>
       </Collapse>
 
-      {/* Enhanced Onboarding Alert */}
+      {/* Onboarding Alert */}
       {showOnboardingAlert && (
         <Alert 
           severity="warning" 
           sx={{ 
             mb: 4,
-            borderRadius: 3,
-            bgcolor: 'rgba(255, 193, 7, 0.1)',
-            border: '1px solid rgba(255, 193, 7, 0.3)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(255, 193, 7, 0.2)',
+            borderRadius: 2,
+            backgroundColor: '#ffffff',
+            border: '1px solid #f59e0b',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             '& .MuiAlert-message': {
               width: '100%'
             },
             '& .MuiAlert-icon': {
-              fontSize: '2rem'
+              color: '#f59e0b'
             }
           }}
           action={
@@ -498,35 +448,32 @@ const ClientDashboard = () => {
               variant="contained"
               onClick={() => window.location.href = "/onboarding?step=2"}
               sx={{
-                bgcolor: 'rgba(255, 193, 7, 0.8)',
+                backgroundColor: '#3b82f6',
                 color: 'white',
-                fontWeight: 600,
+                fontWeight: 500,
                 px: 3,
                 py: 1,
                 borderRadius: 2,
-                boxShadow: '0 4px 15px rgba(255, 193, 7, 0.3)',
+                textTransform: 'none',
                 '&:hover': {
-                  bgcolor: 'rgba(255, 193, 7, 1)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 6px 20px rgba(255, 193, 7, 0.4)'
-                },
-                transition: 'all 0.2s ease'
+                  backgroundColor: '#2563eb'
+                }
               }}
             >
-              Continue Setup 🚀
+              Continue Setup
             </Button>
           }
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <Box>
-              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
-                🎯 Complete Your Setup
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5, color: '#111827' }}>
+                Complete Your Setup
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" sx={{ color: '#6b7280' }}>
                 Finish your onboarding to unlock your first free consultation meeting
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <Typography variant="body2" fontWeight={600} sx={{ mr: 2 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mr: 2, color: '#374151' }}>
                   Progress: {onboardingPercentage}%
                 </Typography>
                 <Box sx={{ width: 100, mr: 1 }}>
@@ -534,12 +481,12 @@ const ClientDashboard = () => {
                     variant="determinate" 
                     value={onboardingPercentage} 
                     sx={{ 
-                      height: 8, 
-                      borderRadius: 4,
-                      backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                      height: 6, 
+                      borderRadius: 3,
+                      backgroundColor: '#e5e7eb',
                       '& .MuiLinearProgress-bar': {
-                        borderRadius: 4,
-                        backgroundColor: '#ff9800'
+                        borderRadius: 3,
+                        backgroundColor: '#f59e0b'
                       }
                     }}
                   />
@@ -550,27 +497,17 @@ const ClientDashboard = () => {
         </Alert>
       )}
 
-      {/* Enhanced Active Meeting Section */}
+      {/* Active Meeting Section */}
       <Grid container spacing={4} sx={{ mb: 6 }}>
         <Grid size={{ xs: 12 }}>
           <Paper 
             elevation={0} 
             sx={{ 
               height: '100%', 
-              borderRadius: 4, 
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '4px',
-                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-              }
+              borderRadius: 2, 
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
             }} 
             data-tour="active-meeting"
           >
@@ -580,26 +517,20 @@ const ClientDashboard = () => {
                   sx={{
                     width: 48,
                     height: 48,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: 2,
+                    backgroundColor: '#3b82f6',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mr: 2,
-                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+                    mr: 2
                   }}
                 >
-                  <Typography variant="h5" sx={{ color: 'white' }}>🎥</Typography>
+                  <Typography variant="h6" sx={{ color: 'white' }}>🎥</Typography>
                 </Box>
                 <Typography 
                   variant="h5" 
-                  fontWeight={700}
-                  sx={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}
+                  fontWeight={600}
+                  sx={{ color: '#111827' }}
                 >
                   Active Meeting
                 </Typography>
@@ -610,22 +541,16 @@ const ClientDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Enhanced Meeting Management Section */}
+      {/* Upcoming Meetings Section */}
       <Grid container spacing={4} sx={{ mb: 6 }}>
-        {/* Upcoming Meetings Card */}
         <Grid size={{ xs: 12 }}>
           <Paper 
             elevation={0} 
             sx={{ 
-              borderRadius: 4, 
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)',
-              border: '1px solid rgba(102, 126, 234, 0.1)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 12px 40px rgba(102, 126, 234, 0.1)'
-              }
+              borderRadius: 2, 
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardContent sx={{ p: 4 }}>
@@ -635,26 +560,20 @@ const ClientDashboard = () => {
                     sx={{
                       width: 44,
                       height: 44,
-                      borderRadius: 3,
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      borderRadius: 2,
+                      backgroundColor: '#3b82f6',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      mr: 2,
-                      boxShadow: '0 8px 25px rgba(79, 172, 254, 0.3)'
+                      mr: 2
                     }}
                   >
                     <Typography variant="h6" sx={{ color: 'white' }}>📅</Typography>
                   </Box>
                   <Typography 
                     variant="h6" 
-                    fontWeight={700}
-                    sx={{ 
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}
+                    fontWeight={600}
+                    sx={{ color: '#111827' }}
                   >
                     Upcoming Meetings
                   </Typography>
@@ -667,51 +586,44 @@ const ClientDashboard = () => {
                   title={limits && !limits.can_create ? `You've reached your limit of ${limits.limit} meetings this month` : ""}
                   data-tour="new-meeting-button"
                   sx={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    borderRadius: 3,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 2,
                     px: 3,
                     py: 1.5,
-                    fontWeight: 600,
+                    fontWeight: 500,
                     textTransform: 'none',
-                    fontSize: '0.95rem',
-                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
-                    transition: 'all 0.3s ease',
+                    fontSize: '0.875rem',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 12px 35px rgba(102, 126, 234, 0.4)'
+                      backgroundColor: '#2563eb',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                     },
                     '&:disabled': {
-                      background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)',
-                      color: '#a0aec0'
+                      backgroundColor: '#9ca3af',
+                      color: '#ffffff'
                     }
                   }}
                 >
                   New Meeting
                 </Button>
               </Box>
-              <Divider sx={{ mb: 3, bgcolor: 'rgba(102, 126, 234, 0.1)' }} />
+              <Divider sx={{ mb: 3, backgroundColor: '#e5e7eb' }} />
               <MeetingsList filter="upcoming" />
             </CardContent>
           </Paper>
         </Grid>
       </Grid>
       
-      {/* Enhanced Past Meetings Section */}
+      {/* Past Meetings Section */}
       <Grid container spacing={4}>
         <Grid size={{ xs: 12 }}>
           <Paper 
             elevation={0} 
             sx={{ 
-              borderRadius: 4, 
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-              border: '1px solid rgba(252, 182, 159, 0.3)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 12px 40px rgba(252, 182, 159, 0.2)'
-              }
+              borderRadius: 2, 
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
             }} 
             data-tour="past-meetings"
           >
@@ -721,38 +633,32 @@ const ClientDashboard = () => {
                   sx={{
                     width: 44,
                     height: 44,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                    borderRadius: 2,
+                    backgroundColor: '#6b7280',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mr: 2,
-                    boxShadow: '0 8px 25px rgba(255, 154, 158, 0.3)'
+                    mr: 2
                   }}
                 >
                   <Typography variant="h6" sx={{ color: 'white' }}>📚</Typography>
                 </Box>
                 <Typography 
                   variant="h6" 
-                  fontWeight={700}
-                  sx={{ 
-                    background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}
+                  fontWeight={600}
+                  sx={{ color: '#111827' }}
                 >
                   Meeting History
                 </Typography>
               </Box>
-              <Divider sx={{ mb: 3, bgcolor: 'rgba(252, 182, 159, 0.3)' }} />
+              <Divider sx={{ mb: 3, backgroundColor: '#e5e7eb' }} />
               <MeetingsList filter="past" showActions={false} />
             </CardContent>
           </Paper>
         </Grid>
       </Grid>
       
-      {/* Enhanced New Meeting Dialog */}
+      {/* New Meeting Dialog */}
       <Dialog 
         open={openNewMeetingDialog} 
         onClose={() => !loading && setOpenNewMeetingDialog(false)}
@@ -760,19 +666,18 @@ const ClientDashboard = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)',
-            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.12)',
-            border: '1px solid rgba(102, 126, 234, 0.1)'
+            borderRadius: 3,
+            backgroundColor: '#ffffff',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            border: '1px solid #e5e7eb'
           }
         }}
       >
         <DialogTitle sx={{ 
           p: 4, 
           pb: 2,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          borderRadius: '16px 16px 0 0'
+          backgroundColor: '#f9fafb',
+          borderBottom: '1px solid #e5e7eb'
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box 
@@ -780,16 +685,16 @@ const ClientDashboard = () => {
                 width: 40,
                 height: 40,
                 borderRadius: 2,
-                background: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: '#3b82f6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mr: 2
               }}
             >
-              <Typography variant="h6">📅</Typography>
+              <Typography variant="h6" sx={{ color: 'white' }}>📅</Typography>
             </Box>
-            <Typography variant="h5" fontWeight={700}>
+            <Typography variant="h5" fontWeight={600} sx={{ color: '#111827' }}>
               Schedule New Meeting
             </Typography>
           </Box>
@@ -800,8 +705,12 @@ const ClientDashboard = () => {
               severity="error" 
               sx={{ 
                 mb: 3,
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(244, 67, 54, 0.15)'
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                border: '1px solid #ef4444',
+                '& .MuiAlert-icon': {
+                  color: '#ef4444'
+                }
               }}
             >
               {error}
@@ -813,8 +722,12 @@ const ClientDashboard = () => {
               severity="warning" 
               sx={{ 
                 mb: 3,
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(255, 193, 7, 0.15)'
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                border: '1px solid #f59e0b',
+                '& .MuiAlert-icon': {
+                  color: '#f59e0b'
+                }
               }}
             >
               {doubleBookingWarning}
@@ -826,11 +739,15 @@ const ClientDashboard = () => {
               severity="success" 
               sx={{ 
                 mb: 3,
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)'
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                border: '1px solid #10b981',
+                '& .MuiAlert-icon': {
+                  color: '#10b981'
+                }
               }}
             >
-              🎉 Meeting scheduled successfully!
+              Meeting scheduled successfully!
             </Alert>
           )}
           
@@ -839,8 +756,12 @@ const ClientDashboard = () => {
               severity="warning" 
               sx={{ 
                 mb: 3,
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(255, 193, 7, 0.15)'
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                border: '1px solid #f59e0b',
+                '& .MuiAlert-icon': {
+                  color: '#f59e0b'
+                }
               }}
             >
               You have reached your monthly meeting limit ({limits.limit} meetings). 
@@ -860,12 +781,12 @@ const ClientDashboard = () => {
                 disabled={loading || success}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
+                    borderRadius: 2,
                     '&:hover fieldset': {
-                      borderColor: '#667eea'
+                      borderColor: '#3b82f6'
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea'
+                      borderColor: '#3b82f6'
                     }
                   }
                 }}
@@ -881,12 +802,12 @@ const ClientDashboard = () => {
                     sx={{ 
                       width: '100%',
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: 3,
+                        borderRadius: 2,
                         '&:hover fieldset': {
-                          borderColor: '#667eea'
+                          borderColor: '#3b82f6'
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#667eea'
+                          borderColor: '#3b82f6'
                         }
                       }
                     }}
@@ -900,12 +821,12 @@ const ClientDashboard = () => {
                     disabled={loading || success}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: 3,
+                        borderRadius: 2,
                         '&:hover fieldset': {
-                          borderColor: '#667eea'
+                          borderColor: '#3b82f6'
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#667eea'
+                          borderColor: '#3b82f6'
                         }
                       }
                     }}
@@ -950,12 +871,12 @@ const ClientDashboard = () => {
                 disabled={loading || success}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
+                    borderRadius: 2,
                     '&:hover fieldset': {
-                      borderColor: '#667eea'
+                      borderColor: '#3b82f6'
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea'
+                      borderColor: '#3b82f6'
                     }
                   }
                 }}
@@ -968,11 +889,15 @@ const ClientDashboard = () => {
             onClick={() => setOpenNewMeetingDialog(false)} 
             disabled={loading}
             sx={{
-              borderRadius: 3,
+              borderRadius: 2,
               px: 3,
               py: 1.5,
               textTransform: 'none',
-              fontWeight: 600
+              fontWeight: 500,
+              color: '#6b7280',
+              '&:hover': {
+                backgroundColor: '#f3f4f6'
+              }
             }}
           >
             Cancel
@@ -982,16 +907,16 @@ const ClientDashboard = () => {
             onClick={handleCreateMeeting}
             disabled={!!(loading || !!doubleBookingWarning || success || (limits && !limits.can_create))}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: 3,
+              backgroundColor: '#3b82f6',
+              borderRadius: 2,
               px: 4,
               py: 1.5,
               textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+              fontWeight: 500,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               '&:hover': {
-                background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
-                boxShadow: '0 12px 35px rgba(102, 126, 234, 0.4)'
+                backgroundColor: '#2563eb',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }
             }}
           >
