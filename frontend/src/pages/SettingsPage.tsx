@@ -49,7 +49,7 @@ const SettingsPage = () => {
     systemUpdates: true,
   });
 
-  const handleTabChange = (event: SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
