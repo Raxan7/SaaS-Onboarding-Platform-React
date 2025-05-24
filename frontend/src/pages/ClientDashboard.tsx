@@ -282,21 +282,11 @@ const ClientDashboard = () => {
       // Refresh meeting limits to show updated count
       refreshLimits();
       
-      // Close the dialog and reset form after a short delay
+      // Show success message briefly, then reload page to refresh the UI
       setTimeout(() => {
-        setOpenNewMeetingDialog(false);
-        setNewMeeting({
-          title: 'Consultation Meeting',
-          goals: '',
-          scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          duration: 30,
-          timezone: '',
-          host_id: ''
-        });
-        setSuccess(false);
-        // Refresh the page to show the new meeting
+        console.log('[ClientDashboard] Meeting created successfully, reloading page');
         window.location.reload();
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
       console.error('Error creating meeting:', err);
       // Check if the error is related to meeting limits

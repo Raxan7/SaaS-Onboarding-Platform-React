@@ -16,6 +16,7 @@ import { useApiClient } from '../../utils/apiClient';
 import { Meeting } from '../../types/meeting';
 import { format, differenceInMinutes } from 'date-fns';
 import LiveKitRoom from './LiveKitRoom';
+import { useMeetingActions } from '../../hooks/useMeetingActions';
 
   // Local storage keys
   const ACTIVE_MEETING_CACHE_KEY = 'active-meeting-cache';
@@ -95,6 +96,35 @@ import LiveKitRoom from './LiveKitRoom';
     const [timeUntilMeeting, setTimeUntilMeeting] = useState<string>('');
     const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
     const apiClient = useApiClient();
+    
+    // Handle meeting updates and refreshes
+    const handleMeetingUpdate = (updatedMeeting: Meeting) => {
+      setActiveMeeting(updatedMeeting);
+      cacheMeetingData(updatedMeeting);
+    };
+
+    const fetchActiveMeetingData = async () => {
+      try {
+        const meetings = await apiClient.get('/api/meetings/active/');
+        if (meetings.length > 0) {
+          const meeting = meetings[0];
+          setActiveMeeting(meeting);
+          cacheMeetingData(meeting);
+        } else {
+          setActiveMeeting(null);
+        }
+      } catch (err) {
+        console.error('Error fetching active meeting:', err);
+        setError('Could not load your active meeting');
+      }
+    };
+
+    const {
+      startMeeting: startMeetingAction,
+      endMeeting: endMeetingAction,
+      loading: actionLoading,
+      error: actionError
+    } = useMeetingActions(handleMeetingUpdate, fetchActiveMeetingData);
     
     // Track document visibility to reduce API calls when tab is not visible
     useEffect(() => {
@@ -357,16 +387,17 @@ import LiveKitRoom from './LiveKitRoom';
       if (!activeMeeting?.id) return;
       try {
         setStarting(true);
-        const updatedMeeting = await apiClient.put(`/api/meetings/${activeMeeting.id}/start/`, {});
-        setActiveMeeting(updatedMeeting);
+        const updatedMeeting = await startMeetingAction(activeMeeting.id);
         
-        // Update the cache with the latest meeting data
-        cacheMeetingData(updatedMeeting);
+        // Update the local state with the started meeting (contains meeting_url)
+        if (updatedMeeting) {
+          setActiveMeeting(updatedMeeting);
+          console.log('[ActiveMeeting] Meeting started successfully, showing LiveKit interface');
+        }
         
-        // Notification for clients will be handled by the backend
-        // For host, just update the UI
       } catch (error) {
         console.error('Error starting meeting:', error);
+        setError('Failed to start meeting. Please try again.');
       } finally {
         setStarting(false);
       }
@@ -376,27 +407,28 @@ import LiveKitRoom from './LiveKitRoom';
       if (!activeMeeting?.id) return;
       try {
         setEnding(true);
-        const updatedMeeting = await apiClient.put(`/api/meetings/${activeMeeting.id}/end/`, {});
-        setActiveMeeting(updatedMeeting);
+        await endMeetingAction(activeMeeting.id);
         
-        // Update the cache with the latest meeting data
-        cacheMeetingData(updatedMeeting);
-        
-        // Clear the meeting from active state since it's now completed
+        // Show success message briefly, then reload page
+        console.log('[ActiveMeeting] Meeting ended successfully, reloading page');
         setTimeout(() => {
-          setActiveMeeting(null);
-          localStorage.removeItem(ACTIVE_MEETING_CACHE_KEY);
-          localStorage.removeItem(ACTIVE_MEETING_TIMESTAMP_KEY);
-        }, 2000); // Give user time to see the completion message
+          window.location.reload();
+        }, 1500);
         
       } catch (error) {
         console.error('Error ending meeting:', error);
         setError('Failed to end meeting. Please try again.');
-      } finally {
         setEnding(false);
       }
     };
   
+    // Handle action errors
+    useEffect(() => {
+      if (actionError) {
+        setError(actionError);
+      }
+    }, [actionError]);
+
     if (loading && !activeMeeting) return <CircularProgress />;
   
   if (error && !activeMeeting) return <Alert severity="error">{error}</Alert>;
@@ -607,7 +639,7 @@ import LiveKitRoom from './LiveKitRoom';
                 <Button 
                   variant="outlined" 
                   onClick={handleEndMeeting}
-                  disabled={ending}
+                  disabled={ending || actionLoading}
                   sx={{
                     borderColor: '#ef4444',
                     color: '#ef4444',
@@ -627,7 +659,7 @@ import LiveKitRoom from './LiveKitRoom';
                     }
                   }}
                 >
-                  {ending ? (
+                  {ending || actionLoading ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CircularProgress size={16} sx={{ color: 'inherit' }} />
                       Ending...
@@ -702,7 +734,7 @@ import LiveKitRoom from './LiveKitRoom';
                       <Button
                         variant="contained"
                         onClick={handleStartMeeting}
-                        disabled={starting}
+                        disabled={starting || actionLoading}
                         sx={{
                           background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
                           borderRadius: 2,
@@ -718,7 +750,7 @@ import LiveKitRoom from './LiveKitRoom';
                           }
                         }}
                       >
-                        {starting ? (
+                        {starting || actionLoading ? (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <CircularProgress size={20} sx={{ color: 'white' }} />
                             Starting...

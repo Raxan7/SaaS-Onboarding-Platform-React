@@ -36,7 +36,7 @@ import { PickerValue } from '@mui/x-date-pickers/internals';
 const HostDashboard = () => {
   const apiClient = useApiClient();
   const { user } = useAuth();
-  const { meetings, fetchMeetings } = useMeetings();
+  const { meetings } = useMeetings();
   
   const [stats, setStats] = useState({
     totalMeetings: 0,
@@ -189,22 +189,11 @@ const HostDashboard = () => {
       // Meeting created successfully
       setSuccess(true);
       
-      // Close the dialog and reset form after a short delay
+      // Show success message briefly, then reload page to refresh the UI
       setTimeout(() => {
-        setOpenNewMeetingDialog(false);
-        setNewMeeting({
-          title: 'Host Scheduled Meeting',
-          goals: '',
-          scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          duration: 30,
-          timezone: '',
-          client_id: ''
-        });
-        setSuccess(false);
-        
-        // Refresh meetings list
-        fetchMeetings();
-      }, 2000);
+        console.log('[HostDashboard] Meeting created successfully, reloading page');
+        window.location.reload();
+      }, 1500);
     } catch (err) {
       console.error('Error creating meeting:', err);
       setError('Failed to create meeting. Please try again.');

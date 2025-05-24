@@ -57,8 +57,8 @@ const MeetingsPage = () => {
   };
   
   const handleSuccessfulMeetingCreation = () => {
-    // Refresh the page to show the new meeting
-    window.location.reload();
+    // Close the dialog - the meeting list will update automatically
+    setOpenNewMeetingDialog(false);
   };
 
   return (

@@ -25,7 +25,6 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { useNavigate } from 'react-router-dom';
 import TimezonePicker from '../components/meetings/TimezonePicker';
 import { useMeetings } from '../contexts/MeetingContext';
 import { format } from 'date-fns';
@@ -36,7 +35,6 @@ import { PickerValue } from '@mui/x-date-pickers/internals';
 const steps = ['Select Date & Time', 'Meeting Details', 'Review & Confirm'];
 
 const ScheduleMeetingPage: React.FC = () => {
-  const navigate = useNavigate();
   const { createMeeting, checkTimeSlotAvailability } = useMeetings();
   
   const [activeStep, setActiveStep] = useState(0);
@@ -141,10 +139,11 @@ const ScheduleMeetingPage: React.FC = () => {
       
       if (success) {
         setSuccess(true);
-        // Redirect to dashboard after a short delay
+        // Show success message briefly, then reload page to refresh UI
         setTimeout(() => {
-          navigate('/client-dashboard');
-        }, 3000);
+          console.log('[ScheduleMeetingPage] Meeting created successfully, reloading page');
+          window.location.reload();
+        }, 2000);
       } else {
         setError('Failed to schedule meeting. Please try again.');
       }

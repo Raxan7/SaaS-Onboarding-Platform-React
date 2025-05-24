@@ -14,12 +14,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Snackbar
 } from '@mui/material';
 import LiveKitRoom from './LiveKitRoom';
 import { Meeting } from '../../types/meeting';
 import { useApiClient } from '../../utils/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMeetingActions } from '../../hooks/useMeetingActions';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -40,28 +42,64 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
   const [timezone, setTimezone] = useState<string>('');
   const [embeddedMeetingUrl, setEmbeddedMeetingUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [availabilityChecking, setAvailabilityChecking] = useState(false);
-  const [starting, setStarting] = useState(false);
-  const [ending, setEnding] = useState(false);
+  const [availabilityChecking] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
   const apiClient = useApiClient();
   const { userType } = useAuth();
+  
+  // Fetch meetings function
+  const fetchMeetings = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.get('/api/meetings/');
+      setMeetings(data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching meetings:', error);
+      setError('Failed to load meetings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle meeting updates from actions
+  const handleMeetingUpdate = (updatedMeeting: Meeting) => {
+    setMeetings(prevMeetings => 
+      prevMeetings.map(m => m.id === updatedMeeting.id ? updatedMeeting : m)
+    );
+  };
+
+  const {
+    updateMeetingStatus,
+    startMeeting,
+    endMeeting,
+    rescheduleMeeting,
+    checkAvailability,
+    loading: actionLoading,
+    error: actionError,
+    success: actionSuccess
+  } = useMeetingActions(handleMeetingUpdate, fetchMeetings);
 
   useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        setLoading(true);
-        const data = await apiClient.get('/api/meetings/');
-        setMeetings(data);
-      } catch (error) {
-        console.error('Error fetching meetings:', error);
-        setError('Failed to load meetings');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMeetings();
   }, []);
+
+  // Handle success messages from meeting actions
+  useEffect(() => {
+    if (actionSuccess) {
+      setSuccessMessage(actionSuccess);
+      setError(null);
+    }
+  }, [actionSuccess]);
+
+  // Handle errors from meeting actions
+  useEffect(() => {
+    if (actionError) {
+      setError(actionError);
+      setSuccessMessage(null);
+    }
+  }, [actionError]);
 
   const filteredMeetings = meetings.filter(meeting => {
     const now = new Date();
@@ -80,24 +118,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     return true;
   });
 
-  const checkTimeSlotAvailability = async (scheduledAt: string, timezone: string, duration: number) => {
-    try {
-      setAvailabilityChecking(true);
-      const response = await apiClient.post('/api/meetings/check-availability/', {
-        scheduled_at: scheduledAt,
-        timezone,
-        duration
-      });
-      
-      return response.available;
-    } catch (err) {
-      console.error('Error checking time slot availability:', err);
-      return true; // Default to allowing, but show an error
-    } finally {
-      setAvailabilityChecking(false);
-    }
-  };
-
   const handleStatusUpdate = async (meetingId: number | undefined, status: string) => {
     if (!meetingId) {
       console.error('Invalid meeting ID:', meetingId);
@@ -106,18 +126,14 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
 
     try {
       setError(null);
-      const payload: any = { status };
+      await updateMeetingStatus(meetingId, status);
       
-      const updatedMeeting = await apiClient.put(`/api/meetings/${meetingId}/`, payload);
-      
-      setMeetings(meetings.map(m => 
-        m.id === meetingId ? updatedMeeting : m
-      ));
-      
-      // Reload the page when a meeting is confirmed to reflect the layout changes
-      if (status === 'confirmed') {
+      // Show success message briefly, then reload page to refresh UI
+      console.log(`[MeetingsList] Meeting ${status} successfully, reloading page`);
+      setTimeout(() => {
         window.location.reload();
-      }
+      }, 1000);
+      
     } catch (error) {
       console.error('Error updating meeting:', error);
       setError('Failed to update meeting status');
@@ -131,7 +147,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     }
 
     // First check if the time slot is available
-    const isAvailable = await checkTimeSlotAvailability(
+    const isAvailable = await checkAvailability(
       newTime,
       timezone || selectedMeeting.timezone || 'UTC',
       selectedMeeting.duration
@@ -144,22 +160,22 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
 
     try {
       setError(null);
-      const updatedMeeting = await apiClient.put(`/api/meetings/${selectedMeeting.id}/`, {
+      await rescheduleMeeting(selectedMeeting.id, {
         scheduled_at: newTime,
-        status: 'rescheduled',
         timezone: timezone || selectedMeeting.timezone || 'UTC'
       });
       
-      // Update the meeting in the list
-      setMeetings(meetings.map(m => 
-        m.id === selectedMeeting.id ? updatedMeeting : m
-      ));
-      
-      // Close the dialog
+      // Close the dialog and show success message briefly
       setRescheduleDialogOpen(false);
+      setSelectedMeeting(null);
+      setNewTime('');
       
-      // Refresh the page to get latest data
-      window.location.reload();
+      // Reload page to refresh UI
+      console.log('[MeetingsList] Meeting rescheduled successfully, reloading page');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (err) {
       console.error('Error rescheduling meeting:', err);
       setError('Failed to reschedule meeting');
@@ -168,30 +184,43 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
 
   const handleEndMeeting = async (meetingId: number) => {
     try {
-      setEnding(true);
       setError(null);
-
-      // Call the end meeting API
-      const updatedMeeting = await apiClient.put(`/api/meetings/${meetingId}/end/`, {});
-      
-      // Update the meeting in the list
-      setMeetings(meetings.map(m => 
-        m.id === meetingId ? updatedMeeting : m
-      ));
+      await endMeeting(meetingId);
 
       // Clear the embedded meeting URL if this meeting was being displayed
       if (embeddedMeetingUrl && selectedMeeting?.id === meetingId) {
         setEmbeddedMeetingUrl(null);
         setSelectedMeeting(null);
       }
+      
+      // Show success message briefly, then reload page to refresh UI
+      console.log('[MeetingsList] Meeting ended successfully, reloading page');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (err) {
       console.error('Error ending meeting:', err);
       setError('Failed to end meeting');
-    } finally {
-      setEnding(false);
     }
   };
 
+  const handleStartMeeting = async (meetingId: number) => {
+    try {
+      setError(null);
+      const updatedMeeting = await startMeeting(meetingId);
+      
+      if (updatedMeeting && updatedMeeting.meeting_url) {
+        setEmbeddedMeetingUrl(updatedMeeting.meeting_url);
+        setSelectedMeeting(updatedMeeting);
+        console.log('[MeetingsList] Meeting started successfully, showing LiveKit interface');
+      }
+      
+    } catch (err) {
+      console.error('Error starting meeting:', err);
+      setError('Failed to start meeting');
+    }
+  };
 
   // Format the date considering the timezone
   const formatMeetingDateTime = (scheduledAt: string, _timezone: string = 'UTC') => {
@@ -543,24 +572,8 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                             <Button 
                               variant="contained" 
                               size="medium"
-                              disabled={starting}
-                              onClick={async () => {
-                                try {
-                                  setStarting(true);
-                                  const updatedMeeting = await apiClient.put(`/api/meetings/${meeting.id}/start/`, {});
-                                  setMeetings(meetings.map(m => 
-                                    m.id === meeting.id ? updatedMeeting : m
-                                  ));
-                                  if (updatedMeeting.meeting_url) {
-                                    setEmbeddedMeetingUrl(updatedMeeting.meeting_url);
-                                  }
-                                } catch (err) {
-                                  console.error('Error starting meeting:', err);
-                                  setError('Failed to start meeting');
-                                } finally {
-                                  setStarting(false);
-                                }
-                              }}
+                              disabled={actionLoading}
+                              onClick={() => handleStartMeeting(meeting.id!)}
                               sx={{
                                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                 backdropFilter: 'blur(10px)',
@@ -584,7 +597,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                                   boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
                                 }
                               }}
-                              startIcon={starting ? (
+                              startIcon={actionLoading ? (
                                 <CircularProgress size={16} sx={{ color: 'white' }} />
                               ) : (
                                 <Box 
@@ -612,7 +625,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                                 />
                               )}
                             >
-                              {starting ? 'Starting...' : 'Start Meeting'}
+                              {actionLoading ? 'Starting...' : 'Start Meeting'}
                             </Button>
                           )}
                           
@@ -647,7 +660,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               <Button 
                                 variant="outlined" 
                                 size="medium"
-                                disabled={ending}
+                                disabled={actionLoading}
                                 onClick={() => handleEndMeeting(meeting.id!)}
                                 sx={{
                                   background: 'rgba(255, 255, 255, 0.8)',
@@ -675,11 +688,11 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                                     boxShadow: 'none'
                                   }
                                 }}
-                                startIcon={ending ? (
+                                startIcon={actionLoading ? (
                                   <CircularProgress size={16} sx={{ color: 'rgba(239, 68, 68, 0.6)' }} />
                                 ) : null}
                               >
-                                {ending ? 'Ending...' : '🛑 End Meeting'}
+                                {actionLoading ? 'Ending...' : '🛑 End Meeting'}
                               </Button>
                             </>
                           )}
@@ -779,7 +792,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                           <Button
                             variant="outlined"
                             size="small"
-                            disabled={ending}
+                            disabled={actionLoading}
                             onClick={() => handleEndMeeting(meeting.id!)}
                             sx={{
                               background: 'rgba(255, 255, 255, 0.8)',
@@ -807,11 +820,11 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                                 boxShadow: 'none'
                               }
                             }}
-                            startIcon={ending ? (
+                            startIcon={actionLoading ? (
                               <CircularProgress size={14} sx={{ color: 'rgba(239, 68, 68, 0.6)' }} />
                             ) : null}
                           >
-                            {ending ? 'Ending...' : '🛑 End Meeting'}
+                            {actionLoading ? 'Ending...' : '🛑 End Meeting'}
                           </Button>
                         </>
                       )}
@@ -1004,6 +1017,32 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Success Message Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSuccessMessage(null)} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            borderRadius: 2,
+            background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.9) 0%, rgba(34, 197, 94, 0.9) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(74, 222, 128, 0.3)',
+            color: 'white',
+            '& .MuiAlert-icon': {
+              color: 'white'
+            }
+          }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

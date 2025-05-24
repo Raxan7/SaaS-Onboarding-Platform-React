@@ -18,13 +18,7 @@ import {
 } from '@mui/material';
 import { 
   OpenInNew as OpenInNewIcon,
-  Videocam,
-  VideocamOff,
-  Mic,
-  MicOff,
-  ScreenShare,
   CallEnd,
-  Settings,
   Fullscreen,
   FullscreenExit,
   People,
@@ -39,7 +33,6 @@ import {
   RoomAudioRenderer,
   useTracks,
   RoomContext,
-  useLocalParticipant,
   useParticipants,
   FocusLayout,
   CarouselLayout,
@@ -229,7 +222,6 @@ function ProfessionalControlBar({ onEndMeeting, isEnding, connectionState }: {
   connectionState: ConnectionState;
 }) {
   const theme = useTheme();
-  const { localParticipant } = useLocalParticipant();
   
   const isDisconnectedOrEnding = connectionState === ConnectionState.Disconnected || isEnding;
   
@@ -250,101 +242,25 @@ function ProfessionalControlBar({ onEndMeeting, isEnding, connectionState }: {
       }}
     >
       <Stack direction="row" spacing={2} alignItems="center">
-        {/* Microphone Toggle */}
+        {/* Microphone Toggle - LiveKit's TrackToggle handles its own button */}
         <TrackToggle 
           source={Track.Source.Microphone}
           captureOptions={{ audio: true }}
-        >
-          <Tooltip title={localParticipant.isMicrophoneEnabled ? 'Mute' : 'Unmute'}>
-            <IconButton
-              disabled={isDisconnectedOrEnding}
-              sx={{
-                bgcolor: localParticipant.isMicrophoneEnabled 
-                  ? alpha(theme.palette.success.main, 0.1)
-                  : alpha(theme.palette.error.main, 0.1),
-                color: localParticipant.isMicrophoneEnabled 
-                  ? 'success.main' 
-                  : 'error.main',
-                '&:hover': {
-                  bgcolor: localParticipant.isMicrophoneEnabled 
-                    ? alpha(theme.palette.success.main, 0.2)
-                    : alpha(theme.palette.error.main, 0.2)
-                },
-                '&:disabled': { opacity: 0.5 }
-              }}
-            >
-              {localParticipant.isMicrophoneEnabled ? <Mic /> : <MicOff />}
-            </IconButton>
-          </Tooltip>
-        </TrackToggle>
+        />
 
-        {/* Camera Toggle */}
+        {/* Camera Toggle - LiveKit's TrackToggle handles its own button */}
         <TrackToggle 
           source={Track.Source.Camera}
           captureOptions={{ video: true }}
-        >
-          <Tooltip title={localParticipant.isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}>
-            <IconButton
-              disabled={isDisconnectedOrEnding}
-              sx={{
-                bgcolor: localParticipant.isCameraEnabled 
-                  ? alpha(theme.palette.success.main, 0.1)
-                  : alpha(theme.palette.error.main, 0.1),
-                color: localParticipant.isCameraEnabled 
-                  ? 'success.main' 
-                  : 'error.main',
-                '&:hover': {
-                  bgcolor: localParticipant.isCameraEnabled 
-                    ? alpha(theme.palette.success.main, 0.2)
-                    : alpha(theme.palette.error.main, 0.2)
-                },
-                '&:disabled': { opacity: 0.5 }
-              }}
-            >
-              {localParticipant.isCameraEnabled ? <Videocam /> : <VideocamOff />}
-            </IconButton>
-          </Tooltip>
-        </TrackToggle>
+        />
 
-        {/* Screen Share Toggle */}
-        <TrackToggle source={Track.Source.ScreenShare}>
-          <Tooltip title="Share screen">
-            <IconButton
-              disabled={isDisconnectedOrEnding}
-              sx={{
-                bgcolor: alpha(theme.palette.info.main, 0.1),
-                color: 'info.main',
-                '&:hover': {
-                  bgcolor: alpha(theme.palette.info.main, 0.2)
-                },
-                '&:disabled': { opacity: 0.5 }
-              }}
-            >
-              <ScreenShare />
-            </IconButton>
-          </Tooltip>
-        </TrackToggle>
+        {/* Screen Share Toggle - LiveKit's TrackToggle handles its own button */}
+        <TrackToggle source={Track.Source.ScreenShare} />
 
-        {/* Settings Menu */}
-        <MediaDeviceMenu>
-          <Tooltip title="Settings">
-            <IconButton
-              disabled={isDisconnectedOrEnding}
-              sx={{
-                bgcolor: alpha(theme.palette.text.secondary, 0.1),
-                color: 'text.secondary',
-                '&:hover': {
-                  bgcolor: alpha(theme.palette.text.secondary, 0.2)
-                },
-                '&:disabled': { opacity: 0.5 }
-              }}
-            >
-              <Settings />
-            </IconButton>
-          </Tooltip>
-        </MediaDeviceMenu>
+        {/* Settings Menu - MediaDeviceMenu handles its own button */}
+        <MediaDeviceMenu />
 
-        {/* End Meeting Button */}
+        {/* End Meeting Button - Custom button for meeting termination */}
         <Tooltip title={isEnding ? 'Ending meeting...' : 'End meeting'}>
           <IconButton
             onClick={onEndMeeting}
@@ -369,6 +285,7 @@ function ProfessionalControlBar({ onEndMeeting, isEnding, connectionState }: {
     </Paper>
   );
 }
+// 1:39:03
 
 // Enhanced Video Conference Layout with LiveKit event monitoring
 function ProfessionalVideoConference() {
@@ -718,34 +635,48 @@ const LiveKitRoom = ({
         console.log('[LiveKitRoom] Handling LiveKit disconnect event');
         setHasHandledDisconnect(true);
         
-        // Handle different disconnect reasons
+        // Handle different disconnect reasons - only end meeting for intentional actions
         switch (reason) {
           case DisconnectReason.CLIENT_INITIATED:
             console.log('[LiveKitRoom] Client initiated disconnect (user clicked LiveKit end button)');
+            // Only end meeting if user explicitly clicked end button
+            if (onMeetingEnd) {
+              console.log('[LiveKitRoom] Calling onMeetingEnd due to client initiated disconnect');
+              onMeetingEnd();
+            }
             break;
           case DisconnectReason.SERVER_SHUTDOWN:
-            console.log('[LiveKitRoom] Server shutdown');
+            console.log('[LiveKitRoom] Server shutdown - this is likely temporary');
+            // Don't end meeting, just log the event
             break;
           case DisconnectReason.PARTICIPANT_REMOVED:
             console.log('[LiveKitRoom] Participant was removed from meeting');
+            if (onMeetingEnd) {
+              console.log('[LiveKitRoom] Calling onMeetingEnd due to participant removal');
+              onMeetingEnd();
+            }
             break;
           case DisconnectReason.ROOM_DELETED:
             console.log('[LiveKitRoom] Room was deleted');
+            if (onMeetingEnd) {
+              console.log('[LiveKitRoom] Calling onMeetingEnd due to room deletion');
+              onMeetingEnd();
+            }
             break;
           case DisconnectReason.STATE_MISMATCH:
-            console.log('[LiveKitRoom] State mismatch, reconnection failed');
+            console.log('[LiveKitRoom] State mismatch, will attempt reconnection');
+            // Don't end meeting, allow reconnection
+            setHasHandledDisconnect(false); // Allow reconnection attempts
             break;
           case DisconnectReason.JOIN_FAILURE:
             console.log('[LiveKitRoom] Failed to join room');
+            // Don't end meeting, this might be a temporary network issue
+            setHasHandledDisconnect(false); // Allow retry
             break;
           default:
-            console.log('[LiveKitRoom] Unknown disconnect reason:', reason);
-        }
-        
-        // Call the onMeetingEnd callback when the room disconnects
-        if (onMeetingEnd) {
-          console.log('[LiveKitRoom] Calling onMeetingEnd due to LiveKit disconnect');
-          onMeetingEnd();
+            console.log('[LiveKitRoom] Unknown disconnect reason:', reason, '- will not end meeting');
+            // For unknown reasons, don't end the meeting
+            setHasHandledDisconnect(false); // Allow reconnection
         }
       }
     };
@@ -764,10 +695,17 @@ const LiveKitRoom = ({
         console.log('[LiveKitRoom] Local participant disconnected via LiveKit controls');
         setHasHandledDisconnect(true);
         
-        // Call onMeetingEnd to handle the disconnect gracefully
-        if (onMeetingEnd) {
-          console.log('[LiveKitRoom] Calling onMeetingEnd due to local participant disconnect');
-          onMeetingEnd();
+        // Only call onMeetingEnd if this was an intentional disconnect
+        // Check if the room state indicates an intentional disconnect
+        if (room.state === ConnectionState.Disconnected) {
+          console.log('[LiveKitRoom] Room is fully disconnected, calling onMeetingEnd');
+          if (onMeetingEnd) {
+            onMeetingEnd();
+          }
+        } else {
+          console.log('[LiveKitRoom] Room still connected, may be temporary disconnect');
+          // Reset flag to allow reconnection
+          setTimeout(() => setHasHandledDisconnect(false), 5000);
         }
       }
     });
@@ -787,6 +725,8 @@ const LiveKitRoom = ({
     // Handle reconnection events
     room.on(RoomEvent.Reconnecting, () => {
       console.log('[LiveKitRoom] Attempting to reconnect...');
+      // Reset disconnect flag during reconnection attempts
+      setHasHandledDisconnect(false);
     });
     
     room.on(RoomEvent.Reconnected, () => {
