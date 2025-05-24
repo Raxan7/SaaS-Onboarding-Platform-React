@@ -7,19 +7,48 @@ import {
   Alert, 
   AlertTitle, 
   Button, 
-  Stack 
+  Stack,
+  Paper,
+  IconButton,
+  Tooltip,
+  Badge,
+  Chip,
+  useTheme,
+  alpha
 } from '@mui/material';
-import { OpenInNew as OpenInNewIcon } from '@mui/icons-material';
+import { 
+  OpenInNew as OpenInNewIcon,
+  Videocam,
+  VideocamOff,
+  Mic,
+  MicOff,
+  ScreenShare,
+  CallEnd,
+  Settings,
+  Fullscreen,
+  FullscreenExit,
+  People,
+  Chat
+} from '@mui/icons-material';
 import { useApiClient } from '../../utils/apiClient';
 
 // Import LiveKit Components for direct integration
 import {
-  ControlBar,
   GridLayout,
   ParticipantTile,
   RoomAudioRenderer,
   useTracks,
   RoomContext,
+  useLocalParticipant,
+  useParticipants,
+  FocusLayout,
+  CarouselLayout,
+  useConnectionState,
+  ConnectionStateToast,
+  Chat as LiveKitChat,
+  useChat,
+  MediaDeviceMenu,
+  TrackToggle
 } from '@livekit/components-react';
 import { Room, Track, ConnectionState, RoomEvent } from 'livekit-client';
 import '@livekit/components-styles';
@@ -41,9 +70,260 @@ interface TokenResponse {
   user_name: string;
 }
 
-// VideoConference component that displays participants
-function VideoConference() {
-  // Get all camera and screen share tracks
+// Professional Meeting Header Component
+function MeetingHeader({ 
+  roomName, 
+  participantCount, 
+  connectionState, 
+  onFullscreen, 
+  isFullscreen,
+  onEndMeeting 
+}: { 
+  roomName: string;
+  participantCount: number;
+  connectionState: ConnectionState;
+  onFullscreen: () => void;
+  isFullscreen: boolean;
+  onEndMeeting: () => void;
+}) {
+  const theme = useTheme();
+  
+  const getConnectionIcon = () => {
+    switch (connectionState) {
+      case ConnectionState.Connected:
+        return (
+          <Box 
+            sx={{ 
+              width: 8, 
+              height: 8, 
+              borderRadius: '50%', 
+              bgcolor: 'success.main',
+              animation: 'pulse 2s infinite'
+            }} 
+          />
+        );
+      case ConnectionState.Connecting:
+        return <CircularProgress size={8} sx={{ color: 'warning.main' }} />;
+      default:
+        return (
+          <Box 
+            sx={{ 
+              width: 8, 
+              height: 8, 
+              borderRadius: '50%', 
+              bgcolor: 'error.main' 
+            }} 
+          />
+        );
+    }
+  };
+
+  return (
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        right: 16,
+        zIndex: 1000,
+        background: alpha(theme.palette.background.paper, 0.9),
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        p: 2,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}
+    >
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center">
+          {getConnectionIcon()}
+          <Typography variant="h6" fontWeight={600}>
+            {roomName || 'Meeting Room'}
+          </Typography>
+        </Stack>
+        
+        <Chip 
+          icon={<People fontSize="small" />}
+          label={`${participantCount} participant${participantCount !== 1 ? 's' : ''}`}
+          size="small"
+          variant="outlined"
+          sx={{ 
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            '& .MuiChip-icon': { color: 'primary.main' }
+          }}
+        />
+      </Stack>
+
+      <Stack direction="row" spacing={1}>
+        <Tooltip title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}>
+          <IconButton 
+            onClick={onFullscreen}
+            sx={{ 
+              bgcolor: alpha(theme.palette.background.default, 0.8),
+              '&:hover': { bgcolor: alpha(theme.palette.background.default, 1) }
+            }}
+          >
+            {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+          </IconButton>
+        </Tooltip>
+        
+        <Tooltip title="End Meeting">
+          <IconButton 
+            onClick={onEndMeeting}
+            sx={{ 
+              bgcolor: alpha(theme.palette.error.main, 0.1),
+              color: 'error.main',
+              '&:hover': { 
+                bgcolor: alpha(theme.palette.error.main, 0.2) 
+              }
+            }}
+          >
+            <CallEnd />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Paper>
+  );
+}
+
+// Professional Control Bar
+function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) {
+  const theme = useTheme();
+  const { localParticipant } = useLocalParticipant();
+  
+  return (
+    <Paper
+      elevation={8}
+      sx={{
+        position: 'absolute',
+        bottom: 16,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1000,
+        background: alpha(theme.palette.background.paper, 0.95),
+        backdropFilter: 'blur(20px)',
+        borderRadius: 3,
+        p: 2,
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
+      }}
+    >
+      <Stack direction="row" spacing={2} alignItems="center">
+        {/* Microphone Toggle */}
+        <TrackToggle 
+          source={Track.Source.Microphone}
+          captureOptions={{ audio: true }}
+        >
+          <Tooltip title={localParticipant.isMicrophoneEnabled ? 'Mute' : 'Unmute'}>
+            <IconButton
+              sx={{
+                bgcolor: localParticipant.isMicrophoneEnabled 
+                  ? alpha(theme.palette.success.main, 0.1)
+                  : alpha(theme.palette.error.main, 0.1),
+                color: localParticipant.isMicrophoneEnabled 
+                  ? 'success.main' 
+                  : 'error.main',
+                '&:hover': {
+                  bgcolor: localParticipant.isMicrophoneEnabled 
+                    ? alpha(theme.palette.success.main, 0.2)
+                    : alpha(theme.palette.error.main, 0.2)
+                }
+              }}
+            >
+              {localParticipant.isMicrophoneEnabled ? <Mic /> : <MicOff />}
+            </IconButton>
+          </Tooltip>
+        </TrackToggle>
+
+        {/* Camera Toggle */}
+        <TrackToggle 
+          source={Track.Source.Camera}
+          captureOptions={{ video: true }}
+        >
+          <Tooltip title={localParticipant.isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}>
+            <IconButton
+              sx={{
+                bgcolor: localParticipant.isCameraEnabled 
+                  ? alpha(theme.palette.success.main, 0.1)
+                  : alpha(theme.palette.error.main, 0.1),
+                color: localParticipant.isCameraEnabled 
+                  ? 'success.main' 
+                  : 'error.main',
+                '&:hover': {
+                  bgcolor: localParticipant.isCameraEnabled 
+                    ? alpha(theme.palette.success.main, 0.2)
+                    : alpha(theme.palette.error.main, 0.2)
+                }
+              }}
+            >
+              {localParticipant.isCameraEnabled ? <Videocam /> : <VideocamOff />}
+            </IconButton>
+          </Tooltip>
+        </TrackToggle>
+
+        {/* Screen Share Toggle */}
+        <TrackToggle source={Track.Source.ScreenShare}>
+          <Tooltip title="Share screen">
+            <IconButton
+              sx={{
+                bgcolor: alpha(theme.palette.info.main, 0.1),
+                color: 'info.main',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.info.main, 0.2)
+                }
+              }}
+            >
+              <ScreenShare />
+            </IconButton>
+          </Tooltip>
+        </TrackToggle>
+
+        {/* Settings Menu */}
+        <MediaDeviceMenu>
+          <Tooltip title="Settings">
+            <IconButton
+              sx={{
+                bgcolor: alpha(theme.palette.text.secondary, 0.1),
+                color: 'text.secondary',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.text.secondary, 0.2)
+                }
+              }}
+            >
+              <Settings />
+            </IconButton>
+          </Tooltip>
+        </MediaDeviceMenu>
+
+        {/* End Meeting Button */}
+        <Tooltip title="End meeting">
+          <IconButton
+            onClick={onEndMeeting}
+            sx={{
+              bgcolor: alpha(theme.palette.error.main, 0.1),
+              color: 'error.main',
+              '&:hover': {
+                bgcolor: alpha(theme.palette.error.main, 0.2)
+              }
+            }}
+          >
+            <CallEnd />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Paper>
+  );
+}
+
+// Enhanced Video Conference Layout
+function ProfessionalVideoConference() {
+  const theme = useTheme();
+  const [layout, setLayout] = useState<'grid' | 'focus' | 'carousel'>('grid');
+  const [showChat, setShowChat] = useState(false);
+  
+  // Get all tracks
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
@@ -52,15 +332,203 @@ function VideoConference() {
     { onlySubscribed: false }
   );
   
+  const participants = useParticipants();
+  const { chatMessages } = useChat();
+  
+  // Responsive layout based on participant count
+  const shouldUseGridLayout = participants.length <= 4;
+  const effectiveLayout = shouldUseGridLayout ? 'grid' : layout;
+  
+  const renderLayout = () => {
+    const commonProps = {
+      tracks,
+      style: { 
+        height: '100%',
+        borderRadius: theme.shape.borderRadius
+      }
+    };
+    
+    switch (effectiveLayout) {
+      case 'focus':
+        return (
+          <FocusLayout {...commonProps}>
+            <ParticipantTile />
+          </FocusLayout>
+        );
+      case 'carousel':
+        return (
+          <CarouselLayout {...commonProps}>
+            <ParticipantTile />
+          </CarouselLayout>
+        );
+      default:
+        return (
+          <GridLayout {...commonProps}>
+            <ParticipantTile />
+          </GridLayout>
+        );
+    }
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <GridLayout 
-        tracks={tracks} 
-        style={{ height: 'calc(100% - var(--lk-control-bar-height))' }}
-      >
-        <ParticipantTile />
-      </GridLayout>
-      <ControlBar />
+    <Box sx={{ 
+      display: 'flex', 
+      height: '100%',
+      bgcolor: alpha(theme.palette.background.default, 0.5),
+      borderRadius: 2,
+      position: 'relative'
+    }}>
+      {/* Main video area */}
+      <Box sx={{ 
+        flex: 1, 
+        position: 'relative',
+        p: 2,
+        pt: 10, // Account for header
+        pb: 10  // Account for control bar
+      }}>
+        {renderLayout()}
+        
+        {/* Layout Controls */}
+        {!shouldUseGridLayout && (
+          <Paper
+            sx={{
+              position: 'absolute',
+              top: 80,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              bgcolor: alpha(theme.palette.background.paper, 0.9),
+              backdropFilter: 'blur(10px)',
+              borderRadius: 2,
+              p: 1
+            }}
+          >
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                variant={layout === 'grid' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('grid')}
+              >
+                Grid
+              </Button>
+              <Button
+                size="small"
+                variant={layout === 'focus' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('focus')}
+              >
+                Focus
+              </Button>
+              <Button
+                size="small"
+                variant={layout === 'carousel' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('carousel')}
+              >
+                Carousel
+              </Button>
+            </Stack>
+          </Paper>
+        )}
+      </Box>
+      
+      {/* Chat Sidebar */}
+      {showChat && (
+        <Paper
+          sx={{
+            width: 320,
+            height: '100%',
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderLeft: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <Box sx={{ 
+            p: 2, 
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Typography variant="h6" fontWeight={600}>
+              Chat
+            </Typography>
+            <Badge badgeContent={chatMessages.length} color="primary">
+              <Chat />
+            </Badge>
+          </Box>
+          
+          <Box sx={{ flex: 1 }}>
+            <LiveKitChat 
+              style={{ 
+                height: '100%',
+                background: 'transparent'
+              }}
+            />
+          </Box>
+        </Paper>
+      )}
+      
+      {/* Chat Toggle Button */}
+      <Tooltip title={showChat ? 'Hide Chat' : 'Show Chat'}>
+        <IconButton
+          onClick={() => setShowChat(!showChat)}
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            right: showChat ? 336 : 16,
+            transform: 'translateY(-50%)',
+            zIndex: 1000,
+            bgcolor: alpha(theme.palette.primary.main, 0.9),
+            color: 'white',
+            '&:hover': {
+              bgcolor: theme.palette.primary.dark
+            },
+            transition: 'right 0.3s ease-in-out'
+          }}
+        >
+          <Badge badgeContent={chatMessages.length > 0 ? chatMessages.length : undefined} color="error">
+            <Chat />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+}
+
+// VideoConference component that displays participants
+function VideoConference({ onMeetingEnd }: { onMeetingEnd?: () => void }) {
+  const connectionState = useConnectionState();
+  const participants = useParticipants();
+  
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+      {/* Professional Meeting Layout */}
+      <ProfessionalVideoConference />
+      
+      {/* Meeting Header */}
+      <MeetingHeader
+        roomName="Meeting Room"
+        participantCount={participants.length}
+        connectionState={connectionState}
+        onFullscreen={() => {
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+        }}
+        isFullscreen={!!document.fullscreenElement}
+        onEndMeeting={() => onMeetingEnd?.()}
+      />
+      
+      {/* Professional Control Bar */}
+      <ProfessionalControlBar 
+        onEndMeeting={() => onMeetingEnd?.()}
+      />
+      
+      {/* Connection State Toast */}
+      <ConnectionStateToast />
     </Box>
   );
 }
@@ -107,8 +575,15 @@ const LiveKitRoom = ({
       }
     };
 
+    const handleMediaDeviceError = (error: Error) => {
+      console.error('[LiveKitRoom] Media device error:', error);
+      // Don't set as a critical error as the user may still be able to join without camera/mic
+      console.warn(`Media device error: ${error.name}: ${error.message}`);
+    };
+
     // Add room event listeners
     room.on(RoomEvent.ConnectionStateChanged, handleConnectionStateChanged);
+    room.on(RoomEvent.MediaDevicesError, handleMediaDeviceError);
     room.on(RoomEvent.Disconnected, () => {
       console.log('[LiveKitRoom] Disconnected from room');
       // Call the onMeetingEnd callback when the room disconnects
@@ -136,6 +611,7 @@ const LiveKitRoom = ({
     return () => {
       // Clean up listeners when the component unmounts
       room.off(RoomEvent.ConnectionStateChanged, handleConnectionStateChanged);
+      room.off(RoomEvent.MediaDevicesError, handleMediaDeviceError);
       
       // Also disconnect from the room if we're connected
       if (room.state === ConnectionState.Connected) {
@@ -150,75 +626,6 @@ const LiveKitRoom = ({
   useEffect(() => {
     console.log('[LiveKitRoom] useEffect triggered with meetingId:', meetingId);
     
-    // Check for cached token in session storage to avoid unnecessary API calls
-    const getCachedTokenData = () => {
-      const cachedData = sessionStorage.getItem(`livekit_token_${meetingId}`);
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData);
-          const expiryTime = parsed.expiryTime;
-          
-          // Check if token is still valid (with 5 minute buffer)
-          if (expiryTime && expiryTime > Date.now() + 5 * 60 * 1000) {
-            console.log('[LiveKitRoom] Using cached token');
-            return parsed.tokenData;
-          }
-          
-          // Token expired or expiring soon
-          console.log('[LiveKitRoom] Cached token expired or expiring soon');
-          sessionStorage.removeItem(`livekit_token_${meetingId}`);
-        } catch (e) {
-          console.error('[LiveKitRoom] Error parsing cached token:', e);
-          sessionStorage.removeItem(`livekit_token_${meetingId}`);
-        }
-      }
-      return null;
-    };
-
-    // Function to parse a JWT token and extract expiry time
-    const getTokenExpiry = (token: string) => {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        
-        const payload = JSON.parse(jsonPayload);
-        return payload.exp * 1000; // Convert to milliseconds
-      } catch (e) {
-        console.error('[LiveKitRoom] Error parsing token:', e);
-        // Default to 2 hours from now if we can't parse
-        return Date.now() + 2 * 60 * 60 * 1000;
-      }
-    };
-
-    // Separate function to connect to room
-    const connectToRoom = async (tokenData: TokenResponse) => {
-      if (room && tokenData.token && tokenData.server_url) {
-        console.log('[LiveKitRoom] Connecting to LiveKit room:', {
-          url: tokenData.server_url,
-          token: tokenData.token.substring(0, 15) + '...',
-        });
-        
-        try {
-          // Use more robust connection options
-          const connectionOptions = {
-            autoSubscribe: true,
-            maxRetries: 3
-          };
-          
-          await room.connect(tokenData.server_url, tokenData.token, connectionOptions);
-          console.log('[LiveKitRoom] Room connection initiated');
-          return true;
-        } catch (connErr) {
-          console.error('[LiveKitRoom] Failed to connect to room:', connErr);
-          throw new Error(`Failed to connect to LiveKit room: ${connErr}`);
-        }
-      }
-      return false;
-    };
-
     const fetchTokenAndConnect = async () => {
       if (!meetingId) {
         console.error('[LiveKitRoom] No meeting ID provided');
@@ -227,28 +634,9 @@ const LiveKitRoom = ({
         if (onError) onError('No meeting ID provided');
         return;
       }
-      
-      // Try to use cached token first
-      const cachedToken = getCachedTokenData();
-      if (cachedToken) {
-        console.log('[LiveKitRoom] Using cached token data');
-        setTokenData(cachedToken);
-        setLoading(false);
-        
-        // Connect using cached token
-        try {
-          await connectToRoom(cachedToken);
-        } catch (err) {
-          console.error('[LiveKitRoom] Error connecting with cached token:', err);
-          // If we fail with cached token, clear it and try with a new one
-          sessionStorage.removeItem(`livekit_token_${meetingId}`);
-          // Continue to fetch a new token below
-        }
-        return;
-      }
 
       try {
-        console.log('[LiveKitRoom] No valid cached token, fetching new token');
+        console.log('[LiveKitRoom] Fetching LiveKit token for meeting ID:', meetingId);
         
         // Get the token from the API
         const apiResponse = await apiClient.get(`/api/meetings/livekit-token/${meetingId}/`);
@@ -261,29 +649,25 @@ const LiveKitRoom = ({
           throw new Error('Invalid token response format');
         }
         
-        // Check for placeholder or invalid LiveKit URL
-        if (apiResponse.server_url.includes('your-livekit-instance') || 
-            apiResponse.server_url.includes('example.livekit.cloud')) {
-          console.error('[LiveKitRoom] Invalid LiveKit server URL (using placeholder):', apiResponse.server_url);
-          throw new Error('The LiveKit server is not properly configured. Please contact support.');
-        }
-        
         console.log('[LiveKitRoom] Setting token data with valid response');
-        
-        // Save token to session storage with expiry time
-        const expiryTime = getTokenExpiry(apiResponse.token);
-        const cacheData = {
-          tokenData: apiResponse,
-          expiryTime: expiryTime
-        };
-        
-        // Only cache valid tokens
-        sessionStorage.setItem(`livekit_token_${meetingId}`, JSON.stringify(cacheData));
-        
         setTokenData(apiResponse);
         
-        // Connect to the room with the new token
-        await connectToRoom(apiResponse);
+        // Connect to the room now that we have the token
+        if (room && apiResponse.token && apiResponse.server_url) {
+          console.log('[LiveKitRoom] Connecting to LiveKit room:', {
+            url: apiResponse.server_url,
+            token: apiResponse.token.substring(0, 15) + '...',
+          });
+          
+          try {
+            await room.connect(apiResponse.server_url, apiResponse.token);
+            console.log('[LiveKitRoom] Room connection initiated');
+          } catch (connErr) {
+            console.error('[LiveKitRoom] Failed to connect to room:', connErr);
+            throw new Error(`Failed to connect to LiveKit room: ${connErr}`);
+          }
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('[LiveKitRoom] Error in fetchTokenAndConnect:', err);
@@ -381,15 +765,18 @@ const LiveKitRoom = ({
     );
   }
 
-  // Connected state - show the video conference UI
+  // Connected state - show the professional video conference UI
   return (
     <Box
       sx={{
         height,
-        borderRadius: 1,
+        borderRadius: 2,
         overflow: 'hidden',
+        position: 'relative',
+        bgcolor: 'background.default',
+        boxShadow: (theme) => theme.shadows[8],
         '& .lk-video-conference': {
-          borderRadius: 1,
+          borderRadius: 2,
           height: '100%'
         }
       }}
@@ -399,15 +786,36 @@ const LiveKitRoom = ({
         {/* Render all audio elements for participants */}
         <RoomAudioRenderer />
         
-        {/* Main video conferencing component with grid layout and control bar */}
-        <VideoConference />
+        {/* Professional video conferencing component with enhanced UI */}
+        <VideoConference onMeetingEnd={onMeetingEnd} />
       </RoomContext.Provider>
       
-      <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mt: 1 }}>
+      {/* Additional Controls */}
+      <Stack 
+        direction="row" 
+        spacing={1} 
+        justifyContent="center" 
+        alignItems="center" 
+        sx={{ 
+          position: 'absolute',
+          bottom: 8,
+          left: 8,
+          zIndex: 50,
+        }}
+      >
         <Button
           size="small"
+          variant="outlined"
           startIcon={<OpenInNewIcon />}
           onClick={handleOpenInNewWindow}
+          sx={{
+            bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
+            backdropFilter: 'blur(10px)',
+            border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            '&:hover': {
+              bgcolor: (theme) => alpha(theme.palette.background.paper, 1),
+            }
+          }}
         >
           Open in New Window
         </Button>
