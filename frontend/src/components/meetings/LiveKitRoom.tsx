@@ -50,7 +50,7 @@ import {
   MediaDeviceMenu,
   TrackToggle
 } from '@livekit/components-react';
-import { Room, Track, ConnectionState, RoomEvent } from 'livekit-client';
+import { Room, Track, ConnectionState, RoomEvent, DisconnectReason } from 'livekit-client';
 import '@livekit/components-styles';
 
 // Types
@@ -77,7 +77,8 @@ function MeetingHeader({
   connectionState, 
   onFullscreen, 
   isFullscreen,
-  onEndMeeting 
+  onEndMeeting,
+  isEnding
 }: { 
   roomName: string;
   participantCount: number;
@@ -85,10 +86,15 @@ function MeetingHeader({
   onFullscreen: () => void;
   isFullscreen: boolean;
   onEndMeeting: () => void;
+  isEnding: boolean;
 }) {
   const theme = useTheme();
   
   const getConnectionIcon = () => {
+    if (isEnding) {
+      return <CircularProgress size={8} sx={{ color: 'warning.main' }} />;
+    }
+    
     switch (connectionState) {
       case ConnectionState.Connected:
         return (
@@ -118,6 +124,23 @@ function MeetingHeader({
     }
   };
 
+  const getConnectionText = () => {
+    if (isEnding) return 'Ending meeting...';
+    
+    switch (connectionState) {
+      case ConnectionState.Connected:
+        return roomName || 'Meeting Room';
+      case ConnectionState.Connecting:
+        return 'Connecting...';
+      case ConnectionState.Reconnecting:
+        return 'Reconnecting...';
+      default:
+        return 'Disconnected';
+    }
+  };
+
+  const isDisconnectedOrEnding = connectionState === ConnectionState.Disconnected || isEnding;
+
   return (
     <Paper 
       elevation={0} 
@@ -140,48 +163,58 @@ function MeetingHeader({
         <Stack direction="row" spacing={1} alignItems="center">
           {getConnectionIcon()}
           <Typography variant="h6" fontWeight={600}>
-            {roomName || 'Meeting Room'}
+            {getConnectionText()}
           </Typography>
         </Stack>
         
-        <Chip 
-          icon={<People fontSize="small" />}
-          label={`${participantCount} participant${participantCount !== 1 ? 's' : ''}`}
-          size="small"
-          variant="outlined"
-          sx={{ 
-            borderColor: 'primary.main',
-            color: 'primary.main',
-            '& .MuiChip-icon': { color: 'primary.main' }
-          }}
-        />
+        {!isDisconnectedOrEnding && (
+          <Chip 
+            icon={<People fontSize="small" />}
+            label={`${participantCount} participant${participantCount !== 1 ? 's' : ''}`}
+            size="small"
+            variant="outlined"
+            sx={{ 
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '& .MuiChip-icon': { color: 'primary.main' }
+            }}
+          />
+        )}
       </Stack>
 
       <Stack direction="row" spacing={1}>
         <Tooltip title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}>
           <IconButton 
             onClick={onFullscreen}
+            disabled={isDisconnectedOrEnding}
             sx={{ 
               bgcolor: alpha(theme.palette.background.default, 0.8),
-              '&:hover': { bgcolor: alpha(theme.palette.background.default, 1) }
+              '&:hover': { bgcolor: alpha(theme.palette.background.default, 1) },
+              '&:disabled': { opacity: 0.5 }
             }}
           >
             {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
           </IconButton>
         </Tooltip>
         
-        <Tooltip title="End Meeting">
+        <Tooltip title={isEnding ? 'Ending meeting...' : 'End Meeting'}>
           <IconButton 
             onClick={onEndMeeting}
+            disabled={isDisconnectedOrEnding}
             sx={{ 
               bgcolor: alpha(theme.palette.error.main, 0.1),
               color: 'error.main',
               '&:hover': { 
                 bgcolor: alpha(theme.palette.error.main, 0.2) 
+              },
+              '&:disabled': { 
+                opacity: 0.5,
+                color: 'text.disabled',
+                bgcolor: alpha(theme.palette.action.disabled, 0.1)
               }
             }}
           >
-            <CallEnd />
+            {isEnding ? <CircularProgress size={20} /> : <CallEnd />}
           </IconButton>
         </Tooltip>
       </Stack>
@@ -190,9 +223,15 @@ function MeetingHeader({
 }
 
 // Professional Control Bar
-function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) {
+function ProfessionalControlBar({ onEndMeeting, isEnding, connectionState }: { 
+  onEndMeeting: () => void;
+  isEnding: boolean;
+  connectionState: ConnectionState;
+}) {
   const theme = useTheme();
   const { localParticipant } = useLocalParticipant();
+  
+  const isDisconnectedOrEnding = connectionState === ConnectionState.Disconnected || isEnding;
   
   return (
     <Paper
@@ -218,6 +257,7 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
         >
           <Tooltip title={localParticipant.isMicrophoneEnabled ? 'Mute' : 'Unmute'}>
             <IconButton
+              disabled={isDisconnectedOrEnding}
               sx={{
                 bgcolor: localParticipant.isMicrophoneEnabled 
                   ? alpha(theme.palette.success.main, 0.1)
@@ -229,7 +269,8 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
                   bgcolor: localParticipant.isMicrophoneEnabled 
                     ? alpha(theme.palette.success.main, 0.2)
                     : alpha(theme.palette.error.main, 0.2)
-                }
+                },
+                '&:disabled': { opacity: 0.5 }
               }}
             >
               {localParticipant.isMicrophoneEnabled ? <Mic /> : <MicOff />}
@@ -244,6 +285,7 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
         >
           <Tooltip title={localParticipant.isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}>
             <IconButton
+              disabled={isDisconnectedOrEnding}
               sx={{
                 bgcolor: localParticipant.isCameraEnabled 
                   ? alpha(theme.palette.success.main, 0.1)
@@ -255,7 +297,8 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
                   bgcolor: localParticipant.isCameraEnabled 
                     ? alpha(theme.palette.success.main, 0.2)
                     : alpha(theme.palette.error.main, 0.2)
-                }
+                },
+                '&:disabled': { opacity: 0.5 }
               }}
             >
               {localParticipant.isCameraEnabled ? <Videocam /> : <VideocamOff />}
@@ -267,12 +310,14 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
         <TrackToggle source={Track.Source.ScreenShare}>
           <Tooltip title="Share screen">
             <IconButton
+              disabled={isDisconnectedOrEnding}
               sx={{
                 bgcolor: alpha(theme.palette.info.main, 0.1),
                 color: 'info.main',
                 '&:hover': {
                   bgcolor: alpha(theme.palette.info.main, 0.2)
-                }
+                },
+                '&:disabled': { opacity: 0.5 }
               }}
             >
               <ScreenShare />
@@ -284,12 +329,14 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
         <MediaDeviceMenu>
           <Tooltip title="Settings">
             <IconButton
+              disabled={isDisconnectedOrEnding}
               sx={{
                 bgcolor: alpha(theme.palette.text.secondary, 0.1),
                 color: 'text.secondary',
                 '&:hover': {
                   bgcolor: alpha(theme.palette.text.secondary, 0.2)
-                }
+                },
+                '&:disabled': { opacity: 0.5 }
               }}
             >
               <Settings />
@@ -298,18 +345,24 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
         </MediaDeviceMenu>
 
         {/* End Meeting Button */}
-        <Tooltip title="End meeting">
+        <Tooltip title={isEnding ? 'Ending meeting...' : 'End meeting'}>
           <IconButton
             onClick={onEndMeeting}
+            disabled={isDisconnectedOrEnding}
             sx={{
               bgcolor: alpha(theme.palette.error.main, 0.1),
               color: 'error.main',
               '&:hover': {
                 bgcolor: alpha(theme.palette.error.main, 0.2)
+              },
+              '&:disabled': { 
+                opacity: 0.5,
+                color: 'text.disabled',
+                bgcolor: alpha(theme.palette.action.disabled, 0.1)
               }
             }}
           >
-            <CallEnd />
+            {isEnding ? <CircularProgress size={20} /> : <CallEnd />}
           </IconButton>
         </Tooltip>
       </Stack>
@@ -317,7 +370,7 @@ function ProfessionalControlBar({ onEndMeeting }: { onEndMeeting: () => void }) 
   );
 }
 
-// Enhanced Video Conference Layout
+// Enhanced Video Conference Layout with LiveKit event monitoring
 function ProfessionalVideoConference() {
   const theme = useTheme();
   const [layout, setLayout] = useState<'grid' | 'focus' | 'carousel'>('grid');
@@ -497,9 +550,49 @@ function ProfessionalVideoConference() {
 }
 
 // VideoConference component that displays participants
-function VideoConference({ onMeetingEnd }: { onMeetingEnd?: () => void }) {
+function VideoConference({ 
+  onMeetingEnd, 
+  isEnding,
+  onMeetingEndChange 
+}: { 
+  onMeetingEnd?: () => void;
+  isEnding: boolean;
+  onMeetingEndChange: (ending: boolean) => void;
+}) {
   const connectionState = useConnectionState();
   const participants = useParticipants();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // Handle meeting end with state management
+  const handleMeetingEnd = async () => {
+    if (isEnding) return; // Prevent duplicate calls
+    
+    onMeetingEndChange(true);
+    try {
+      await onMeetingEnd?.();
+    } catch (error) {
+      console.error('Error ending meeting:', error);
+      onMeetingEndChange(false); // Reset state on error
+    }
+  };
+
+  const handleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  };
   
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
@@ -511,20 +604,17 @@ function VideoConference({ onMeetingEnd }: { onMeetingEnd?: () => void }) {
         roomName="Meeting Room"
         participantCount={participants.length}
         connectionState={connectionState}
-        onFullscreen={() => {
-          if (document.fullscreenElement) {
-            document.exitFullscreen();
-          } else {
-            document.documentElement.requestFullscreen();
-          }
-        }}
-        isFullscreen={!!document.fullscreenElement}
-        onEndMeeting={() => onMeetingEnd?.()}
+        onFullscreen={handleFullscreen}
+        isFullscreen={isFullscreen}
+        onEndMeeting={handleMeetingEnd}
+        isEnding={isEnding}
       />
       
       {/* Professional Control Bar */}
       <ProfessionalControlBar 
-        onEndMeeting={() => onMeetingEnd?.()}
+        onEndMeeting={handleMeetingEnd}
+        isEnding={isEnding}
+        connectionState={connectionState}
       />
       
       {/* Connection State Toast */}
@@ -547,6 +637,8 @@ const LiveKitRoom = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tokenData, setTokenData] = useState<TokenResponse | null>(null);
+  const [isEnding, setIsEnding] = useState(false);
+  const [hasHandledDisconnect, setHasHandledDisconnect] = useState(false);
 
   // Create a Room instance directly for more control
   const [room] = useState(() => new Room({
@@ -563,6 +655,41 @@ const LiveKitRoom = ({
   
   console.log('[LiveKitRoom] Component initialized with props:', { meetingUrl, meetingId, height });
 
+  // Handle seamless meeting end from custom controls
+  const handleMeetingEnd = async () => {
+    if (isEnding || hasHandledDisconnect) return;
+    
+    console.log('[LiveKitRoom] Handling meeting end from custom controls');
+    setIsEnding(true);
+    setHasHandledDisconnect(true);
+    
+    try {
+      // Disconnect from LiveKit room first
+      if (room && room.state === ConnectionState.Connected) {
+        console.log('[LiveKitRoom] Disconnecting from LiveKit room');
+        await room.disconnect();
+      }
+      
+      // Call the parent's onMeetingEnd callback
+      if (onMeetingEnd) {
+        console.log('[LiveKitRoom] Calling parent onMeetingEnd callback');
+        await onMeetingEnd();
+      }
+    } catch (error) {
+      console.error('[LiveKitRoom] Error during meeting end:', error);
+      setIsEnding(false);
+      setHasHandledDisconnect(false);
+    }
+  };
+
+  // Reset state if connection is restored (for edge cases)
+  useEffect(() => {
+    if (room && room.state === ConnectionState.Connected && hasHandledDisconnect && !isEnding) {
+      console.log('[LiveKitRoom] Connection restored, resetting disconnect flag');
+      setHasHandledDisconnect(false);
+    }
+  }, [room?.state, hasHandledDisconnect, isEnding]);
+
   // Handle room connection state changes
   useEffect(() => {
     if (!room) return;
@@ -572,6 +699,8 @@ const LiveKitRoom = ({
       
       if (state === ConnectionState.Connected) {
         console.log('[LiveKitRoom] Successfully connected to room:', room.name);
+        // Reset disconnect flag when successfully connected
+        setHasHandledDisconnect(false);
       }
     };
 
@@ -581,16 +710,68 @@ const LiveKitRoom = ({
       console.warn(`Media device error: ${error.name}: ${error.message}`);
     };
 
-    // Add room event listeners
+    const handleDisconnected = (reason?: DisconnectReason) => {
+      console.log('[LiveKitRoom] Disconnected from room, reason:', reason);
+      
+      // Only handle disconnect if we haven't already handled it and we're not in the process of ending
+      if (!hasHandledDisconnect && !isEnding) {
+        console.log('[LiveKitRoom] Handling LiveKit disconnect event');
+        setHasHandledDisconnect(true);
+        
+        // Handle different disconnect reasons
+        switch (reason) {
+          case DisconnectReason.CLIENT_INITIATED:
+            console.log('[LiveKitRoom] Client initiated disconnect (user clicked LiveKit end button)');
+            break;
+          case DisconnectReason.SERVER_SHUTDOWN:
+            console.log('[LiveKitRoom] Server shutdown');
+            break;
+          case DisconnectReason.PARTICIPANT_REMOVED:
+            console.log('[LiveKitRoom] Participant was removed from meeting');
+            break;
+          case DisconnectReason.ROOM_DELETED:
+            console.log('[LiveKitRoom] Room was deleted');
+            break;
+          case DisconnectReason.STATE_MISMATCH:
+            console.log('[LiveKitRoom] State mismatch, reconnection failed');
+            break;
+          case DisconnectReason.JOIN_FAILURE:
+            console.log('[LiveKitRoom] Failed to join room');
+            break;
+          default:
+            console.log('[LiveKitRoom] Unknown disconnect reason:', reason);
+        }
+        
+        // Call the onMeetingEnd callback when the room disconnects
+        if (onMeetingEnd) {
+          console.log('[LiveKitRoom] Calling onMeetingEnd due to LiveKit disconnect');
+          onMeetingEnd();
+        }
+      }
+    };
+
+    // Add more comprehensive room event listeners
     room.on(RoomEvent.ConnectionStateChanged, handleConnectionStateChanged);
     room.on(RoomEvent.MediaDevicesError, handleMediaDeviceError);
-    room.on(RoomEvent.Disconnected, () => {
-      console.log('[LiveKitRoom] Disconnected from room');
-      // Call the onMeetingEnd callback when the room disconnects
-      if (onMeetingEnd) {
-        onMeetingEnd();
+    room.on(RoomEvent.Disconnected, handleDisconnected);
+    
+    // Monitor participant events to detect LiveKit built-in control usage
+    room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+      console.log('[LiveKitRoom] Participant disconnected:', participant.identity);
+      
+      // If the local participant disconnected and we haven't handled it yet
+      if (participant.identity === room.localParticipant.identity && !hasHandledDisconnect && !isEnding) {
+        console.log('[LiveKitRoom] Local participant disconnected via LiveKit controls');
+        setHasHandledDisconnect(true);
+        
+        // Call onMeetingEnd to handle the disconnect gracefully
+        if (onMeetingEnd) {
+          console.log('[LiveKitRoom] Calling onMeetingEnd due to local participant disconnect');
+          onMeetingEnd();
+        }
       }
     });
+    
     room.on(RoomEvent.SignalConnected, () => {
       console.log('[LiveKitRoom] Signal connected, publishing media');
       // Automatically publish user's camera and microphone when connection is established
@@ -603,24 +784,42 @@ const LiveKitRoom = ({
       });
     });
     
+    // Handle reconnection events
+    room.on(RoomEvent.Reconnecting, () => {
+      console.log('[LiveKitRoom] Attempting to reconnect...');
+    });
+    
+    room.on(RoomEvent.Reconnected, () => {
+      console.log('[LiveKitRoom] Successfully reconnected');
+      setHasHandledDisconnect(false); // Reset disconnect flag on successful reconnection
+    });
+    
     // General error handler for unexpected issues
     room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
       console.log('[LiveKitRoom] Room metadata:', metadata);
     });
 
     return () => {
-      // Clean up listeners when the component unmounts
+      // Clean up all listeners when the component unmounts
       room.off(RoomEvent.ConnectionStateChanged, handleConnectionStateChanged);
       room.off(RoomEvent.MediaDevicesError, handleMediaDeviceError);
+      room.off(RoomEvent.Disconnected, handleDisconnected);
+      room.removeAllListeners(RoomEvent.ParticipantDisconnected);
+      room.removeAllListeners(RoomEvent.Reconnecting);
+      room.removeAllListeners(RoomEvent.Reconnected);
+      room.removeAllListeners(RoomEvent.RoomMetadataChanged);
+      room.removeAllListeners(RoomEvent.SignalConnected);
       
-      // Also disconnect from the room if we're connected
-      if (room.state === ConnectionState.Connected) {
+      // Also disconnect from the room if we're connected and haven't already handled disconnect
+      if (room.state === ConnectionState.Connected && !hasHandledDisconnect) {
+        console.log('[LiveKitRoom] Cleanup: Disconnecting from room');
+        setHasHandledDisconnect(true); // Prevent duplicate calls during cleanup
         room.disconnect().catch(error => {
-          console.warn('[LiveKitRoom] Error during room disconnect:', error);
+          console.warn('[LiveKitRoom] Error during room disconnect in cleanup:', error);
         });
       }
     };
-  }, [room, onError, onMeetingEnd]);
+  }, [room, onError, onMeetingEnd, hasHandledDisconnect, isEnding]);
 
   // Fetch token and connect to the room
   useEffect(() => {
@@ -787,7 +986,11 @@ const LiveKitRoom = ({
         <RoomAudioRenderer />
         
         {/* Professional video conferencing component with enhanced UI */}
-        <VideoConference onMeetingEnd={onMeetingEnd} />
+        <VideoConference 
+          onMeetingEnd={handleMeetingEnd}
+          isEnding={isEnding}
+          onMeetingEndChange={setIsEnding}
+        />
       </RoomContext.Provider>
       
       {/* Additional Controls */}
@@ -808,12 +1011,16 @@ const LiveKitRoom = ({
           variant="outlined"
           startIcon={<OpenInNewIcon />}
           onClick={handleOpenInNewWindow}
+          disabled={isEnding}
           sx={{
             bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
             backdropFilter: 'blur(10px)',
             border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
             '&:hover': {
               bgcolor: (theme) => alpha(theme.palette.background.paper, 1),
+            },
+            '&:disabled': {
+              opacity: 0.5
             }
           }}
         >
