@@ -91,6 +91,7 @@ import LiveKitRoom from './LiveKitRoom';
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [starting, setStarting] = useState(false);
+    const [ending, setEnding] = useState(false);
     const [timeUntilMeeting, setTimeUntilMeeting] = useState<string>('');
     const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
     const apiClient = useApiClient();
@@ -370,6 +371,31 @@ import LiveKitRoom from './LiveKitRoom';
         setStarting(false);
       }
     };
+
+    const handleEndMeeting = async () => {
+      if (!activeMeeting?.id) return;
+      try {
+        setEnding(true);
+        const updatedMeeting = await apiClient.put(`/api/meetings/${activeMeeting.id}/end/`, {});
+        setActiveMeeting(updatedMeeting);
+        
+        // Update the cache with the latest meeting data
+        cacheMeetingData(updatedMeeting);
+        
+        // Clear the meeting from active state since it's now completed
+        setTimeout(() => {
+          setActiveMeeting(null);
+          localStorage.removeItem(ACTIVE_MEETING_CACHE_KEY);
+          localStorage.removeItem(ACTIVE_MEETING_TIMESTAMP_KEY);
+        }, 2000); // Give user time to see the completion message
+        
+      } catch (error) {
+        console.error('Error ending meeting:', error);
+        setError('Failed to end meeting. Please try again.');
+      } finally {
+        setEnding(false);
+      }
+    };
   
     if (loading && !activeMeeting) return <CircularProgress />;
   
@@ -554,13 +580,13 @@ import LiveKitRoom from './LiveKitRoom';
                     console.error('Meeting frame error:', errorMsg);
                     setError(`Meeting error: ${errorMsg}`);
                   }}
+                  onMeetingEnd={handleEndMeeting}
                 />
               </Box>
               <Stack direction="row" spacing={2}>
                 <Button 
                   variant="contained" 
                   onClick={() => window.open(activeMeeting.meeting_url, '_blank')}
-                  fullWidth
                   sx={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     borderRadius: 2,
@@ -568,6 +594,7 @@ import LiveKitRoom from './LiveKitRoom';
                     fontWeight: 600,
                     textTransform: 'none',
                     boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                    flex: 1,
                     '&:hover': {
                       background: 'linear-gradient(135deg, #5046e4 0%, #6B46C1 100%)',
                       transform: 'translateY(-2px)',
@@ -576,6 +603,36 @@ import LiveKitRoom from './LiveKitRoom';
                   }}
                 >
                   Open in New Window
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  onClick={handleEndMeeting}
+                  disabled={ending}
+                  sx={{
+                    borderColor: '#ef4444',
+                    color: '#ef4444',
+                    borderRadius: 2,
+                    py: 1.5,
+                    px: 3,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      borderColor: '#dc2626',
+                      color: '#dc2626'
+                    },
+                    '&:disabled': {
+                      borderColor: '#9ca3af',
+                      color: '#9ca3af'
+                    }
+                  }}
+                >
+                  {ending ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={16} sx={{ color: 'inherit' }} />
+                      Ending...
+                    </Box>
+                  ) : 'End Meeting'}
                 </Button>
               </Stack>
             </>

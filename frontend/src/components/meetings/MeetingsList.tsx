@@ -42,6 +42,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
   const [error, setError] = useState<string | null>(null);
   const [availabilityChecking, setAvailabilityChecking] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [ending, setEnding] = useState(false);
   const apiClient = useApiClient();
   const { userType } = useAuth();
 
@@ -154,6 +155,32 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
     } catch (err) {
       console.error('Error rescheduling meeting:', err);
       setError('Failed to reschedule meeting');
+    }
+  };
+
+  const handleEndMeeting = async (meetingId: number) => {
+    try {
+      setEnding(true);
+      setError(null);
+
+      // Call the end meeting API
+      const updatedMeeting = await apiClient.put(`/api/meetings/${meetingId}/end/`, {});
+      
+      // Update the meeting in the list
+      setMeetings(meetings.map(m => 
+        m.id === meetingId ? updatedMeeting : m
+      ));
+
+      // Clear the embedded meeting URL if this meeting was being displayed
+      if (embeddedMeetingUrl && selectedMeeting?.id === meetingId) {
+        setEmbeddedMeetingUrl(null);
+        setSelectedMeeting(null);
+      }
+    } catch (err) {
+      console.error('Error ending meeting:', err);
+      setError('Failed to end meeting');
+    } finally {
+      setEnding(false);
     }
   };
 
@@ -582,31 +609,71 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                           )}
                           
                           {meeting.status === 'started' && meeting.meeting_url && (
-                            <Button 
-                              variant="contained" 
-                              size="medium"
-                              onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url || null)}
-                              sx={{
-                                background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
-                                backdropFilter: 'blur(10px)',
-                                borderRadius: 2,
-                                px: 4,
-                                py: 1.5,
-                                fontWeight: 700,
-                                fontSize: '0.9rem',
-                                textTransform: 'none',
-                                boxShadow: '0 6px 20px rgba(74, 222, 128, 0.4)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                  transform: 'translateY(-3px)',
-                                  boxShadow: '0 10px 30px rgba(74, 222, 128, 0.5)',
-                                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                                }
-                              }}
-                            >
-                              🎥 Join Meeting
-                            </Button>
+                            <>
+                              <Button 
+                                variant="contained" 
+                                size="medium"
+                                onClick={() => setEmbeddedMeetingUrl(meeting.meeting_url || null)}
+                                sx={{
+                                  background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderRadius: 2,
+                                  px: 4,
+                                  py: 1.5,
+                                  fontWeight: 700,
+                                  fontSize: '0.9rem',
+                                  textTransform: 'none',
+                                  boxShadow: '0 6px 20px rgba(74, 222, 128, 0.4)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-3px)',
+                                    boxShadow: '0 10px 30px rgba(74, 222, 128, 0.5)',
+                                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                                  }
+                                }}
+                              >
+                                🎥 Join Meeting
+                              </Button>
+                              
+                              <Button 
+                                variant="outlined" 
+                                size="medium"
+                                disabled={ending}
+                                onClick={() => handleEndMeeting(meeting.id!)}
+                                sx={{
+                                  background: 'rgba(255, 255, 255, 0.8)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderRadius: 2,
+                                  px: 4,
+                                  py: 1.5,
+                                  fontWeight: 700,
+                                  fontSize: '0.9rem',
+                                  textTransform: 'none',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  color: '#ef4444',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                                    borderColor: '#ef4444',
+                                    boxShadow: '0 4px 15px rgba(239, 68, 68, 0.2)'
+                                  },
+                                  '&:disabled': {
+                                    background: 'rgba(239, 68, 68, 0.3)',
+                                    borderColor: 'rgba(239, 68, 68, 0.2)',
+                                    color: 'rgba(239, 68, 68, 0.6)',
+                                    transform: 'none',
+                                    boxShadow: 'none'
+                                  }
+                                }}
+                                startIcon={ending ? (
+                                  <CircularProgress size={16} sx={{ color: 'rgba(239, 68, 68, 0.6)' }} />
+                                ) : null}
+                              >
+                                {ending ? 'Ending...' : '🛑 End Meeting'}
+                              </Button>
+                            </>
                           )}
                         </>
                       )}
@@ -674,31 +741,71 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                       )}
 
                       {meeting.meeting_url && meeting.status === 'started' && userType === 'client' && (
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => window.open(meeting.meeting_url, '_blank')}
-                          sx={{
-                            background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
-                            backdropFilter: 'blur(10px)',
-                            borderRadius: 2,
-                            px: 3,
-                            py: 1,
-                            fontWeight: 600,
-                            fontSize: '0.875rem',
-                            textTransform: 'none',
-                            boxShadow: '0 4px 15px rgba(74, 222, 128, 0.3)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 8px 25px rgba(74, 222, 128, 0.4)',
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                            }
-                          }}
-                        >
-                          🎥 Join Meeting
-                        </Button>
+                        <>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => window.open(meeting.meeting_url, '_blank')}
+                            sx={{
+                              background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                              backdropFilter: 'blur(10px)',
+                              borderRadius: 2,
+                              px: 3,
+                              py: 1,
+                              fontWeight: 600,
+                              fontSize: '0.875rem',
+                              textTransform: 'none',
+                              boxShadow: '0 4px 15px rgba(74, 222, 128, 0.3)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 8px 25px rgba(74, 222, 128, 0.4)',
+                                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                              }
+                            }}
+                          >
+                            🎥 Join Meeting
+                          </Button>
+                          
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            disabled={ending}
+                            onClick={() => handleEndMeeting(meeting.id!)}
+                            sx={{
+                              background: 'rgba(255, 255, 255, 0.8)',
+                              backdropFilter: 'blur(10px)',
+                              borderRadius: 2,
+                              px: 3,
+                              py: 1,
+                              fontWeight: 600,
+                              fontSize: '0.875rem',
+                              textTransform: 'none',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#ef4444',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                                borderColor: '#ef4444',
+                                boxShadow: '0 4px 15px rgba(239, 68, 68, 0.2)'
+                              },
+                              '&:disabled': {
+                                background: 'rgba(239, 68, 68, 0.3)',
+                                borderColor: 'rgba(239, 68, 68, 0.2)',
+                                color: 'rgba(239, 68, 68, 0.6)',
+                                transform: 'none',
+                                boxShadow: 'none'
+                              }
+                            }}
+                            startIcon={ending ? (
+                              <CircularProgress size={14} sx={{ color: 'rgba(239, 68, 68, 0.6)' }} />
+                            ) : null}
+                          >
+                            {ending ? 'Ending...' : '🛑 End Meeting'}
+                          </Button>
+                        </>
                       )}
                       
                       {(meeting.status === 'confirmed' || meeting.status === 'rescheduled') && userType === 'client' && (

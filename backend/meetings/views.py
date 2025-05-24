@@ -147,6 +147,38 @@ class StartMeetingAPIView(generics.UpdateAPIView):
         # Set the current user as the host when starting the meeting
         serializer.save(host=user)
 
+class EndMeetingAPIView(generics.UpdateAPIView):
+    queryset = Meeting.objects.all()
+    serializer_class = UpdateMeetingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        meeting = serializer.instance
+        user = self.request.user
+        
+        # Check if user has permission to end this meeting
+        # Either the host or the client (meeting creator) can end the meeting
+        if user != meeting.host and user != meeting.user:
+            raise PermissionDenied("You don't have permission to end this meeting")
+        
+        # Only allow ending meetings that are currently started
+        if meeting.status != Meeting.STARTED:
+            raise PermissionDenied("This meeting is not currently active")
+        
+        # Set meeting status to completed
+        meeting.status = Meeting.COMPLETED
+        
+        # Clear cached tokens for this meeting
+        from django.core.cache import cache
+        # Get all users who might have tokens for this meeting
+        user_ids = [meeting.user.id if meeting.user else None, meeting.host.id if meeting.host else None]
+        for uid in user_ids:
+            if uid:
+                cache_key = f"livekit_token_{uid}_{meeting.id}"
+                cache.delete(cache_key)
+        
+        serializer.save()
+
 class CheckAvailabilityAPIView(generics.GenericAPIView):
     """
     API endpoint to check if a time slot is available for scheduling a meeting

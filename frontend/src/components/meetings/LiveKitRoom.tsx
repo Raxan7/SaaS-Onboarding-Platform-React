@@ -30,6 +30,7 @@ interface LiveKitRoomProps {
   meetingId: number;
   height?: string | number;
   onError?: (error: string) => void;
+  onMeetingEnd?: () => void;
 }
 
 interface TokenResponse {
@@ -72,7 +73,8 @@ const LiveKitRoom = ({
   meetingUrl,
   meetingId,
   height = '600px',
-  onError
+  onError,
+  onMeetingEnd
 }: LiveKitRoomProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
