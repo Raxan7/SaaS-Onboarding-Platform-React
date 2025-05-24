@@ -32,6 +32,7 @@ import TimezonePicker from '../components/meetings/TimezonePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { PickerValue } from '@mui/x-date-pickers/internals';
+import { parseFormErrors } from '../utils/formUtils';
 
 const HostDashboard = () => {
   const apiClient = useApiClient();
@@ -58,7 +59,7 @@ const HostDashboard = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
   const [doubleBookingWarning, setDoubleBookingWarning] = useState('');
 

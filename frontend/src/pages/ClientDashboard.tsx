@@ -21,7 +21,8 @@ import {
   CircularProgress,
   SelectChangeEvent,
   Paper,
-  LinearProgress
+  LinearProgress,
+  AlertTitle
 } from '@mui/material';
 import MeetingsList from '../components/meetings/MeetingsList';
 import ActiveMeeting from '../components/meetings/ActiveMeeting';
@@ -38,6 +39,7 @@ import { PickerValue } from '@mui/x-date-pickers/internals';
 import DashboardLayout from '../components/DashboardLayout';
 import { useMeetingLimits } from '../hooks/useMeetingLimits';
 import WalkThrough from '../components/WalkThrough';
+import FormErrorAlert from '../components/forms/FormErrorAlert';
 
 // Onboarding steps moved to SubscriptionPage
 
@@ -68,6 +70,7 @@ const ClientDashboard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [doubleBookingWarning, setDoubleBookingWarning] = useState('');
+  const [fieldErrors] = useState<Record<string, string>>({});
   
   // Check for availability when time, duration, or timezone changes
   useEffect(() => {
