@@ -15,14 +15,19 @@ export const parseFormErrors = (error: any) => {
     return { fieldErrors, generalError };
   }
 
-  const errorMessage = error.message || error.toString();
+  // Handle different error types more robustly
+  const errorMessage = error instanceof Error ? error.message : 
+                      typeof error === 'string' ? error : 
+                      typeof error === 'object' && error !== null ? 
+                        (error.message || JSON.stringify(error)) : 
+                        String(error);
   
   // Check if the error message looks like field-specific errors
   if (errorMessage.includes(': ') && errorMessage.includes('. ')) {
     // Split by period to get individual field errors
-    const errorParts = errorMessage.split('. ');
+    const errorParts = errorMessage.split('. ').filter(Boolean);
     
-    errorParts.forEach(part => {
+    errorParts.forEach((part: string) => {
       const match = part.match(/^([^:]+): (.+)$/);
       if (match) {
         const [, field, message] = match;
