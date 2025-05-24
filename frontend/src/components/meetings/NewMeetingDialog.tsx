@@ -22,6 +22,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import TimezonePicker from './TimezonePicker';
 import { useMeetingActions } from '../../hooks/useMeetingActions';
 import { PickerValue } from '@mui/x-date-pickers/internals';
+import { parseFormErrors } from '../../utils/formUtils';
 
 interface NewMeetingDialogProps {
   open: boolean;
@@ -37,7 +38,8 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
     error, 
     success,
     clearMessages,
-    setError: setMeetingError
+    setError: setMeetingError,
+    setSuccess
   } = useMeetingActions(undefined, onSuccess); // Pass onSuccess as refresh callback
   
   const [newMeeting, setNewMeeting] = useState({
@@ -138,13 +140,13 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
       
       if (result) {
         // Show success message briefly, then reload the page to refresh the UI
-        setSuccess(true);
+        setSuccess('Meeting scheduled successfully!');
         setTimeout(() => {
-          onSuccess();
+          onSuccess?.(); // Use optional chaining in case onSuccess is undefined
           onClose();
         }, 1500);
       }
-    } catch (error) {
+    } catch (error: unknown) { // Properly type the error as unknown
       // Parse the error response
       const { fieldErrors: parsedFieldErrors, generalError } = parseFormErrors(error);
       
@@ -220,12 +222,17 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
               <Grid size={{ xs: 12, md: 6 }}>
                 <DateTimePicker
                   label="Meeting Date & Time"
-                  value={newMeeting.scheduled_at}              onChange={(newValue) => handleInputChange('scheduled_at', newValue)}
-              disablePast
-              sx={{ width: '100%' }}
-              disabled={loading || !!success}
-                  error={!!fieldErrors.scheduled_at}
-                  helperText={fieldErrors.scheduled_at}
+                  value={newMeeting.scheduled_at}
+                  onChange={(newValue) => handleInputChange('scheduled_at', newValue)}
+                  disablePast
+                  sx={{ width: '100%' }}
+                  disabled={loading || !!success}
+                  slotProps={{
+                    textField: {
+                      error: !!fieldErrors.scheduled_at,
+                      helperText: fieldErrors.scheduled_at
+                    }
+                  }}
                 />
               </Grid>
               
