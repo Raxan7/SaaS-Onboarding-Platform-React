@@ -58,6 +58,7 @@ const HostDashboard = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
   const [doubleBookingWarning, setDoubleBookingWarning] = useState('');
 
@@ -90,15 +91,17 @@ const HostDashboard = () => {
   
   const fetchClients = async () => {
     try {
-      const response = await apiClient.get('/api/accounts/clients/');
-      setClients(response);
-      // Set default client if available
-      if (response.length > 0) {
-        setNewMeeting(prev => ({ ...prev, client_id: response[0].id }));
-      }
+      setLoading(true);
+      setError('');
+      setFieldErrors({});
+      
+      const response = await apiClient.get('/api/clients/');
+      setClients(response.clients || []);
     } catch (error) {
-      console.error('Error fetching clients:', error);
-      setError('Failed to load available clients');
+      const { generalError } = parseFormErrors(error);
+      setError(generalError || 'Failed to load clients. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
   

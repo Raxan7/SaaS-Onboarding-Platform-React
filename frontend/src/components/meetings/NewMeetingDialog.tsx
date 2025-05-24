@@ -50,6 +50,7 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
   });
   
   const [doubleBookingWarning, setDoubleBookingWarning] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   
   // Check for availability when time, duration, or timezone changes
   useEffect(() => {
@@ -83,49 +84,75 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
   
   // Handle meeting creation with page reload instead of AJAX
   const handleCreateMeeting = async () => {
-    clearMessages();
+    // Reset errors first
+    setMeetingError('');
+    setFieldErrors({});
     
-    // Validation
+    // Validate each field and collect errors
+    let hasErrors = false;
+    const errors: Record<string, string> = {};
+    
     if (!newMeeting.title) {
-      setMeetingError('Meeting title is required');
-      return;
+      errors.title = 'Meeting title is required';
+      hasErrors = true;
     }
     
     if (!newMeeting.goals) {
-      setMeetingError('Meeting goals are required');
-      return;
+      errors.goals = 'Please provide meeting goals to help participants prepare';
+      hasErrors = true;
     }
     
     if (!newMeeting.scheduled_at) {
-      setMeetingError('Meeting date and time are required');
-      return;
+      errors.scheduled_at = 'Please select a date and time for the meeting';
+      hasErrors = true;
     }
     
     if (!newMeeting.timezone) {
-      setMeetingError('Please select a timezone');
-      return;
+      errors.timezone = 'A timezone must be selected';
+      hasErrors = true;
     }
     
     if (doubleBookingWarning) {
-      setMeetingError('Please select a different time to avoid scheduling conflicts');
+      errors.scheduled_at = 'This time conflicts with an existing meeting. Please select a different time.';
+      hasErrors = true;
+    }
+    
+    // If there are validation errors, display them and stop submission
+    if (hasErrors) {
+      setFieldErrors(errors);
+      
+      // Set a general error message as well
+      setMeetingError('Please fix the errors in the form before submitting');
       return;
     }
     
-    const result = await createMeeting({
-      title: newMeeting.title,
-      goals: newMeeting.goals,
-      scheduled_at: newMeeting.scheduled_at.toISOString(),
-      duration: newMeeting.duration,
-      timezone: newMeeting.timezone,
-      host_id: newMeeting.host_id
-    });
-    
-    if (result) {
-      // Show success message briefly, then reload the page to refresh the UI
-      setTimeout(() => {
-        console.log('[NewMeetingDialog] Meeting created successfully, reloading page');
-        window.location.reload();
-      }, 1500);
+    try {
+      const result = await createMeeting({
+        title: newMeeting.title,
+        goals: newMeeting.goals,
+        scheduled_at: newMeeting.scheduled_at.toISOString(),
+        duration: newMeeting.duration,
+        timezone: newMeeting.timezone,
+        host_id: newMeeting.host_id
+      });
+      
+      if (result) {
+        // Show success message briefly, then reload the page to refresh the UI
+        setSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
+      }
+    } catch (error) {
+      // Parse the error response
+      const { fieldErrors: parsedFieldErrors, generalError } = parseFormErrors(error);
+      
+      if (Object.keys(parsedFieldErrors).length > 0) {
+        setFieldErrors(parsedFieldErrors);
+      }
+      
+      setMeetingError(generalError || 'Failed to create meeting. Please try again.');
     }
   };
 
@@ -185,6 +212,8 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
               margin="normal"
               required
               disabled={loading || !!success}
+              error={!!fieldErrors.title}
+              helperText={fieldErrors.title}
             />
             
             <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -195,6 +224,8 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
               disablePast
               sx={{ width: '100%' }}
               disabled={loading || !!success}
+                  error={!!fieldErrors.scheduled_at}
+                  helperText={fieldErrors.scheduled_at}
                 />
               </Grid>
               
@@ -224,6 +255,8 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
                 label="Meeting Timezone"
                 required
                 disabled={loading || !!success}
+                error={!!fieldErrors.timezone}
+                helperText={fieldErrors.timezone}
               />
             </Box>
             
@@ -238,6 +271,8 @@ export default function NewMeetingDialog({ open, onClose, onSuccess }: NewMeetin
               required
               placeholder="What would you like to discuss in this meeting?"
               disabled={loading || !!success}
+              error={!!fieldErrors.goals}
+              helperText={fieldErrors.goals}
             />
           </Box>
         </LocalizationProvider>

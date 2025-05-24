@@ -691,20 +691,11 @@ const ClientDashboard = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 4 }}>
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3,
-                borderRadius: 2,
-                backgroundColor: '#ffffff',
-                border: '1px solid #ef4444',
-                '& .MuiAlert-icon': {
-                  color: '#ef4444'
-                }
-              }}
-            >
-              {error}
-            </Alert>
+            <FormErrorAlert 
+              error={error}
+              fieldErrors={fieldErrors}
+              title="Unable to Schedule Meeting"
+            />
           )}
           
           {doubleBookingWarning && (
@@ -720,6 +711,7 @@ const ClientDashboard = () => {
                 }
               }}
             >
+              <AlertTitle>Schedule Conflict</AlertTitle>
               {doubleBookingWarning}
             </Alert>
           )}

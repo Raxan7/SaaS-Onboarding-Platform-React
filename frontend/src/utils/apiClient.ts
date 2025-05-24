@@ -38,20 +38,59 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
 
       if (!response.ok) {
         let errorMessage = `Request failed with status ${response.status}`;
+        
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorData.detail || errorMessage;
-          console.error('API error response:', errorData);
-        } catch (e) {
-          // If response is not JSON, use text content if available
-          try {
+          // Extract error details from response
+          const contentType = response.headers.get('content-type');
+          let errorData;
+
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+            
+            // Handle different error formats
+            if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            } else if (errorData.non_field_errors) {
+              errorMessage = Array.isArray(errorData.non_field_errors) 
+                ? errorData.non_field_errors.join('. ') 
+                : errorData.non_field_errors;
+            } else {
+              // Handle field-specific errors
+              const fieldErrors = [];
+              for (const [field, errors] of Object.entries(errorData)) {
+                if (Array.isArray(errors)) {
+                  fieldErrors.push(`${field}: ${errors.join(', ')}`);
+                } else if (typeof errors === 'string') {
+                  fieldErrors.push(`${field}: ${errors}`);
+                } else if (errors && typeof errors === 'object') {
+                  fieldErrors.push(`${field}: ${JSON.stringify(errors)}`);
+                }
+              }
+              
+              if (fieldErrors.length > 0) {
+                errorMessage = fieldErrors.join('. ');
+              }
+            }
+            
+            console.error(`API error (${response.status}):`, errorData || errorMessage);
+          } else {
+            // Try to extract text content if not JSON
             const textContent = await response.text();
-            console.error('API error text response:', textContent);
-            if (textContent) errorMessage += `: ${textContent}`;
-          } catch (textError) {
-            console.error('Failed to extract error text content', textError);
+            if (textContent) {
+              errorMessage = textContent;
+            }
+            console.error('API error text response:', errorMessage);
           }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
         }
+        
         throw new Error(errorMessage);
       }
 
@@ -72,12 +111,38 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
   return {
     get: (endpoint: string) => apiClient(endpoint, { method: 'GET' }),
     post: (endpoint: string, data: any) => 
-      apiClient(endpoint, { method: 'POST', body: JSON.stringify(data) }),
+      apiClient(endpoint, { 
+        method: 'POST', 
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(_getAuthHeader())
+        }
+      }),
     put: (endpoint: string, data: any) => 
-      apiClient(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
-    delete: (endpoint: string) => apiClient(endpoint, { method: 'DELETE' }),
+      apiClient(endpoint, { 
+        method: 'PUT', 
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(_getAuthHeader())
+        }
+      }),
+    delete: (endpoint: string) => apiClient(endpoint, { 
+      method: 'DELETE',
+      headers: {
+        ...(_getAuthHeader())
+      }
+    }),
     patch: (endpoint: string, data: any) => 
-      apiClient(endpoint, { method: 'PATCH', body: JSON.stringify(data) })
+      apiClient(endpoint, { 
+        method: 'PATCH', 
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(_getAuthHeader())
+        }
+      })
   };
 };
 

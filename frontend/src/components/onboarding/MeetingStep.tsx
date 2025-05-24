@@ -1,5 +1,5 @@
 // components/onboarding/MeetingStep.tsx
-import { Box, TextField, Typography, Button } from '@mui/material';
+import { Box, TextField, Typography, Button, Alert, CircularProgress } from '@mui/material';
 import { useOnboarding } from '../../contexts/OnboardingContext';
 import { useEffect, useState } from 'react';
 import { useApiClient } from '../../utils/apiClient';
@@ -97,6 +97,8 @@ const MeetingStep = () => {
         margin="normal"
         InputLabelProps={{ shrink: true }}
         required
+        error={!!error}
+        helperText={error}
       />
       <TextField
         name="meetingGoals"
@@ -107,11 +109,15 @@ const MeetingStep = () => {
         rows={4}
         fullWidth
         margin="normal"
+        error={!!error}
+        helperText={error || 'Describe what you want to achieve in this meeting'}
       />
       {error && (
-        <Typography color="error" sx={{ mt: 2 }}>
-          {error}
-        </Typography>
+        <Alert severity="error" sx={{ mt: 2 }}>
+          <Typography variant="body2">
+            {error}
+          </Typography>
+        </Alert>
       )}
       <Button
         variant="contained"
@@ -120,7 +126,7 @@ const MeetingStep = () => {
         disabled={loading}
         sx={{ mt: 2 }}
       >
-        {loading ? 'Saving...' : 'Save Meeting Details'}
+        {loading ? <CircularProgress size={24} /> : 'Save Meeting Details'}
       </Button>
     </Box>
   );

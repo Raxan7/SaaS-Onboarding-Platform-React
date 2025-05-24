@@ -94,34 +94,7 @@ const LoginPage = () => {
         if (user.user_type === 'host') {
           navigate('/host-dashboard');
         } else {
-          // For client users, check onboarding completion
-          try {
-            // Check if onboarding is complete
-            const onboardingResponse = await fetch(`${API_BASE_URL}/api/onboarding/user-onboarding-status/`, {
-              headers: {
-                'Authorization': `Token ${responseData.token}`,
-                'Content-Type': 'application/json'
-              },
-              credentials: 'include'
-            });
-            
-            if (onboardingResponse.ok) {
-              const statusData = await onboardingResponse.json();
-              if (statusData.is_complete) {
-                // Onboarding is complete, go to client dashboard
-                navigate('/client-dashboard');
-              } else {
-                // Onboarding is not complete, direct to onboarding
-                navigate('/onboarding');
-              }
-            } else {
-              // If we can't determine onboarding status, default to onboarding
-              navigate('/onboarding');
-            }
-          } catch (err) {
-            console.error('Error checking onboarding status:', err);
-            navigate('/onboarding');
-          }
+          navigate('/client-dashboard');
         }
       } else {
         console.error('Login failed:', responseData);
