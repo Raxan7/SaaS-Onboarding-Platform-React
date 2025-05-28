@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 // which provides the crypto polyfill
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   server: {
     proxy: {
       '/api': {
