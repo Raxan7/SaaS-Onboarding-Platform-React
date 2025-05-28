@@ -245,13 +245,11 @@ function ProfessionalControlBar({ onEndMeeting, isEnding, connectionState }: {
         {/* Microphone Toggle - LiveKit's TrackToggle handles its own button */}
         <TrackToggle 
           source={Track.Source.Microphone}
-          captureOptions={{ audio: true }}
         />
 
         {/* Camera Toggle - LiveKit's TrackToggle handles its own button */}
         <TrackToggle 
           source={Track.Source.Camera}
-          captureOptions={{ video: true }}
         />
 
         {/* Screen Share Toggle - LiveKit's TrackToggle handles its own button */}
