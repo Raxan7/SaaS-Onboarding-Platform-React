@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 // which provides the crypto polyfill
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: './',
   server: {
     proxy: {
       '/api': {
@@ -27,5 +27,11 @@ export default defineConfig({
     minify: 'esbuild',
     // More explicit source maps for debugging
     sourcemap: true
+  },
+  // Preview configuration for SPA routing
+  preview: {
+    port: 4173,
+    strictPort: true,
+    host: true
   }
 });
