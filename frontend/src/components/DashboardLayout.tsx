@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           left: 0,
           right: 0,
           height: headerHeight,
-          zIndex: theme.zIndex.appBar,
+          zIndex: theme.zIndex.drawer + 1,
           bgcolor: 'background.paper',
           borderBottom: `1px solid ${theme.palette.divider}`,
           boxShadow: theme.shadows[1],
