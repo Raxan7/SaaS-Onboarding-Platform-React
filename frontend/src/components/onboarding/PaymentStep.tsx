@@ -125,7 +125,6 @@ const PaymentStep = () => {
 
     // When user returns from Stripe with success parameter
     if (paymentSuccessParam === 'true' && sessionId) {
-      console.log('Payment success detected with session ID:', sessionId);
       
       // Robust payment completion process with retries
       (async () => {
@@ -134,7 +133,6 @@ const PaymentStep = () => {
         
         // Collect all possible plan IDs to ensure we have the correct one
         const planId = data.payment.planId || sessionStorage.getItem('selected_plan_id');
-        console.log('Using plan ID for payment completion:', planId);
         
         // Try up to 3 times to complete the payment
         let attempts = 0;
@@ -142,21 +140,16 @@ const PaymentStep = () => {
         
         while (attempts < 3 && !success) {
           attempts++;
-          console.log(`Payment completion attempt ${attempts}/3`);
           
           try {
             // First verify the payment status with Stripe
             const verifyResponse = await apiClient.get(`/api/subscriptions/check-payment-status/?session_id=${sessionId}`);
-            console.log('Payment verification response:', verifyResponse);
             
             if (verifyResponse?.status === 'completed' || verifyResponse?.payment_status === 'paid') {
-              console.log('Payment verified as completed with Stripe');
             } else {
-              console.log('Payment not yet verified with Stripe, continuing anyway');
             }
             
             // Now complete the payment in our system
-            console.log('Notifying backend about successful payment');
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/payment/`, {
               method: 'POST',
               headers: {
@@ -175,20 +168,17 @@ const PaymentStep = () => {
               console.error('Failed to register payment completion:', response.status, errorText);
               
               // Try the subscriptions API as a fallback
-              console.log('Trying fallback payment confirmation endpoint');
               const fallbackResponse = await apiClient.post('/api/subscriptions/confirm-payment/', {
                 session_id: sessionId
               });
               
               if (fallbackResponse) {
-                console.log('Fallback payment confirmation successful');
                 success = true;
               } else {
                 throw new Error('Both payment registration attempts failed');
               }
             } else {
-              const data = await response.json();
-              console.log('Payment successfully registered in backend:', data);
+              await response.json(); // Response data not needed
               success = true;
             }
             
@@ -202,7 +192,6 @@ const PaymentStep = () => {
               
               // Clear URL params and redirect
               window.history.replaceState({}, '', '/client-dashboard');
-              console.log('Payment registration complete, redirecting to dashboard');
               setTimeout(() => {
                 navigate('/client-dashboard');
               }, 2000);
@@ -223,7 +212,6 @@ const PaymentStep = () => {
         // Even if we couldn't confirm payment in our system, still redirect after delay
         // The subscription might have been created by the webhook
         if (!success) {
-          console.log('Could not confirm payment in our system, redirecting anyway');
           setTimeout(() => {
             navigate('/client-dashboard');
           }, 5000);
@@ -245,7 +233,6 @@ const PaymentStep = () => {
         return;
       }
       
-      console.log('Starting payment process for plan ID:', data.payment.planId);
       
       // Step 1: Save the selected plan ID to the backend and session storage for redundancy
       try {
@@ -255,14 +242,12 @@ const PaymentStep = () => {
           // Also store in local storage as backup for session storage
           localStorage.setItem('selected_plan_id', data.payment.planId);
         } catch (storageError) {
-          console.warn('Failed to store data in client storage:', storageError);
         }
         
         // Then save to backend
-        const updateResponse = await apiClient.post('/api/onboarding/update-payment-info/', {
+        await apiClient.post('/api/onboarding/update-payment-info/', {
           plan_id: data.payment.planId
         });
-        console.log('Plan ID saved to backend:', updateResponse);
       } catch (err: any) {
         console.error('Failed to save plan ID to backend:', err);
         if (err.response?.status === 400) {
@@ -273,12 +258,10 @@ const PaymentStep = () => {
       }
       
       // Step 2: Create checkout session with Stripe
-      console.log('Creating Stripe checkout session for plan ID:', data.payment.planId);
       const response = await apiClient.post('/api/subscriptions/create-checkout-session/', {
         price_id: data.payment.planId,
       });
 
-      console.log('Checkout session created, response:', response);
       
       // Step 3: Extract the session URL and ID from the response
       let sessionUrl = '';
@@ -308,7 +291,6 @@ const PaymentStep = () => {
         throw new Error("Failed to retrieve Stripe checkout URL");
       }
       
-      console.log('Extracted session URL:', sessionUrl);
       
       // Step 4: Store session ID in storage and update onboarding context
       try {
@@ -339,7 +321,6 @@ const PaymentStep = () => {
           }));
         }
       } catch (storageError) {
-        console.warn('Failed to store data in storage:', storageError);
       }
       
       // Step 5: Make additional API call to ensure plan is recorded properly
@@ -350,11 +331,9 @@ const PaymentStep = () => {
           plan_id: data.payment.planId
         });
       } catch (confirmError) {
-        console.warn('Pre-confirmation failed, but proceeding to checkout:', confirmError);
       }
       
       // Step 6: Redirect to Stripe checkout
-      console.log('Redirecting to Stripe checkout URL:', sessionUrl);
       window.location.href = sessionUrl;
     } catch (error: any) {
       console.error("Payment error:", error);

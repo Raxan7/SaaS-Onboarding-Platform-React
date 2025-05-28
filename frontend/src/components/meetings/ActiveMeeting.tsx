@@ -197,7 +197,6 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
             // If meeting is far in the future (>1 hour), and we've seen no changes in consecutive fetches,
             // we can skip this fetch unless forced
             if (minutesUntil > 60 && consecutiveNoChangeCount >= MAX_NO_CHANGE_COUNT && !force) {
-              console.log('Skipping fetch - meeting is far in future and no recent changes');
               return;
             }
           }
@@ -392,7 +391,6 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
         // Update the local state with the started meeting (contains meeting_url)
         if (updatedMeeting) {
           setActiveMeeting(updatedMeeting);
-          console.log('[ActiveMeeting] Meeting started successfully, showing LiveKit interface');
         }
         
       } catch (error) {
@@ -409,7 +407,6 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
         setEnding(true);
         await endMeetingAction(activeMeeting.id);
         // Show success message briefly, then reload page
-        console.log('[ActiveMeeting] Meeting ended successfully, reloading page');
         setTimeout(() => {
           window.location.reload();
         }, 1500);

@@ -17,7 +17,6 @@ export async function fetchCSRFToken(): Promise<string | null> {
         }
         
         // If no token in cookies, fetch from server
-        console.log('No CSRF token found in cookies, fetching from server...');
         const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
             method: 'GET',
             credentials: 'include',
@@ -35,7 +34,6 @@ export async function fetchCSRFToken(): Promise<string | null> {
             try {
                 const data = await response.json();
                 if (data && data.token) {
-                    console.log('Got CSRF token from response data despite error');
                     return data.token;
                 }
             } catch (e) {
@@ -48,18 +46,15 @@ export async function fetchCSRFToken(): Promise<string | null> {
         // Try to get token from response data
         const data = await response.json();
         if (data && data.token) {
-            console.log('Got CSRF token from response data');
             return data.token;
         }
         
         // Check if cookie was set by the response
         csrfToken = getCookie('csrftoken');
         if (csrfToken) {
-            console.log('Got CSRF token from cookies after fetch');
             return csrfToken;
         }
         
-        console.warn('CSRF token not found in cookies or response after fetch.');
         return null;
     } catch (error) {
         console.error('Error fetching CSRF token:', error);
@@ -77,7 +72,6 @@ export async function ensureCsrfToken() {
         
         // Wait a short time before retry
         if (attempt < 2) {
-            console.log(`CSRF token fetch attempt ${attempt + 1} failed, retrying...`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
     }
@@ -87,7 +81,6 @@ export async function ensureCsrfToken() {
     // Fallback to a static middleware token approach if nothing else works
     const middlewareToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     if (middlewareToken) {
-        console.log('Using middleware-provided CSRF token');
         return middlewareToken;
     }
     

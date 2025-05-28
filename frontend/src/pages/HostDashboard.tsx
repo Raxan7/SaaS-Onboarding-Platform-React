@@ -195,7 +195,6 @@ const HostDashboard = () => {
       
       // Show success message briefly, then reload page to refresh the UI
       setTimeout(() => {
-        console.log('[HostDashboard] Meeting created successfully, reloading page');
         window.location.reload();
       }, 1500);
     } catch (err) {

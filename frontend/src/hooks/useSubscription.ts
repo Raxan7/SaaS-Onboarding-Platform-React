@@ -48,7 +48,6 @@ export const useSubscription = () => {
       const response = await apiClient.get('/api/subscriptions/user-subscription/');
       setLastFetched(now);
 
-      console.log('Subscription response:', response);
       
       if (response.status === 'not_subscribed') {
         // Handle the "no subscription" case
@@ -71,7 +70,6 @@ export const useSubscription = () => {
         setHasCompletedPayment(true);
       } else {
         // Invalid or unexpected response structure
-        console.warn('Unexpected subscription data format:', response);
         setSubscription(null);
         setError('Invalid subscription data format');
       }

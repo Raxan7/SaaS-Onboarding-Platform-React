@@ -129,7 +129,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       await updateMeetingStatus(meetingId, status);
       
       // Show success message briefly, then reload page to refresh UI
-      console.log(`[MeetingsList] Meeting ${status} successfully, reloading page`);
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -171,7 +170,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       setNewTime('');
       
       // Reload page to refresh UI
-      console.log('[MeetingsList] Meeting rescheduled successfully, reloading page');
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -194,7 +192,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       }
       
       // Show success message briefly, then reload page to refresh UI
-      console.log('[MeetingsList] Meeting ended successfully, reloading page');
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -213,7 +210,6 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       if (updatedMeeting && updatedMeeting.meeting_url) {
         setEmbeddedMeetingUrl(updatedMeeting.meeting_url);
         setSelectedMeeting(updatedMeeting);
-        console.log('[MeetingsList] Meeting started successfully, showing LiveKit interface');
       }
       
     } catch (err) {

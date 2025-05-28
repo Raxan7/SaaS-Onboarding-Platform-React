@@ -113,7 +113,6 @@ const ClientDashboard = () => {
     const markPaymentComplete = async () => {
       if (paymentSuccess) {
         try {
-          console.log("Marking payment as complete...");
           // Use fetch API directly with full error handling
           const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/onboarding/user-onboarding-status/payment/`, {
             method: 'POST',
@@ -130,8 +129,7 @@ const ClientDashboard = () => {
             throw new Error(errorData.error || 'Failed to mark payment as complete');
           }
           
-          const result = await response.json();
-          console.log("Payment marked as complete:", result);
+          await response.json(); // Result not needed
           
           // Refetch onboarding status to update UI
           await fetchOnboardingStatus();
@@ -158,7 +156,6 @@ const ClientDashboard = () => {
         }
         
         const status = await response.json();
-        console.log('Onboarding status:', status); // For debugging
         
         if (status) {
           // If the payment is complete or the whole onboarding is complete, mark all steps as completed
@@ -287,7 +284,6 @@ const ClientDashboard = () => {
       
       // Show success message briefly, then reload page to refresh the UI
       setTimeout(() => {
-        console.log('[ClientDashboard] Meeting created successfully, reloading page');
         window.location.reload();
       }, 1500);
     } catch (err: any) {

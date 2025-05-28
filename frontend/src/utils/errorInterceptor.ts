@@ -15,7 +15,6 @@ export const setupAxiosInterceptors = () => {
     (error) => {
       // Handle 401 Unauthorized errors
       if (error.response && error.response.status === 401) {
-        console.log('Authentication error detected, redirecting to login');
         // Clean up auth data
         localStorage.removeItem('token');
         localStorage.removeItem('userType');

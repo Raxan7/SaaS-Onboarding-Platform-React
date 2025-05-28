@@ -7,7 +7,6 @@ export function getCookie(name: string): string | null {
         if (!cookieValue) {
             console.error(`Cookie '${name}' found but has no value.`);
         } else {
-            console.log(`Cookie '${name}' retrieved successfully: ${cookieValue}`); // Debugging log
         }
         return cookieValue || null;
     } else {

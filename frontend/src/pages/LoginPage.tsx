@@ -21,7 +21,6 @@ const LoginPage = () => {
       const csrfToken = await ensureCsrfToken();
       
       if (csrfToken) {
-        console.log('CSRF token successfully retrieved');
         setCsrfStatus('success');
         return csrfToken;
       } else {

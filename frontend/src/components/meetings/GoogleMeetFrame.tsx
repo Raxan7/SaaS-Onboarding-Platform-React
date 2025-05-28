@@ -38,7 +38,6 @@ const GoogleMeetFrame = ({
                           url.hostname.endsWith('.meet.google.com');
       
       if (!isGoogleMeet) {
-        console.warn('URL is not a standard Google Meet URL:', meetingUrl);
         // We'll still try to load it, but with a warning in the console
       }
       
@@ -50,7 +49,6 @@ const GoogleMeetFrame = ({
       // Instead of automatically opening in a new window, show a message with a button
       if (isNewMeeting || isLookupEndpoint) {
         const urlType = isNewMeeting ? "creation" : "lookup-based";
-        console.log(`Detected Google Meet ${urlType} URL`);
         
         // Show an information message with a button to open in new window
         setError(`This is a Google Meet ${urlType} URL that works best in a dedicated browser tab.`);
@@ -64,7 +62,6 @@ const GoogleMeetFrame = ({
         // Check if the code matches the expected pattern for existing meetings
         const isValidCode = /^[a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{3}$/.test(meetingCode);
         if (!isValidCode) {
-          console.warn('Meeting code does not match the expected format:', meetingCode);
         }
       }
       

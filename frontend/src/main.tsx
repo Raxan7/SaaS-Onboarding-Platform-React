@@ -29,9 +29,7 @@ const initializeCSRF = async () => {
     if (csrfToken) {
       // Set the token in axios defaults for all future requests
       axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
-      console.log('Successfully initialized CSRF token');
     } else {
-      console.warn('Failed to get CSRF token during initialization');
       
       // Setup retry mechanism using an event listener
       document.addEventListener('click', async () => {
@@ -39,7 +37,6 @@ const initializeCSRF = async () => {
           const retryToken = await fetchCSRFToken();
           if (retryToken) {
             axios.defaults.headers.common['X-CSRFToken'] = retryToken;
-            console.log('CSRF token initialized on user interaction');
           }
         }
       }, { once: true });

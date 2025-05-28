@@ -568,26 +568,22 @@ const LiveKitRoom = ({
   }));
   const apiClient = useApiClient();
   
-  console.log('[LiveKitRoom] Component initialized with props:', { meetingUrl, meetingId, height });
 
   // Handle seamless meeting end from custom controls
   const handleMeetingEnd = async () => {
     if (isEnding || hasHandledDisconnect) return;
     
-    console.log('[LiveKitRoom] Handling meeting end from custom controls');
     setIsEnding(true);
     setHasHandledDisconnect(true);
     
     try {
       // Disconnect from LiveKit room first
       if (room && room.state === ConnectionState.Connected) {
-        console.log('[LiveKitRoom] Disconnecting from LiveKit room');
         await room.disconnect();
       }
       
       // Call the parent's onMeetingEnd callback
       if (onMeetingEnd) {
-        console.log('[LiveKitRoom] Calling parent onMeetingEnd callback');
         await onMeetingEnd();
       }
     } catch (error) {
@@ -600,7 +596,6 @@ const LiveKitRoom = ({
   // Reset state if connection is restored (for edge cases)
   useEffect(() => {
     if (room && room.state === ConnectionState.Connected && hasHandledDisconnect && !isEnding) {
-      console.log('[LiveKitRoom] Connection restored, resetting disconnect flag');
       setHasHandledDisconnect(false);
     }
   }, [room?.state, hasHandledDisconnect, isEnding]);
@@ -610,10 +605,8 @@ const LiveKitRoom = ({
     if (!room) return;
 
     const handleConnectionStateChanged = (state: ConnectionState) => {
-      console.log('[LiveKitRoom] Connection state changed:', state);
       
       if (state === ConnectionState.Connected) {
-        console.log('[LiveKitRoom] Successfully connected to room:', room.name);
         // Reset disconnect flag when successfully connected
         setHasHandledDisconnect(false);
       }
@@ -622,57 +615,44 @@ const LiveKitRoom = ({
     const handleMediaDeviceError = (error: Error) => {
       console.error('[LiveKitRoom] Media device error:', error);
       // Don't set as a critical error as the user may still be able to join without camera/mic
-      console.warn(`Media device error: ${error.name}: ${error.message}`);
     };
 
     const handleDisconnected = (reason?: DisconnectReason) => {
-      console.log('[LiveKitRoom] Disconnected from room, reason:', reason);
       
       // Only handle disconnect if we haven't already handled it and we're not in the process of ending
       if (!hasHandledDisconnect && !isEnding) {
-        console.log('[LiveKitRoom] Handling LiveKit disconnect event');
         setHasHandledDisconnect(true);
         
         // Handle different disconnect reasons - only end meeting for intentional actions
         switch (reason) {
           case DisconnectReason.CLIENT_INITIATED:
-            console.log('[LiveKitRoom] Client initiated disconnect (user clicked LiveKit end button)');
             // Only end meeting if user explicitly clicked end button
             if (onMeetingEnd) {
-              console.log('[LiveKitRoom] Calling onMeetingEnd due to client initiated disconnect');
               onMeetingEnd();
             }
             break;
           case DisconnectReason.SERVER_SHUTDOWN:
-            console.log('[LiveKitRoom] Server shutdown - this is likely temporary');
             // Don't end meeting, just log the event
             break;
           case DisconnectReason.PARTICIPANT_REMOVED:
-            console.log('[LiveKitRoom] Participant was removed from meeting');
             if (onMeetingEnd) {
-              console.log('[LiveKitRoom] Calling onMeetingEnd due to participant removal');
               onMeetingEnd();
             }
             break;
           case DisconnectReason.ROOM_DELETED:
-            console.log('[LiveKitRoom] Room was deleted');
             if (onMeetingEnd) {
-              console.log('[LiveKitRoom] Calling onMeetingEnd due to room deletion');
               onMeetingEnd();
             }
             break;
           case DisconnectReason.STATE_MISMATCH:
-            console.log('[LiveKitRoom] State mismatch, will attempt reconnection');
             // Don't end meeting, allow reconnection
             setHasHandledDisconnect(false); // Allow reconnection attempts
             break;
           case DisconnectReason.JOIN_FAILURE:
-            console.log('[LiveKitRoom] Failed to join room');
             // Don't end meeting, this might be a temporary network issue
             setHasHandledDisconnect(false); // Allow retry
             break;
           default:
-            console.log('[LiveKitRoom] Unknown disconnect reason:', reason, '- will not end meeting');
             // For unknown reasons, don't end the meeting
             setHasHandledDisconnect(false); // Allow reconnection
         }
@@ -686,22 +666,18 @@ const LiveKitRoom = ({
     
     // Monitor participant events to detect LiveKit built-in control usage
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
-      console.log('[LiveKitRoom] Participant disconnected:', participant.identity);
       
       // If the local participant disconnected and we haven't handled it yet
       if (participant.identity === room.localParticipant.identity && !hasHandledDisconnect && !isEnding) {
-        console.log('[LiveKitRoom] Local participant disconnected via LiveKit controls');
         setHasHandledDisconnect(true);
         
         // Only call onMeetingEnd if this was an intentional disconnect
         // Check if the room state indicates an intentional disconnect
         if (room.state === ConnectionState.Disconnected) {
-          console.log('[LiveKitRoom] Room is fully disconnected, calling onMeetingEnd');
           if (onMeetingEnd) {
             onMeetingEnd();
           }
         } else {
-          console.log('[LiveKitRoom] Room still connected, may be temporary disconnect');
           // Reset flag to allow reconnection
           setTimeout(() => setHasHandledDisconnect(false), 5000);
         }
@@ -709,32 +685,27 @@ const LiveKitRoom = ({
     });
     
     room.on(RoomEvent.SignalConnected, () => {
-      console.log('[LiveKitRoom] Signal connected, publishing media');
       // Automatically publish user's camera and microphone when connection is established
       Promise.all([
         room.localParticipant.enableCameraAndMicrophone(),
         room.localParticipant.setMicrophoneEnabled(true),
         room.localParticipant.setCameraEnabled(true)
-      ]).catch(error => {
-        console.warn('[LiveKitRoom] Error enabling media:', error);
+      ]).catch(_error => {
       });
     });
     
     // Handle reconnection events
     room.on(RoomEvent.Reconnecting, () => {
-      console.log('[LiveKitRoom] Attempting to reconnect...');
       // Reset disconnect flag during reconnection attempts
       setHasHandledDisconnect(false);
     });
     
     room.on(RoomEvent.Reconnected, () => {
-      console.log('[LiveKitRoom] Successfully reconnected');
       setHasHandledDisconnect(false); // Reset disconnect flag on successful reconnection
     });
     
     // General error handler for unexpected issues
-    room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
-      console.log('[LiveKitRoom] Room metadata:', metadata);
+    room.on(RoomEvent.RoomMetadataChanged, (_metadata) => {
     });
 
     return () => {
@@ -750,10 +721,8 @@ const LiveKitRoom = ({
       
       // Also disconnect from the room if we're connected and haven't already handled disconnect
       if (room.state === ConnectionState.Connected && !hasHandledDisconnect) {
-        console.log('[LiveKitRoom] Cleanup: Disconnecting from room');
         setHasHandledDisconnect(true); // Prevent duplicate calls during cleanup
-        room.disconnect().catch(error => {
-          console.warn('[LiveKitRoom] Error during room disconnect in cleanup:', error);
+        room.disconnect().catch(_error => {
         });
       }
     };
@@ -761,7 +730,6 @@ const LiveKitRoom = ({
 
   // Fetch token and connect to the room
   useEffect(() => {
-    console.log('[LiveKitRoom] useEffect triggered with meetingId:', meetingId);
     
     const fetchTokenAndConnect = async () => {
       if (!meetingId) {
@@ -773,12 +741,10 @@ const LiveKitRoom = ({
       }
 
       try {
-        console.log('[LiveKitRoom] Fetching LiveKit token for meeting ID:', meetingId);
         
         // Get the token from the API
         const apiResponse = await apiClient.get(`/api/meetings/livekit-token/${meetingId}/`);
         
-        console.log('[LiveKitRoom] Token API response:', apiResponse);
         
         // Validate the response data contains necessary fields
         if (!apiResponse || !apiResponse.token || !apiResponse.server_url || !apiResponse.room) {
@@ -786,19 +752,12 @@ const LiveKitRoom = ({
           throw new Error('Invalid token response format');
         }
         
-        console.log('[LiveKitRoom] Setting token data with valid response');
         setTokenData(apiResponse);
         
         // Connect to the room now that we have the token
         if (room && apiResponse.token && apiResponse.server_url) {
-          console.log('[LiveKitRoom] Connecting to LiveKit room:', {
-            url: apiResponse.server_url,
-            token: apiResponse.token.substring(0, 15) + '...',
-          });
-          
           try {
             await room.connect(apiResponse.server_url, apiResponse.token);
-            console.log('[LiveKitRoom] Room connection initiated');
           } catch (connErr) {
             console.error('[LiveKitRoom] Failed to connect to room:', connErr);
             throw new Error(`Failed to connect to LiveKit room: ${connErr}`);
@@ -825,13 +784,11 @@ const LiveKitRoom = ({
     
     // Cleanup function
     return () => {
-      console.log('[LiveKitRoom] Component cleanup/unmount');
       // Room disconnection is handled in the room effect cleanup
     };
   }, [meetingId, apiClient, room, onError]);
 
   const handleOpenInNewWindow = () => {
-    console.log('[LiveKitRoom] Opening meeting in new window with URL:', meetingUrl);
     window.open(meetingUrl, '_blank', 'noopener,noreferrer');
   };
 

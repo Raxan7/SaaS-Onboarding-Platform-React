@@ -25,7 +25,6 @@ const CompanyStep = ({ onComplete }: { onComplete: () => void }) => {
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
-      console.warn('User is not authenticated or token is missing. Delaying API calls.');
       return;
     }
     // Removed auto-save logic to prevent unnecessary server requests
@@ -62,7 +61,6 @@ const CompanyStep = ({ onComplete }: { onComplete: () => void }) => {
   };
 
   if (data.companyStepCompleted) {
-    console.log('Company Step Completed:', data.companyStepCompleted); // Debugging log
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
         <Typography variant="h6" color="success.main">

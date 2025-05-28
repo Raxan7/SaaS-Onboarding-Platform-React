@@ -141,7 +141,6 @@ const ScheduleMeetingPage: React.FC = () => {
         setSuccess(true);
         // Show success message briefly, then reload page to refresh UI
         setTimeout(() => {
-          console.log('[ScheduleMeetingPage] Meeting created successfully, reloading page');
           window.location.reload();
         }, 2000);
       } else {

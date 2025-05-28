@@ -9,10 +9,8 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
     try {
       const token = localStorage.getItem('token');
       if (!token || token === 'null' || token === 'undefined') {
-        console.warn('Token is null or invalid. Ensure the user is logged in before making API calls.');
         return Promise.reject(new Error('Authentication token is missing or invalid.'));
       } else {
-        console.log('Token found in localStorage:', token); // Debugging log
       }
 
       const headers = {
@@ -96,7 +94,6 @@ export const createApiClient = (_getAuthHeader: () => { Authorization: string; }
 
       try {
         const jsonData = await response.json();
-        console.log(`API response for ${endpoint}:`, jsonData);
         return jsonData;
       } catch (parseError) {
         console.error('Error parsing JSON response:', parseError);

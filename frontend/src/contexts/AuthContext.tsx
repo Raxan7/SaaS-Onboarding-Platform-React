@@ -48,13 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
         
         // Log state during initialization for debugging
-        console.log('Token during initialization:', storedToken);
-        console.log('UserType during initialization:', storedUserType);
         
         // Use our utility function to safely get user data
         const safeUser = getSafeUserData();
         if (safeUser) {
-          console.log('User during initialization:', safeUser);
           setUser(safeUser);
         }
         
@@ -97,7 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Set for all axios requests
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
       
-      console.log('Login successful:', { newToken, newUserType });
     } catch (error) {
       console.error('Error saving auth data to localStorage:', error);
     }

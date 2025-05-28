@@ -19,7 +19,6 @@ const SupportPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically make an API call to create a support ticket
-    console.log('Support ticket submitted:', supportTicket);
     setSubmitted(true);
     
     // Reset form after submission

@@ -67,13 +67,11 @@ const SettingsPage = () => {
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically make an API call to update the profile
-    console.log('Profile data submitted:', profileData);
   };
 
   const handleNotificationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically make an API call to update notification settings
-    console.log('Notification settings submitted:', notificationSettings);
   };
 
   return (

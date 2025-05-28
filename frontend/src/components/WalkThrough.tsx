@@ -139,7 +139,6 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
     const element = findTargetElement(currentSelector);
     
     if (!element) {
-      console.warn(`Element with selector "${currentSelector}" not found. This might be on another page.`);
       
       // For selector that references elements on other pages, we'll show a message
       // The element will be null, so the UI will adjust accordingly
