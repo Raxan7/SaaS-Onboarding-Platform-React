@@ -26,5 +26,12 @@ export default defineConfig({
     minify: 'esbuild',
     // More explicit source maps for debugging
     sourcemap: true
-  }
+  },
+  // Configure for SPA routing
+  preview: {
+    port: 4173,
+    strictPort: true,
+  },
+  // Ensure proper base path for deployment
+  base: './'
 });

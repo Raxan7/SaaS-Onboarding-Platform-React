@@ -1,0 +1,34 @@
+services:
+  # Backend Django API
+  - type: web
+    name: saas-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "cd backend && python manage.py runserver 0.0.0.0:10000"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saas-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+  # Frontend React App
+  - type: web
+    name: saas-frontend
+    env: static
+    buildCommand: "cd frontend && npm ci && npm run build"
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: saas-db
+    databaseName: saas_db
+    user: saas_user
