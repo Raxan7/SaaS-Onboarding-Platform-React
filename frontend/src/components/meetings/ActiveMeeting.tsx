@@ -8,9 +8,10 @@ import {
   CardContent,
   Stack,
   Chip,
-  Alert
+  Alert,
+  Avatar
 } from '@mui/material';
-import { AccessTime } from '@mui/icons-material';
+import { AccessTime, Person as PersonIcon } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
 import { useApiClient } from '../../utils/apiClient';
 import { Meeting } from '../../types/meeting';
