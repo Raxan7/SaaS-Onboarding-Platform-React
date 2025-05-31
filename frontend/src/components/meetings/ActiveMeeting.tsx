@@ -13,6 +13,7 @@ import {
 import { AccessTime } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
 import { useApiClient } from '../../utils/apiClient';
+import { useAuth } from '../../contexts/AuthContext';
 import { Meeting } from '../../types/meeting';
 import { format, differenceInMinutes } from 'date-fns';
 import JitsiRoom from './JitsiRoom';
@@ -97,6 +98,7 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
     const [timeUntilMeeting, setTimeUntilMeeting] = useState<string>('');
     const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
     const apiClient = useApiClient();
+    const { userType } = useAuth();
     
     // Handle meeting updates and refreshes
     const handleMeetingUpdate = (updatedMeeting: Meeting) => {
@@ -764,7 +766,7 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
                             <CircularProgress size={20} sx={{ color: 'white' }} />
                             Starting...
                           </Box>
-                        ) : 'Start Meeting'}
+                        ) : (userType === 'client' ? 'Join Meeting' : 'Start Meeting')}
                       </Button>
                     </>
                   )}

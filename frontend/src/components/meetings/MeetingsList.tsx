@@ -494,7 +494,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
                               }
                             }}
                           >
-                            Start Meeting
+                            {userType === 'client' ? 'Join Meeting' : 'Start Meeting'}
                           </Button>
                           <Button 
                             variant="outlined" 
