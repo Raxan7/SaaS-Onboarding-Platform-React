@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import DashboardLayout from '../components/DashboardLayout';
 import MeetingsList from '../components/meetings/MeetingsList';
-import ActiveMeeting from '../components/meetings/ActiveMeeting';
 import { useApiClient } from '../utils/apiClient';
 import { useEffect, useState } from 'react';
 import { useMeetings } from '../contexts/MeetingContext';
@@ -338,28 +337,6 @@ const HostDashboard = () => {
           </Paper>
         </Grid>
       </Grid>
-
-      {/* Active Meeting Section */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          mb: 4,
-          borderRadius: 2, 
-          backgroundColor: '#ffffff',
-          border: '1px solid #e5e7eb',
-          '&:hover': {
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }
-        }}
-      >
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" gutterBottom fontWeight={600} sx={{ color: '#111827' }}>
-            Active Meeting
-          </Typography>
-          <Divider sx={{ mb: 3, bgcolor: '#e5e7eb' }} />
-          <ActiveMeeting />
-        </CardContent>
-      </Paper>
 
       {/* Pending Requests Section */}
       <Paper 

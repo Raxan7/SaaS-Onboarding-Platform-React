@@ -25,10 +25,9 @@ import {
   AlertTitle
 } from '@mui/material';
 import MeetingsList from '../components/meetings/MeetingsList';
-import ActiveMeeting from '../components/meetings/ActiveMeeting';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { CheckCircle, Close, Add as AddIcon } from '@mui/icons-material';
+import { CheckCircle, Close, Add as AddIcon, HelpOutline } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -199,15 +198,8 @@ const ClientDashboard = () => {
 
   // Check if the user has completed the walk-through
   useEffect(() => {
-    const hasCompletedWalkThrough = localStorage.getItem('walkThroughCompleted') === 'true';
-    if (!hasCompletedWalkThrough) {
-      // Delay showing the walk-through to allow the page to fully render
-      const timer = setTimeout(() => {
-        setShowWalkThrough(true);
-      }, 1500);
-      
-      return () => clearTimeout(timer);
-    }
+    // Walkthrough is now triggered manually via button click
+    // No automatic trigger needed
   }, []);
 
   const onboardingPercentage = Math.round(
@@ -221,6 +213,11 @@ const ClientDashboard = () => {
   
   // Get meeting limits
   const { limits, refresh: refreshLimits } = useMeetingLimits();
+  
+  // Handle manual walkthrough trigger
+  const handleStartWalkThrough = () => {
+    setShowWalkThrough(true);
+  };
   
   // Handle meeting creation
   const handleCreateMeeting = async () => {
@@ -335,32 +332,56 @@ const ClientDashboard = () => {
             </Typography>
           </Box>
           
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenNewMeetingDialog(true)}
-            disabled={!!(limits && !limits.can_create)}
-            sx={{
-              backgroundColor: '#3b82f6',
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              textTransform: 'none',
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              '&:hover': {
-                backgroundColor: '#2563eb',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              },
-              '&:disabled': {
-                backgroundColor: '#9ca3af',
-                color: '#ffffff'
-              }
-            }}
-          >
-            Request New Meeting
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              startIcon={<HelpOutline />}
+              onClick={handleStartWalkThrough}
+              sx={{
+                borderColor: '#d1d5db',
+                color: '#6b7280',
+                borderRadius: 2,
+                px: 3,
+                py: 1.5,
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#3b82f6',
+                  color: '#3b82f6',
+                  backgroundColor: '#f8fafc'
+                }
+              }}
+            >
+              Help & Tutorial
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenNewMeetingDialog(true)}
+              disabled={!!(limits && !limits.can_create)}
+              sx={{
+                backgroundColor: '#3b82f6',
+                borderRadius: 2,
+                px: 3,
+                py: 1.5,
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  backgroundColor: '#2563eb',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                },
+                '&:disabled': {
+                  backgroundColor: '#9ca3af',
+                  color: '#ffffff'
+                }
+              }}
+            >
+              Request New Meeting
+            </Button>
+          </Box>
         </Box>
       </Box>
 
@@ -485,50 +506,6 @@ const ClientDashboard = () => {
           </Box>
         </Alert>
       )}
-
-      {/* Active Meeting Section */}
-      <Grid container spacing={4} sx={{ mb: 6 }}>
-        <Grid size={{ xs: 12 }}>
-          <Paper 
-            elevation={0} 
-            sx={{ 
-              height: '100%', 
-              borderRadius: 2, 
-              backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-            }} 
-            data-tour="active-meeting"
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Box 
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    backgroundColor: '#3b82f6',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 2
-                  }}
-                >
-                  <Typography variant="h6" sx={{ color: 'white' }}>🎥</Typography>
-                </Box>
-                <Typography 
-                  variant="h5" 
-                  fontWeight={600}
-                  sx={{ color: '#111827' }}
-                >
-                  Active Meeting
-                </Typography>
-              </Box>
-              <ActiveMeeting />
-            </CardContent>
-          </Paper>
-        </Grid>
-      </Grid>
 
       {/* Upcoming Meetings Section */}
       <Grid container spacing={4} sx={{ mb: 6 }}>
