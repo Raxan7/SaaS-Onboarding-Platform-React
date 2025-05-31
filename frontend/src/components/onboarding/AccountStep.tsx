@@ -11,6 +11,7 @@ const AccountStep = () => {
   const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +28,7 @@ const AccountStep = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const endpoint = isLogin ? '/api/auth/token/' : '/api/auth/register/';
@@ -74,6 +76,8 @@ const AccountStep = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,9 +130,10 @@ const AccountStep = () => {
           type="submit"
           variant="contained"
           fullWidth
+          disabled={loading}
           sx={{ mt: 3 }}
         >
-          {isLogin ? 'Login' : 'Register'}
+          {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
         </Button>
       </form>
 

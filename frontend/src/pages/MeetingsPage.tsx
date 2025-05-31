@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { 
   Typography, 
   Box, 
-  Grid, 
-  CardContent,
   Button,
   Paper,
   Tab,
@@ -11,7 +9,6 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import MeetingsList from '../components/meetings/MeetingsList';
-import ActiveMeeting from '../components/meetings/ActiveMeeting';
 import NewMeetingDialog from '../components/meetings/NewMeetingDialog';
 import DashboardLayout from '../components/DashboardLayout';
 
@@ -71,19 +68,6 @@ const MeetingsPage = () => {
           Schedule, manage and track all your meetings in one place
         </Typography>
       </Box>
-
-      <Grid container spacing={4} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12 }}>
-          <Paper elevation={2} sx={{ height: '100%', borderRadius: 2, overflow: 'hidden' }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                Active Meeting
-              </Typography>
-              <ActiveMeeting />
-            </CardContent>
-          </Paper>
-        </Grid>
-      </Grid>
 
       <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden', mb: 4 }}>
         <Box sx={{ 

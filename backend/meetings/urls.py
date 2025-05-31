@@ -7,7 +7,8 @@ from .views import (
     EndMeetingAPIView,
     CheckAvailabilityAPIView,
     MeetingLimitsAPIView,
-    LiveKitTokenAPIView
+    # LiveKitTokenAPIView,  # Commented out - using Jitsi instead
+    JitsiConfigAPIView
 )
 
 urlpatterns = [
@@ -18,5 +19,7 @@ urlpatterns = [
     path('active/', ActiveMeetingsAPIView.as_view(), name='active-meetings'),
     path('check-availability/', CheckAvailabilityAPIView.as_view(), name='check-availability'),
     path('limits/', MeetingLimitsAPIView.as_view(), name='meeting-limits'),
-    path('livekit-token/<int:pk>/', LiveKitTokenAPIView.as_view(), name='livekit-token'),
+    # Keep LiveKit endpoint for backward compatibility (commented out for now)
+    # path('livekit-token/<int:pk>/', LiveKitTokenAPIView.as_view(), name='livekit-token'),
+    path('jitsi-config/<int:pk>/', JitsiConfigAPIView.as_view(), name='jitsi-config'),
 ]

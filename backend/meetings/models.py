@@ -44,15 +44,23 @@ class Meeting(models.Model):
         return f"{self.user.email} - {self.scheduled_at}"
 
     def save(self, *args, **kwargs):
-        if not self.meeting_url and (self.status == self.CONFIRMED or self.status == self.RESCHEDULED):
-            self.meeting_url = self.generate_livekit_url()
+        # Generate meeting URL when status changes to CONFIRMED, RESCHEDULED, or STARTED
+        if not self.meeting_url and (self.status == self.CONFIRMED or self.status == self.RESCHEDULED or self.status == self.STARTED):
+            self.meeting_url = self.generate_jitsi_url()
         super().save(*args, **kwargs)
     
-    def generate_livekit_url(self):
-        from .livekit_utils import generate_livekit_meeting_url
+    def generate_jitsi_url(self):
+        from .jitsi_utils import generate_jitsi_meeting_url
         # Use the meeting title (or a default) to create a recognizable room
         meeting_name = self.title or f"Meeting-{self.id}"
-        return generate_livekit_meeting_url(meeting_title=meeting_name)
+        return generate_jitsi_meeting_url(meeting_title=meeting_name, meeting_id=self.id)
+    
+    # Keep LiveKit method for backward compatibility (commented out)
+    # def generate_livekit_url(self):
+    #     from .livekit_utils import generate_livekit_meeting_url
+    #     # Use the meeting title (or a default) to create a recognizable room
+    #     meeting_name = self.title or f"Meeting-{self.id}"
+    #     return generate_livekit_meeting_url(meeting_title=meeting_name)
     
     @property
     def is_active(self):

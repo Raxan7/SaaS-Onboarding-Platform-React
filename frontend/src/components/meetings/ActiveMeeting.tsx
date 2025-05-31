@@ -15,7 +15,8 @@ import { useEffect, useState } from 'react';
 import { useApiClient } from '../../utils/apiClient';
 import { Meeting } from '../../types/meeting';
 import { format, differenceInMinutes } from 'date-fns';
-import LiveKitRoom from './LiveKitRoom';
+import JitsiRoom from './JitsiRoom';
+// import LiveKitRoom from './LiveKitRoom'; // Preserved for future use
 import { useMeetingActions } from '../../hooks/useMeetingActions';
 
   // Local storage keys
@@ -600,6 +601,17 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
                 mb: 3,
                 boxShadow: '0 8px 25px rgba(102, 126, 234, 0.1)'
               }}>
+                <JitsiRoom
+                  meetingUrl={activeMeeting.meeting_url}
+                  meetingId={activeMeeting.id}
+                  height="100%"
+                  onError={(errorMsg) => {
+                    console.error('Meeting frame error:', errorMsg);
+                    setError(`Meeting error: ${errorMsg}`);
+                  }}
+                  onMeetingEnd={handleEndMeeting}
+                />
+                {/* LiveKit preserved for future use:
                 <LiveKitRoom
                   meetingUrl={activeMeeting.meeting_url}
                   meetingId={activeMeeting.id}
@@ -610,6 +622,7 @@ import { useMeetingActions } from '../../hooks/useMeetingActions';
                   }}
                   onMeetingEnd={handleEndMeeting}
                 />
+                */}
               </Box>
               <Stack direction="row" spacing={2}>
                 <Button 
