@@ -39,14 +39,8 @@ const WalkThrough = ({ open, onClose }: WalkThroughProps) => {
     {
       selector: 'h1', // Welcome heading
       title: 'Welcome to your Dashboard',
-      description: 'This is your central hub for all your meeting activities. Here you\'ll find your upcoming meetings, active sessions, and access to all platform features.',
+      description: 'This is your central hub for all your meeting activities. Here you\'ll find your upcoming meetings and access to all platform features.',
       position: 'bottom'
-    },
-    {
-      selector: '[data-tour="active-meeting"]',
-      title: 'Active Meeting',
-      description: 'This shows your current or next upcoming meeting. You can join directly from here when it\'s time.',
-      position: 'left'
     },
     {
       selector: '[data-tour="new-meeting-button"]',
