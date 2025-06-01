@@ -5,7 +5,6 @@ import { FaHandshake } from '@react-icons/all-files/fa/FaHandshake';
 import { FaCalendarAlt } from '@react-icons/all-files/fa/FaCalendarAlt';
 import { FaVideo } from '@react-icons/all-files/fa/FaVideo';
 import { FaUserCheck } from '@react-icons/all-files/fa/FaUserCheck';
-import { useTheme } from '@mui/material/styles';
 
 const features = [
 	{
@@ -47,14 +46,6 @@ export default function FeatureShowcase() {
 		triggerOnce: true,
 		threshold: 0.2,
 	});
-	const theme = useTheme();
-
-	const iconColors: Record<string, string> = {
-		primary: theme.palette.primary.main,
-		secondary: theme.palette.secondary.main,
-		warning: theme.palette.warning.main,
-		success: theme.palette.success.main,
-	};
 
 	return (
 		<Box

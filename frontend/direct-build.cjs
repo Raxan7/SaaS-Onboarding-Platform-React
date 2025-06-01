@@ -27,7 +27,7 @@ console.log('✅ Crypto patched successfully!');
 try {
   // Run the build directly
   console.log('🚀 Running Vite build...');
-  execSync('vite build', { stdio: 'inherit' });
+  execSync('npx vite build', { stdio: 'inherit' });
   console.log('✅ Build completed successfully!');
   
   // Copy _redirects file for SPA routing support
