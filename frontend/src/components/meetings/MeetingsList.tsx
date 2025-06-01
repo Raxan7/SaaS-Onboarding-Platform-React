@@ -364,6 +364,7 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
       ) : (
         <Stack spacing={3}>
           {filteredMeetings.map((meeting) => (
+            console.log(meeting),
             <Card 
               key={meeting.id} 
               sx={{
@@ -382,8 +383,30 @@ const MeetingsList = ({ filter = 'all', showActions = true }: MeetingsListProps)
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box sx={{ flex: 1 }}>
+                    
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Meeting with {userType === 'company' ? meeting.user?.first_name : meeting.host?.first_name}
+                      {meeting.title || (() => {
+                        // Handle case where host/user might be just IDs instead of objects
+                        if (userType === 'client') {
+                          // Client sees the host name
+                          if (typeof meeting.host === 'object' && meeting.host?.first_name) {
+                            return `Meeting with ${meeting.host.first_name}`;
+                          } else if (typeof meeting.host === 'object' && meeting.host?.email) {
+                            return `Meeting with ${meeting.host.email}`;
+                          } else {
+                            return `Meeting with Host ${meeting.host || 'Unknown'}`;
+                          }
+                        } else {
+                          // Host sees the client/user name
+                          if (typeof meeting.user === 'object' && meeting.user?.first_name) {
+                            return `Meeting with ${meeting.user.first_name}`;
+                          } else if (typeof meeting.user === 'object' && meeting.user?.email) {
+                            return `Meeting with ${meeting.user.email}`;
+                          } else {
+                            return `Meeting with Client ${meeting.user || 'Unknown'}`;
+                          }
+                        }
+                      })()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       {formatMeetingDateTime(meeting.scheduled_at, meeting.timezone)}
