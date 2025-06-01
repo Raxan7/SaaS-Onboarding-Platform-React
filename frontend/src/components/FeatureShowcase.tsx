@@ -5,31 +5,34 @@ import { FaRobot } from '@react-icons/all-files/fa/FaRobot';
 import { FaHandshake } from '@react-icons/all-files/fa/FaHandshake';
 import { FaPlug } from '@react-icons/all-files/fa/FaPlug';
 import { FaChartLine } from '@react-icons/all-files/fa/FaChartLine';
+import { FaCalendarAlt } from '@react-icons/all-files/fa/FaCalendarAlt';
+import { FaVideo } from '@react-icons/all-files/fa/FaVideo';
+import { FaUserCheck } from '@react-icons/all-files/fa/FaUserCheck';
 import { useTheme } from '@mui/material/styles';
 
 const features = [
   {
-    title: 'AI-Powered Onboarding',
-    description: 'Our intelligent wizard guides users through setup with personalized recommendations.',
-    icon: <FaRobot />,
+    title: 'Meet the Right Expert, Every Time',
+    description: 'Our intelligent matching ensures you connect with the perfect specialist for your unique needs—no guesswork, no wasted time.',
+    icon: <FaCalendarAlt />,
     color: 'primary',
   },
   {
-    title: 'First Meeting Guarantee',
-    description: 'We guarantee your first qualified meeting or we extend your trial for free.',
+    title: 'Instant Booking, Zero Hassle',
+    description: 'Book a session in seconds. No back-and-forth emails, no confusion—just pick your time and go.',
     icon: <FaHandshake />,
     color: 'secondary',
   },
   {
-    title: 'Seamless Integration',
-    description: 'Connect with your existing tools in minutes with our pre-built integrations.',
-    icon: <FaPlug />,
+    title: 'Crystal-Clear Video Consultations',
+    description: 'Enjoy seamless, high-quality video meetings that make every conversation feel personal and productive.',
+    icon: <FaVideo />,
     color: 'warning',
   },
   {
-    title: 'Real-Time Analytics',
-    description: 'Track user engagement and onboarding progress with our comprehensive dashboard.',
-    icon: <FaChartLine />,
+    title: 'Your Success, Our Promise',
+    description: 'We guarantee satisfaction. If you don’t get the help you need, your next session is on us—no questions asked.',
+    icon: <FaUserCheck />,
     color: 'success',
   },
 ];
@@ -51,10 +54,10 @@ export default function FeatureShowcase() {
   return (
     <Box ref={ref}>
       <Typography variant="h2" textAlign="center" gutterBottom sx={{ fontWeight: 700 }}>
-        Powerful Features
+        Why Choose Us?
       </Typography>
       <Typography variant="h5" textAlign="center" color="text.secondary" sx={{ mb: 6 }}>
-        Everything you need to optimize your SaaS onboarding
+        Experience the fastest, most trusted way to get expert help—trusted by thousands worldwide
       </Typography>
       <Grid container spacing={4}>
         {features.map((feature, index) => (

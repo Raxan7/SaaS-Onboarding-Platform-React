@@ -18,22 +18,22 @@ const floatAnimation = keyframes`
 // Dynamic hero content
 const heroContent = [
   {
-    headline: "Revolutionize Your SaaS Onboarding",
-    subhead: "AI-driven workflows that increase conversions by 300%",
+    headline: "Unlock Expert Guidance Instantly",
+    subhead: "Connect with top professionals in any field and get the answers, advice, or support you need—on your schedule.",
+    ctaPrimary: "Find My Expert",
+    ctaSecondary: "See How It Works"
+  },
+  {
+    headline: "Book a Life-Changing Consultation in Minutes",
+    subhead: "No more endless searching or waiting. Our platform matches you with the perfect expert for your needs—guaranteed.",
+    ctaPrimary: "Get Started Now",
+    ctaSecondary: "Browse Experts"
+  },
+  {
+    headline: "Your Success, Powered by Real Human Expertise",
+    subhead: "From business to wellness, unlock new opportunities and solve your toughest challenges with one seamless meeting.",
     ctaPrimary: "Start Free Trial",
-    ctaSecondary: "See Demo"
-  },
-  {
-    headline: "Guaranteed Qualified Meetings",
-    subhead: "We deliver or extend your trial - risk free",
-    ctaPrimary: "Get Started",
-    ctaSecondary: "View Plans"
-  },
-  {
-    headline: "The Future of User Onboarding",
-    subhead: "Personalized journeys that boost retention & revenue",
-    ctaPrimary: "Book Demo",
-    ctaSecondary: "Learn More"
+    ctaSecondary: "Success Stories"
   }
 ];
 
