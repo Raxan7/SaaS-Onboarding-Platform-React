@@ -52,7 +52,7 @@ export default function FeatureShowcase() {
 			ref={ref}
 			sx={{
 				position: 'relative',
-				py: { xs: 8, md: 20, lg: 28 },
+				py: { xs: 4, md: 10, lg: 12 },
 				px: { xs: 2, sm: 3, md: 6, lg: 8 },
 				background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)',
 				borderRadius: 0,
