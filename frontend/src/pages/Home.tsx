@@ -577,12 +577,21 @@ export default function Home() {
           <FeatureShowcase />
         </motion.div>
 
+        {/* Visual separator between sections */}
+        <Box sx={{ 
+          height: '2px', 
+          background: 'linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%)',
+          my: 4 
+        }} />
+
         <Box 
           id="testimonials"
           sx={{
           backgroundColor: 'background.paper',
-          py: { xs: 8, sm: 10, md: 12 },
+          py: { xs: 10, sm: 12, md: 16 },
           position: 'relative',
+          overflow: 'hidden',
+          minHeight: { xs: '600px', md: '700px' },
           '&:before': {
             content: '""',
             position: 'absolute',
@@ -590,21 +599,32 @@ export default function Home() {
             left: 0,
             right: 0,
             height: '100%',
-            background: `linear-gradient(to bottom, ${theme.palette.background.default} 0%, transparent 100%)`,
-            opacity: 0.1,
+            background: `
+              radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+              linear-gradient(135deg, ${theme.palette.background.default} 0%, rgba(102, 126, 234, 0.05) 100%)
+            `,
             zIndex: -1
+          },
+          '&:after': {
+            content: '""',
+            position: 'absolute',
+            top: '-2px',
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.6) 25%, rgba(118, 75, 162, 0.6) 75%, transparent 100%)',
+            zIndex: 1
           }
         }}>
-          <Container maxWidth="lg">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <Testimonials />
-            </motion.div>
-          </Container>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <Testimonials />
+          </motion.div>
         </Box>
 
         <Container maxWidth="lg" sx={{
