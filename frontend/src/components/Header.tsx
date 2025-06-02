@@ -1,5 +1,5 @@
 import { Button, Box, useScrollTrigger, Typography, IconButton, useMediaQuery, useTheme, Chip, Backdrop, styled, Container } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -18,6 +18,18 @@ const shimmer = keyframes`
   0% { background-position: -1000px 0; }
   100% { background-position: 1000px 0; }
 `;
+
+// Smooth scroll utility function
+const scrollToSection = (sectionId: string) => {
+  const element = document.getElementById(sectionId);
+  if (element) {
+    const offsetTop = element.offsetTop - 100; // Account for fixed header
+    window.scrollTo({
+      top: offsetTop,
+      behavior: 'smooth'
+    });
+  }
+};
 
 // Ultra-modern styled components
 const UltraButton = styled(Button)(() => ({
@@ -140,6 +152,8 @@ const getHeaderBackground = (scrolled: boolean, mouseX: number, mouseY: number) 
 export default function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const navigate = useNavigate();
   
   const trigger = useScrollTrigger({
     disableHysteresis: true,
@@ -162,6 +176,26 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // Handle navigation with smooth scroll for same-page sections
+  const handleNavigation = (item: typeof navigationItems[0]) => {
+    if (item.isScroll && item.scrollTarget) {
+      // If we're on the home page, just scroll to the section
+      if (location.pathname === '/') {
+        scrollToSection(item.scrollTarget);
+      } else {
+        // If we're on a different page, navigate to home first, then scroll
+        navigate('/');
+        // Use setTimeout to ensure navigation completes before scrolling
+        setTimeout(() => {
+          scrollToSection(item.scrollTarget);
+        }, 100);
+      }
+    } else {
+      // Regular navigation for non-scroll items
+      navigate(item.path);
+    }
+  };
+
   // Track mouse movement for interactive effects
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isMobile) {
@@ -180,9 +214,9 @@ export default function Header() {
   };
 
   const navigationItems = [
-    { label: '🚀 Features', path: '/features', icon: '🚀' },
-    { label: '💎 Pricing', path: '/pricing', icon: '💎' },
-    { label: '📞 Contact', path: '/contact', icon: '📞' },
+    { label: '🚀 Features', path: '/features', icon: '🚀', isScroll: true, scrollTarget: 'features' },
+    { label: '💎 Pricing', path: '/pricing', icon: '💎', isScroll: false },
+    { label: '📞 Contact', path: '/contact', icon: '📞', isScroll: false },
   ];
 
   return (
@@ -303,17 +337,17 @@ export default function Header() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
                   >
-                    <Link to={item.path} style={{ textDecoration: 'none' }}>
-                      <GlowNavButton
-                        sx={{
-                          color: trigger ? 'text.primary' : 'common.white',
-                          mx: 0.5,
-                        }}
-                      >
-                        <span style={{ marginRight: '8px' }}>{item.icon}</span>
-                        {item.label.split(' ')[1]}
-                      </GlowNavButton>
-                    </Link>
+                    <GlowNavButton
+                      onClick={() => handleNavigation(item)}
+                      sx={{
+                        color: trigger ? 'text.primary' : 'common.white',
+                        mx: 0.5,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ marginRight: '8px' }}>{item.icon}</span>
+                      {item.label.split(' ')[1]}
+                    </GlowNavButton>
                   </motion.div>
                 ))}
 
@@ -549,8 +583,7 @@ export default function Header() {
                 padding: '80px 20px 20px',
                 borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
               }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            >                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {navigationItems.map((item, index) => (
                   <motion.div
                     key={item.path}
@@ -559,9 +592,10 @@ export default function Header() {
                     transition={{ delay: 0.1 * index, duration: 0.4 }}
                   >
                     <Button
-                      component={Link}
-                      to={item.path}
-                      onClick={handleMobileMenuToggle}
+                      onClick={() => {
+                        handleNavigation(item);
+                        handleMobileMenuToggle();
+                      }}
                       fullWidth
                       sx={{
                         color: 'white',

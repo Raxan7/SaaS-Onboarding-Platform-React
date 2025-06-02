@@ -165,7 +165,7 @@ const VideoDemoWithUseCases = ({ useCases = defaultUseCases }: VideoDemoWithUseC
       </Box>
       
       {/* Use Cases Section */}
-      <Box>
+      <Box id="features">
         <Typography variant="h4" sx={{ 
           fontWeight: 700,
           mb: 4,
