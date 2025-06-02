@@ -100,6 +100,17 @@ export default function Home() {
     glowIntensity.set(0.4);
   };
 
+  // Scroll to testimonials function
+  const scrollToTestimonials = () => {
+    const testimonialsSection = document.getElementById('testimonials');
+    if (testimonialsSection) {
+      testimonialsSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <Box 
       sx={{ position: 'relative', overflow: 'hidden' }}
@@ -403,10 +414,11 @@ export default function Home() {
                     </Button>
                   </Link>
                   
-                  <Link to="/pricing" style={{ textDecoration: 'none' }}>
+                  {heroContent[currentIndex].ctaSecondary === "📈 Success Stories" ? (
                     <Button
                       variant="outlined"
                       size={isMobile ? 'large' : 'large'}
+                      onClick={scrollToTestimonials}
                       sx={{
                         px: { xs: 4, sm: 6 },
                         py: { xs: 1.5, sm: 2 },
@@ -433,7 +445,39 @@ export default function Home() {
                     >
                       {heroContent[currentIndex].ctaSecondary}
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link to="/pricing" style={{ textDecoration: 'none' }}>
+                      <Button
+                        variant="outlined"
+                        size={isMobile ? 'large' : 'large'}
+                        sx={{
+                          px: { xs: 4, sm: 6 },
+                          py: { xs: 1.5, sm: 2 },
+                          fontWeight: 700,
+                          fontSize: { xs: '1rem', sm: '1.1rem' },
+                          borderWidth: 2,
+                          borderColor: 'rgba(255,255,255,0.4)',
+                          color: 'white',
+                          backdropFilter: 'blur(20px)',
+                          background: 'rgba(255,255,255,0.1)',
+                          borderRadius: '16px',
+                          textTransform: 'none',
+                          letterSpacing: '0.02em',
+                          position: 'relative',
+                          '&:hover': {
+                            borderWidth: 2,
+                            borderColor: 'rgba(255,255,255,0.8)',
+                            background: 'rgba(255,255,255,0.2)',
+                            transform: 'translateY(-3px) scale(1.02)',
+                            boxShadow: '0 8px 32px rgba(255,255,255,0.2)',
+                          },
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
+                      >
+                        {heroContent[currentIndex].ctaSecondary}
+                      </Button>
+                    </Link>
+                  )}
                 </Box>
               </motion.div>
             </Box>
@@ -486,7 +530,9 @@ export default function Home() {
           <FeatureShowcase />
         </motion.div>
 
-        <Box sx={{
+        <Box 
+          id="testimonials"
+          sx={{
           backgroundColor: 'background.paper',
           py: { xs: 8, sm: 10, md: 12 },
           position: 'relative',
