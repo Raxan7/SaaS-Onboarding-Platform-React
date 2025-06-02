@@ -1,7 +1,7 @@
-import { Container, Typography, Button, Box, useTheme, useMediaQuery } from '@mui/material';
+import { Container, Typography, Button, Box, useTheme, useMediaQuery, Chip } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { keyframes } from '@emotion/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import FeatureShowcase from '../components/FeatureShowcase';
 import Testimonials from '../components/Testimonials';
@@ -9,91 +9,103 @@ import MeetingGuarantee from '../components/MeetingGuarantee';
 import VideoDemoWithUseCases from '../components/VideoDemoWithUseCases';
 import LiveChat from '../components/LiveChat';
 
-// Floating background animation
-const floatAnimation = keyframes`
-  0%, 100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-20px) translateX(10px); }
+// Revolutionary animations
+const pulseGlow = keyframes`
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4), 0 0 40px rgba(118, 75, 162, 0.2); 
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.8), 0 0 80px rgba(118, 75, 162, 0.4); 
+  }
 `;
 
-// Dynamic hero content
+const shimmer = keyframes`
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+`;
+
+// Revolutionary hero content with emojis and power words
 const heroContent = [
   {
-    headline: "Unlock Expert Guidance Instantly",
-    subhead: "Connect with top professionals in any field and get the answers, advice, or support you need—on your schedule.",
-    ctaPrimary: "Find My Expert",
-    ctaSecondary: "See How It Works"
+    headline: "🚀 Unleash Revolutionary Expert Connections",
+    subhead: "Experience the future of professional consultations. AI-powered matching meets human excellence in our groundbreaking platform.",
+    ctaPrimary: "🌟 Transform Your Business",
+    ctaSecondary: "⚡ See Magic Happen",
+    accent: "🔥 Most Revolutionary"
   },
   {
-    headline: "Book a Life-Changing Consultation in Minutes",
-    subhead: "No more endless searching or waiting. Our platform matches you with the perfect expert for your needs—guaranteed.",
-    ctaPrimary: "Get Started Now",
-    ctaSecondary: "Browse Experts"
+    headline: "💎 Book Life-Changing Sessions in Seconds",
+    subhead: "No more endless searching. Our quantum-speed matching algorithm connects you with world-class experts instantly.",
+    ctaPrimary: "🎯 Find Your Expert",
+    ctaSecondary: "🎪 Watch Demo",
+    accent: "⚡ Lightning Fast"
   },
   {
-    headline: "Your Success, Powered by Real Human Expertise",
-    subhead: "From business to wellness, unlock new opportunities and solve your toughest challenges with one seamless meeting.",
-    ctaPrimary: "Start Free Trial",
-    ctaSecondary: "Success Stories"
+    headline: "🏆 Your Success, Supercharged by Genius",
+    subhead: "From startup scaling to personal breakthroughs, unlock exponential growth with our elite expert network.",
+    ctaPrimary: "🚀 Start Evolution",
+    ctaSecondary: "📈 Success Stories",
+    accent: "💫 Game Changer"
   }
 ];
-
-// Enhanced text animation variants
-const textVariants = {
-  hidden: { 
-    y: 40,
-    opacity: 0,
-    filter: 'blur(4px)'
-  },
-  visible: {
-    y: 0,
-    opacity: 1,
-    filter: 'blur(0px)',
-    transition: {
-      type: "spring",
-      stiffness: 120,
-      damping: 15,
-      mass: 0.5
-    }
-  },
-  exit: {
-    y: -40,
-    opacity: 0,
-    filter: 'blur(4px)',
-    transition: {
-      ease: "easeIn",
-      duration: 0.5
-    }
-  }
-};
 
 export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const [scrollPosition, setScrollPosition] = useState(0);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Interactive mouse tracking
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useTransform(mouseY, [0, window.innerHeight], [5, -5]);
+  const rotateY = useTransform(mouseX, [0, window.innerWidth], [-5, 5]);
+  
+  // Spring animations for smooth interactions
+  const springConfig = { stiffness: 300, damping: 30 };
+  const heroScale = useSpring(1, springConfig);
+  const glowIntensity = useSpring(0.4, springConfig);
 
-  // Handle scroll and text rotation
+  // Handle mouse movement for interactive effects
+  const handleMouseMove = (event: React.MouseEvent) => {
+    if (!isMobile) {
+      const { clientX, clientY } = event;
+      setMousePosition({ x: clientX, y: clientY });
+      mouseX.set(clientX);
+      mouseY.set(clientY);
+    }
+  };
+
+  // Auto-rotate hero content with smooth transitions
   useEffect(() => {
-    const handleScroll = () => setScrollPosition(window.pageYOffset);
-    window.addEventListener('scroll', handleScroll);
-    
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % heroContent.length);
-    }, 5000);
+    }, 6000); // Longer duration for better reading experience
     
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
+  // Hero hover effects
+  const handleHeroHover = () => {
+    if (!isMobile) {
+      heroScale.set(1.02);
+      glowIntensity.set(0.8);
+    }
+  };
+
+  const handleHeroLeave = () => {
+    heroScale.set(1);
+    glowIntensity.set(0.4);
+  };
+
   return (
-    <Box sx={{
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Animated background elements */}
+    <Box 
+      sx={{ position: 'relative', overflow: 'hidden' }}
+      onMouseMove={handleMouseMove}
+    >
+      {/* Revolutionary Animated Background System */}
       <Box sx={{
         position: 'absolute',
         top: 0,
@@ -101,241 +113,362 @@ export default function Home() {
         right: 0,
         bottom: 0,
         zIndex: 0,
-        '& > *': {
-          position: 'absolute',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          opacity: 0.1,
-          animation: `${floatAnimation} 18s ease-in-out infinite`,
-        }
+        background: `
+          radial-gradient(circle at ${mousePosition.x * 0.1}% ${mousePosition.y * 0.1}%, 
+            rgba(102, 126, 234, 0.15) 0%, transparent 70%),
+          linear-gradient(135deg, 
+            rgba(15, 23, 42, 0.95) 0%, 
+            rgba(30, 41, 59, 0.9) 50%,
+            rgba(51, 65, 85, 0.85) 100%)
+        `,
       }}>
-        <Box sx={{
-          width: 600,
-          height: 600,
-          bgcolor: 'primary.main',
-          top: '15%',
-          left: '-15%',
-          animationDelay: '0s'
-        }} />
-        <Box sx={{
-          width: 800,
-          height: 800,
-          bgcolor: 'secondary.main',
-          top: '35%',
-          right: '-20%',
-          animationDelay: '3s'
-        }} />
-        <Box sx={{
-          width: 500,
-          height: 500,
-          bgcolor: 'warning.main',
-          bottom: '-15%',
-          left: '25%',
-          animationDelay: '6s'
-        }} />
+        {/* Floating geometric elements */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            style={{
+              position: 'absolute',
+              width: Math.random() * 100 + 50,
+              height: Math.random() * 100 + 50,
+              borderRadius: Math.random() > 0.5 ? '50%' : '20%',
+              background: `linear-gradient(45deg, 
+                rgba(102, 126, 234, ${0.1 + Math.random() * 0.2}), 
+                rgba(118, 75, 162, ${0.1 + Math.random() * 0.2}))`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              filter: 'blur(40px)',
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, 15, -10, 0],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 10 + Math.random() * 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: Math.random() * 5,
+            }}
+          />
+        ))}
+        
+        {/* Particle system */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            style={{
+              position: 'absolute',
+              width: 4,
+              height: 4,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.6)',
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -100, 0],
+              opacity: [0.3, 1, 0.3],
+              scale: [0.5, 1.5, 0.5],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: Math.random() * 3,
+            }}
+          />
+        ))}
       </Box>
 
-      {/* Hero Section */}
-      <Box sx={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-        color: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center', // Add this to center horizontally
-        position: 'relative',
-        overflow: 'hidden',
-        pt: { xs: '64px', sm: '72px' },
-        pb: { xs: 6, md: 10 },
-        '&:before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `radial-gradient(circle at ${scrollPosition * 0.05}% ${50 + scrollPosition * 0.01}%, 
-            rgba(255,255,255,0.15) 0%, transparent 70%)`,
-          zIndex: 1
-        },
-        '&:after': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '100%',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, transparent 100%)',
-          zIndex: 1
-        }
-      }}>
-        <Container maxWidth="lg" sx={{
-          position: 'relative',
-          zIndex: 2,
+      {/* Revolutionary Hero Section */}
+      <motion.div
+        style={{
+          scale: heroScale,
+          rotateX,
+          rotateY,
+          perspective: 1000,
+        }}
+        onHoverStart={handleHeroHover}
+        onHoverEnd={handleHeroLeave}
+      >
+        <Box sx={{
+          minHeight: '100vh',
+          background: `
+            linear-gradient(135deg, 
+              rgba(102, 126, 234, 0.9) 0%, 
+              rgba(118, 75, 162, 0.8) 50%,
+              rgba(96, 165, 250, 0.9) 100%),
+            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>')
+          `,
+          color: 'white',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center', // Ensure vertical centering
-          alignItems: 'center', // Ensure horizontal centering
-          textAlign: 'center',
-          px: { xs: 3, sm: 4 },
-          height: '100%', // Take full height of parent
-          width: '100%', // Take full width of parent
-          my: 'auto', // Add automatic margin for vertical centering
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          pt: { xs: '80px', sm: '90px' },
+          pb: { xs: 8, md: 12 },
+          '&:before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `
+              radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)
+            `,
+            zIndex: 1,
+          },
+          '&:after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 100%)',
+            zIndex: 1,
+          }
         }}>
-          {/* Hero Content */}
-          <Box sx={{
-            width: '100%',
-            maxWidth: '800px',
-            mb: { xs: 4, md: 6 },
-            mx: 'auto', // Center horizontally
+          <Container maxWidth="lg" sx={{
+            position: 'relative',
+            zIndex: 2,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center', // Center vertically
-            flex: 1, // Take available space
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+            px: { xs: 3, sm: 4 },
+            height: '100%',
           }}>
-            <AnimatePresence mode='wait'>
-              <motion.div
-                key={`headline-${currentIndex}`}
-                variants={textVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Typography 
-                  variant={isMobile ? 'h3' : isTablet ? 'h2' : 'h1'} 
-                  gutterBottom
-                  sx={{
-                    fontWeight: 900, // More authoritative weight
-                    lineHeight: 1.1, // Tighter line height for impact
-                    mb: { xs: 2, sm: 3 },
-                    textShadow: '0 4px 12px rgba(0,0,0,0.3)', // Deeper shadow
-                    minHeight: { xs: '3.5em', sm: '2.5em' },
-                    letterSpacing: '-0.03em', // Slightly tighter letter spacing
-                    fontFamily: theme.typography.fontFamily, // Ensure consistent font
-                    background: 'linear-gradient(90deg, #ffffff, #e0e0e0)', // Gradient text
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                    px: 1, // Small padding to prevent text clipping
-                  }}
-                >
-                  {heroContent[currentIndex].headline}
-                </Typography>
-              </motion.div>
-            </AnimatePresence>
-
-            <AnimatePresence mode='wait'>
-              <motion.div
-                key={`subhead-${currentIndex}`}
-                variants={textVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ delay: 0.15 }} // Slightly longer delay for better sequencing
-              >
-                <Typography 
-                  variant={isMobile ? 'h6' : 'h5'} 
-                  gutterBottom
-                  sx={{
-                    mb: { xs: 3, sm: 4 },
-                    opacity: 0.95, // Slightly more visible
-                    fontWeight: 400,
-                    minHeight: { xs: '4em', sm: '3em' },
-                    lineHeight: 1.5,
-                    letterSpacing: '0.01em',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    maxWidth: '90%',
-                    mx: 'auto',
-                    color: 'rgba(255,255,255,0.9)'
-                  }}
-                >
-                  {heroContent[currentIndex].subhead}
-                </Typography>
-              </motion.div>
-            </AnimatePresence>
-
+            {/* Revolutionary Status Badge */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: -30, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, type: "spring", stiffness: 200 }}
+            >
+              <Chip
+                label={heroContent[currentIndex].accent}
+                sx={{
+                  mb: 4,
+                  px: 3,
+                  py: 1,
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: 'white',
+                  animation: `${pulseGlow} 3s ease-in-out infinite`,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                }}
+              />
+            </motion.div>
+
+            {/* Dynamic Hero Content */}
+            <Box sx={{
+              width: '100%',
+              maxWidth: '900px',
+              mb: { xs: 6, md: 8 },
+            }}>
+              <AnimatePresence mode='wait'>
+                <motion.div
+                  key={`headline-${currentIndex}`}
+                  initial={{ opacity: 0, y: 50, rotateX: -10 }}
+                  animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                  exit={{ opacity: 0, y: -30, rotateX: 10 }}
+                  transition={{ 
+                    duration: 0.8, 
+                    type: "spring", 
+                    stiffness: 100,
+                    damping: 15 
+                  }}
+                >
+                  <Typography 
+                    variant={isMobile ? 'h3' : isTablet ? 'h2' : 'h1'} 
+                    sx={{
+                      fontWeight: 900,
+                      lineHeight: 1.1,
+                      mb: { xs: 3, sm: 4 },
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                      letterSpacing: '-0.02em',
+                      background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%)',
+                      backgroundSize: '200% 200%',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      animation: `${shimmer} 4s ease-in-out infinite`,
+                      filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.3))',
+                    }}
+                  >
+                    {heroContent[currentIndex].headline}
+                  </Typography>
+                </motion.div>
+              </AnimatePresence>
+
+              <AnimatePresence mode='wait'>
+                <motion.div
+                  key={`subhead-${currentIndex}`}
+                  initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: 0.2,
+                    type: "spring", 
+                    stiffness: 120 
+                  }}
+                >
+                  <Typography 
+                    variant={isMobile ? 'h6' : 'h5'} 
+                    sx={{
+                      mb: { xs: 4, sm: 6 },
+                      opacity: 0.95,
+                      fontWeight: 400,
+                      lineHeight: 1.6,
+                      letterSpacing: '0.01em',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      maxWidth: '85%',
+                      mx: 'auto',
+                      color: 'rgba(255,255,255,0.9)',
+                    }}
+                  >
+                    {heroContent[currentIndex].subhead}
+                  </Typography>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Revolutionary CTA Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 150,
+                  damping: 15,
+                  delay: 0.4 
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: 3,
+                  mt: 2
+                }}>
+                  <Link to="/onboarding" style={{ textDecoration: 'none' }}>
+                    <Button
+                      variant="contained"
+                      size={isMobile ? 'large' : 'large'}
+                      sx={{
+                        px: { xs: 4, sm: 6 },
+                        py: { xs: 1.5, sm: 2 },
+                        fontWeight: 800,
+                        fontSize: { xs: '1rem', sm: '1.1rem' },
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
+                        boxShadow: '0 8px 32px rgba(245, 158, 11, 0.4)',
+                        borderRadius: '16px',
+                        textTransform: 'none',
+                        letterSpacing: '0.02em',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&:before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                          transition: 'left 0.6s ease',
+                        },
+                        '&:hover': {
+                          transform: 'translateY(-3px) scale(1.02)',
+                          boxShadow: '0 12px 40px rgba(245, 158, 11, 0.6)',
+                          background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)',
+                          '&:before': {
+                            left: '100%',
+                          },
+                        },
+                        '&:active': {
+                          transform: 'translateY(-1px) scale(0.98)',
+                        },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      {heroContent[currentIndex].ctaPrimary}
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/pricing" style={{ textDecoration: 'none' }}>
+                    <Button
+                      variant="outlined"
+                      size={isMobile ? 'large' : 'large'}
+                      sx={{
+                        px: { xs: 4, sm: 6 },
+                        py: { xs: 1.5, sm: 2 },
+                        fontWeight: 700,
+                        fontSize: { xs: '1rem', sm: '1.1rem' },
+                        borderWidth: 2,
+                        borderColor: 'rgba(255,255,255,0.4)',
+                        color: 'white',
+                        backdropFilter: 'blur(20px)',
+                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '16px',
+                        textTransform: 'none',
+                        letterSpacing: '0.02em',
+                        position: 'relative',
+                        '&:hover': {
+                          borderWidth: 2,
+                          borderColor: 'rgba(255,255,255,0.8)',
+                          background: 'rgba(255,255,255,0.2)',
+                          transform: 'translateY(-3px) scale(1.02)',
+                          boxShadow: '0 8px 32px rgba(255,255,255,0.2)',
+                        },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      {heroContent[currentIndex].ctaSecondary}
+                    </Button>
+                  </Link>
+                </Box>
+              </motion.div>
+            </Box>
+
+            {/* Revolutionary Video Demo Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 100,
-                damping: 15,
-                delay: 0.3 // More natural delay after text appears
-              }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              style={{ width: '100%' }}
             >
               <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                flexDirection: { xs: 'column', sm: 'row' },
-                gap: 2,
-                mt: 4
+                width: '100%',
+                maxWidth: '800px',
+                mx: 'auto',
+                position: 'relative',
+                '&:before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -20,
+                  left: -20,
+                  right: -20,
+                  bottom: -20,
+                  background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.1))',
+                  borderRadius: '24px',
+                  filter: 'blur(20px)',
+                  zIndex: -1,
+                },
               }}>
-                <Button
-                  component={Link}
-                  to="/onboarding"
-                  variant="contained"
-                  color="warning"
-                  size={isMobile ? 'medium' : 'large'}
-                  sx={{
-                    px: 4,
-                    fontWeight: 700, // Bolder weight
-                    boxShadow: '0 4px 20px rgba(242, 153, 74, 0.4)',
-                    '&:hover': {
-                      boxShadow: '0 6px 24px rgba(242, 153, 74, 0.5)',
-                      transform: 'translateY(-2px)'
-                    },
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    borderRadius: '12px', // Modern rounded corners
-                    textTransform: 'none', // More professional casing
-                    fontSize: isMobile ? '0.9rem' : '1rem',
-                    letterSpacing: '0.02em'
-                  }}
-                >
-                  {heroContent[currentIndex].ctaPrimary}
-                </Button>
-                <Button
-                  component={Link}
-                  to="/pricing"
-                  variant="outlined"
-                  color="inherit"
-                  size={isMobile ? 'medium' : 'large'}
-                  sx={{
-                    px: 4,
-                    fontWeight: 600,
-                    borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                      backgroundColor: 'rgba(255,255,255,0.15)',
-                      transform: 'translateY(-2px)'
-                    },
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontSize: isMobile ? '0.9rem' : '1rem',
-                    letterSpacing: '0.02em',
-                    color: 'white',
-                    borderColor: 'rgba(255,255,255,0.3)',
-                    backdropFilter: 'blur(4px)'
-                  }}
-                >
-                  {heroContent[currentIndex].ctaSecondary}
-                </Button>
+                <VideoDemoWithUseCases />
               </Box>
             </motion.div>
-          </Box>
-
-          {/* Video Demo Section */}
-          <Box sx={{ 
-            width: '100%', 
-            mt: 'auto', // Push to bottom of container
-            mb: { xs: 4, md: 6 } 
-          }}>
-            <VideoDemoWithUseCases />
-          </Box>
-        </Container>
-      </Box>
+          </Container>
+        </Box>
+      </motion.div>
 
       {/* Rest of your components remain the same */}
       <Box sx={{
