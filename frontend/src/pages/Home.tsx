@@ -477,19 +477,14 @@ export default function Home() {
         zIndex: 2
       }}>
         <LiveChat />
-        <Container maxWidth="lg" sx={{
-          py: { xs: 8, sm: 10, md: 12 },
-          position: 'relative'
-        }}>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <FeatureShowcase />
-          </motion.div>
-        </Container>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <FeatureShowcase />
+        </motion.div>
 
         <Box sx={{
           backgroundColor: 'background.paper',
