@@ -216,7 +216,7 @@ export default function Header() {
   const navigationItems = [
     { label: '🚀 Features', path: '/features', icon: '🚀', isScroll: true, scrollTarget: 'features' },
     { label: '💎 Pricing', path: '/pricing', icon: '💎', isScroll: false },
-    { label: '📞 Contact', path: '/contact', icon: '📞', isScroll: false },
+    // { label: '📞 Contact', path: '/contact', icon: '📞', isScroll: false },
   ];
 
   return (

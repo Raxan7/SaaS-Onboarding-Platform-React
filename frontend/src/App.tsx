@@ -39,9 +39,6 @@ function App() {
               <ThemeProvider theme={theme}>
                 <ErrorBoundary> {/* Wrap the app in an error boundary */}
                   <Routes>
-                    {/* Redirect /index.html to root path */}
-                    <Route path="/index.html" element={<Navigate to="/" replace />} />
-                    
                     {/* Unprotected routes with Header and Footer */}
                     <Route path="/" element={<><Header /><Home /><Footer /></>} />
                     <Route path="/trial" element={<><Header /><Trial /><Footer /></>} />
