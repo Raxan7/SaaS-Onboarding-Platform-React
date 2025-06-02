@@ -1,8 +1,9 @@
-import { Container, Typography, Button, Box, useTheme, useMediaQuery, Chip } from '@mui/material';
+import { Container, Typography, Button, Box, useTheme, useMediaQuery, Chip, Modal, IconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { keyframes } from '@emotion/react';
 import { motion, AnimatePresence, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
 import FeatureShowcase from '../components/FeatureShowcase';
 import Testimonials from '../components/Testimonials';
 import MeetingGuarantee from '../components/MeetingGuarantee';
@@ -56,6 +57,7 @@ export default function Home() {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   
   // Interactive mouse tracking
   const mouseX = useMotionValue(0);
@@ -108,6 +110,20 @@ export default function Home() {
         behavior: 'smooth',
         block: 'start'
       });
+    }
+  };
+
+  // Video modal handlers
+  const handleVideoModalOpen = () => {
+    setVideoModalOpen(true);
+  };
+
+  const handleVideoModalClose = () => {
+    setVideoModalOpen(false);
+    // Pause the video when modal closes
+    const modalVideo = document.getElementById('modalDemoVideo') as HTMLVideoElement;
+    if (modalVideo) {
+      modalVideo.pause();
     }
   };
 
@@ -445,6 +461,37 @@ export default function Home() {
                     >
                       {heroContent[currentIndex].ctaSecondary}
                     </Button>
+                  ) : heroContent[currentIndex].ctaSecondary === "🎪 Watch Demo" ? (
+                    <Button
+                      variant="outlined"
+                      size={isMobile ? 'large' : 'large'}
+                      onClick={handleVideoModalOpen}
+                      sx={{
+                        px: { xs: 4, sm: 6 },
+                        py: { xs: 1.5, sm: 2 },
+                        fontWeight: 700,
+                        fontSize: { xs: '1rem', sm: '1.1rem' },
+                        borderWidth: 2,
+                        borderColor: 'rgba(255,255,255,0.4)',
+                        color: 'white',
+                        backdropFilter: 'blur(20px)',
+                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '16px',
+                        textTransform: 'none',
+                        letterSpacing: '0.02em',
+                        position: 'relative',
+                        '&:hover': {
+                          borderWidth: 2,
+                          borderColor: 'rgba(255,255,255,0.8)',
+                          background: 'rgba(255,255,255,0.2)',
+                          transform: 'translateY(-3px) scale(1.02)',
+                          boxShadow: '0 8px 32px rgba(255,255,255,0.2)',
+                        },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      {heroContent[currentIndex].ctaSecondary}
+                    </Button>
                   ) : (
                     <Link to="/pricing" style={{ textDecoration: 'none' }}>
                       <Button
@@ -574,6 +621,107 @@ export default function Home() {
           </motion.div>
         </Container>
       </Box>
+
+      {/* Video Modal */}
+      <Modal
+        open={videoModalOpen}
+        onClose={handleVideoModalClose}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 50 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{
+            position: 'relative',
+            outline: 'none',
+            width: '90%',
+            maxWidth: '800px',
+            height: 'auto',
+            maxHeight: '90vh',
+          }}
+        >
+          <Box sx={{
+            position: 'relative',
+            backgroundColor: 'rgba(20, 25, 35, 0.95)',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+          }}>
+            {/* Close Button */}
+            <IconButton
+              onClick={handleVideoModalClose}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                zIndex: 10,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  transform: 'scale(1.1)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+
+            {/* Video Container */}
+            <Box sx={{
+              position: 'relative',
+              paddingTop: '56.25%', // 16:9 aspect ratio
+              width: '100%',
+              background: 'linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))',
+            }}>
+              {/* Actual Demo Video */}
+              <video
+                src="/demo_video.mp4"
+                controls
+                autoPlay
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
+                }}
+                id="modalDemoVideo"
+              />
+            </Box>
+
+            {/* Video Info */}
+            <Box sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ 
+                color: 'white', 
+                fontWeight: 700,
+                mb: 1
+              }}>
+                🚀 See Our Platform in Action
+              </Typography>
+              <Typography variant="body2" sx={{ 
+                color: 'rgba(255, 255, 255, 0.8)',
+                lineHeight: 1.6
+              }}>
+                Watch how our AI-powered matching system connects you with world-class experts in seconds. 
+                From instant booking to breakthrough results, see why successful leaders choose our platform.
+              </Typography>
+            </Box>
+          </Box>
+        </motion.div>
+      </Modal>
     </Box>
   );
 }
