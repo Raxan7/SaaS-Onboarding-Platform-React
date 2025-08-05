@@ -6,6 +6,8 @@ This platform connects businesses with expert consultants for professional guida
 
 [Watch Project Demo & Explanation](https://www.youtube.com/watch?v=0IL2us5frsA)
 
+![Homepage Screenshot](docs/images/homepage.png)
+
 ## Core Features
 
 ### For Clients
@@ -86,4 +88,3 @@ This project was developed for a client and is not open source. All rights reser
 ---
 
 *Note: This project was custom-built for a client. The video demonstration provides a comprehensive overview of the platform's capabilities and implementation.*
-```
